@@ -7,8 +7,8 @@ function App() {
     <div className="App">
       <header className="App-header">
         <p>Hello X</p>
-          Go-Canvas
-        </a>
+          Go-Canvas 2024
+        
       </header>
     </div>
   );
