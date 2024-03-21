@@ -1,16 +1,50 @@
+import { createTheme, ThemeProvider } from '@mui/material';
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import LoginPage from './pages/login';
+import DashboardPage from './pages/dashboard';
+import AccountPage from './pages/account';
+import CoursesPage from './pages/courses';
+
 
 function App() {
+  const theme = createTheme({
+    palette: {
+      primary: {
+        main: "#75CA67"
+      },
+      secondary: {
+        main: "#999999"
+      },
+    },
+    breakpoints: {
+      values: {
+        xs: 0,
+        sm: 575,
+        md: 767,
+        lg: 991,
+        xl: 1199,
+      }
+    },
+    spacing: 8,
+    typography: {
+      fontFamily: [
+        'Fira Sans', 'sans-serif',
+      ].join(','),
+    },
+  });
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>Hello X</p>
-          Go-Canvas 2024
-        
-      </header>
-    </div>
+    <ThemeProvider theme={theme}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="dashboard" element={<DashboardPage />}></Route>
+          <Route path="courses" element={<CoursesPage />}></Route>
+          <Route path="account" element={<AccountPage />}></Route>
+          <Route path="/" element={<LoginPage />}></Route>
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
