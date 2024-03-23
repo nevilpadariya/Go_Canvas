@@ -3,13 +3,7 @@ import React from "react";
 import { Helmet } from "react-helmet";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
-import Upload from "../components/upload";
 import { radio, radioChecked, checkBoxChecked, checkBox, selectDropdown } from "../assets/images";
-import { DesktopDatePicker, LocalizationProvider } from "@mui/lab";
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-import CustomTabs from "../components/tab";
-import CustomTable from "../components/table";
-import DropdownField from "../components/dropdown";
 
 function CheckboxDefault() {
     return (<img src={checkBox} alt="checkbox" />);
