@@ -22,7 +22,7 @@ function DashboardPage() {
     return (
         <>
             <Helmet>
-                <title>Dashboard | Go Canvas</title>
+                <title>Go Canvas</title>
             </Helmet>
         {/* Dashboardpage-Start */}
             <div className="wrapper">
