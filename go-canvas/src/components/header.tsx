@@ -41,8 +41,8 @@ function Header() {
             
                 <a href="#">
                     <img src={companyLogo} alt="company" className="logo" />
-                </a>
                 <h2>Go-Canvas</h2>
+                </a>
                 {
                     location.pathname != '/' && ( <Button variant="contained" color="info" style={{position: "absolute", right: "10px"}}
                     onClick={()=>{ navigate('/')}}>Log Out</Button>) 
