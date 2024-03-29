@@ -3,6 +3,7 @@ import React from "react";
 import { Helmet } from "react-helmet";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
+import DashboardCard from "../components/dashboardcard";
 import { orderscard, profitIcon, selectDropdown } from "../assets/images";
 import CustomTable from "../components/table";
 
@@ -43,7 +44,8 @@ function DashboardPage() {
                             <Grid item md={12} lg={12} spacing={3} container className="grid-section-1">
         {/* Dashboardpage-Two-Cards-Start */}
                                 <Grid item sm={12} md={6} lg={6} className="order-grid">
-                                    <div className="card order-card">
+                                    <DashboardCard></DashboardCard>
+                                    {/* <div className="card order-card">
                                         <div className="sellings">
                                             <div className="selling-icon">
                                                 <img src={orderscard} alt="order" />
@@ -52,12 +54,11 @@ function DashboardPage() {
                                                 <h3>Course</h3>
                                                 <p>Python</p>
                                             </div>
-                                            {/* <span className="selilng-pl">+20</span> */}
                                         </div>
-                                    </div>
+                                    </div> */}
                                 </Grid>
                                 <Grid item sm={12} md={6} lg={6} className="profit-grid">
-                                    <div className="card profit-card">
+                                    {/* <div className="card profit-card">
                                         <div className="sellings">
                                             <div className="selling-icon">
                                                 <img src={profitIcon} alt="profit" />
@@ -66,9 +67,9 @@ function DashboardPage() {
                                                 <h3>Course</h3>
                                                 <p>java</p>
                                             </div>
-                                            {/* <span className="selilng-pl">+$ 840,00</span> */}
                                         </div>
-                                    </div>
+                                    </div> */}
+                                            <DashboardCard></DashboardCard>
                                 </Grid>
                             </Grid>
                         </Grid>
