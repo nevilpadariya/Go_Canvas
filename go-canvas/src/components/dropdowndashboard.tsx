@@ -29,7 +29,6 @@ function DashboardDropdown() {
                 </MenuItem>
                 <MenuItem value={"10"}>Weekly</MenuItem>
                 <MenuItem value={"20"}>Yeary</MenuItem>
-                <MenuItem value={"30"}>Daily</MenuItem>
             </Select>
         </FormControl>
     </>);
