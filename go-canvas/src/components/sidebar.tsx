@@ -6,12 +6,6 @@ import SideDrawer from "./drawer";
 function Sidebar(){
     return(
         <>
-        <div className="profile">
-        <div className="profile-img">
-            <img src={johnsmithside} alt="john-smith" />
-        </div>
-        <h6>John Smith</h6>
-        </div>
         <nav className="navbar">
             <ul>
             <li><NavLink className="nav-link" onClick={e => document.body.classList.remove('sidebar-open')} to={"/dashboard"} title="Dashboard"> <img src={dashboardIcon} alt="dashboard" className="default-icon" /><img src={dashboardactive} alt="dashboard" className="active-icon" /> Dashboard</NavLink></li>
