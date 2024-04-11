@@ -9,12 +9,6 @@ export default function DashboardCard() {
   return (
     <Card sx={{ maxWidth: 345 }}>
       <CardActionArea>
-        <CardMedia
-          component="img"
-          height="100"
-          image="/static/images/cards/contemplative-reptile.jpg"
-          alt="green iguana"
-        />
         <CardContent>
           <Typography gutterBottom variant="h5" component="div">
             Course 1

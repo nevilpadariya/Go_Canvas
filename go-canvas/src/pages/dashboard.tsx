@@ -42,33 +42,16 @@ function DashboardPage() {
                         </div>
                         <Grid container spacing={3} className="grid-sections">
                             <Grid item md={12} lg={12} spacing={3} container className="grid-section-1">
-        {/* Dashboardpage-Two-Cards-Start */}
-                                <Grid item sm={12} md={6} lg={6} className="order-grid">
+                                <Grid item sm={12} md={4} lg={4} className="courses-grid">
                                     <DashboardCard></DashboardCard>
-                                    {/* <div className="card order-card">
-                                        <div className="sellings">
-                                            <div className="selling-icon">
-                                                <img src={orderscard} alt="order" />
-                                            </div>
-                                            <div className="selling-details">
-                                                <h3>Course</h3>
-                                                <p>Python</p>
-                                            </div>
-                                        </div>
-                                    </div> */}
                                 </Grid>
-                                <Grid item sm={12} md={6} lg={6} className="profit-grid">
-                                    {/* <div className="card profit-card">
-                                        <div className="sellings">
-                                            <div className="selling-icon">
-                                                <img src={profitIcon} alt="profit" />
-                                            </div>
-                                            <div className="selling-details">
-                                                <h3>Course</h3>
-                                                <p>java</p>
-                                            </div>
-                                        </div>
-                                    </div> */}
+                                <Grid item sm={12} md={4} lg={4} className="courses-grid">
+                                            <DashboardCard></DashboardCard>
+                                </Grid>
+                                <Grid item sm={12} md={4} lg={4} className="courses-grid">
+                                    <DashboardCard></DashboardCard>
+                                </Grid>
+                                <Grid item sm={12} md={4} lg={4} className="courses-grid">
                                             <DashboardCard></DashboardCard>
                                 </Grid>
                             </Grid>
