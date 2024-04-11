@@ -17,7 +17,7 @@ function LoginPage() {
     return (
         <>
             <Helmet>
-                <title>Login | Go-Canvas</title>
+                <title>Login | Go--Canvas</title>
             </Helmet>
             <Header></Header>
             {/* Loginpage-Start */}
