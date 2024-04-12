@@ -9,6 +9,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { searchIcon } from "../assets/images";
 import { menuIcon } from "../assets/images";
 
+
+
 function Header() {
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -45,7 +47,7 @@ function Header() {
                 </a>
                 {
                     location.pathname != '/' && ( <Button variant="contained" color="info" style={{position: "absolute", right: "10px"}}
-                    onClick={()=>{ navigate('/')}}>Log Out</Button>) 
+                    onClick={()=>{ localStorage.removeItem('token'); navigate('/')}}>Log Out</Button>) 
                 }
             </div>
         </div>

@@ -20,6 +20,7 @@ a{text-decoration: none;}
 .login-wrapper{min-height: 100vh;background: #F3F5F7;display: flex;align-items: center;justify-content: center;padding: 124px 50px;}
 .login-wrapper .MuiPaper-root.MuiCard-root{box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);max-width: 496px;}
 .login-wrapper .MuiCardContent-root{padding: 0;}
+.login-wrapper .MuiBox-root{margin-top: 0;}
 .login-wrapper .MuiCardContent-root:last-child{padding: 0;}
 .login-banner{width: 100%;height: 163px;background-image: url(./assets/images/login-banner.svg);background-repeat: no-repeat;background-size: cover;position: relative;}
 .login-banner::before{background: #67BF58;display: block;content: "";position: absolute;width: 100%;height: 100%;opacity: 92%;}
