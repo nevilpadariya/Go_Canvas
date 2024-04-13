@@ -41,7 +41,7 @@ function CoursesPage() {
     return (
         <>
             <Helmet>
-                <title>Courses | Go-Canvas</title>
+                <title>Course | Go-Canvas</title>
             </Helmet>
         {/* Innerpage-Start */}
             <div className="wrapper">
