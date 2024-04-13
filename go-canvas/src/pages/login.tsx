@@ -111,7 +111,7 @@ const Login: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Login | Go--Canvas</title>
+        <title>Login | Go-Canvas</title>
       </Helmet>
       <Header></Header>
       <section className="login-wrapper">

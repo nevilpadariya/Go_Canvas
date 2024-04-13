@@ -1,16 +1,10 @@
-import { FormControl, Grid, MenuItem, Select, SelectChangeEvent } from "@mui/material";
+
 import React from "react";
 import { Helmet } from "react-helmet";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import DashboardCard from "../components/dashboardcard";
 import { orderscard, profitIcon, selectDropdown } from "../assets/images";
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import Typography from '@mui/material/Typography';
-import { Button, CardActionArea, CardActions } from '@mui/material';
-import CustomTable from "../components/table";
 
 
 function DropdownArrow() {
@@ -28,7 +22,7 @@ function DashboardPage() {
     return (
         <>
             <Helmet>
-                <title>Go Canvas</title>
+                <title>Go-Canvas</title>
             </Helmet>
             {/* Dashboardpage-Start */}
             <div className="wrapper">
