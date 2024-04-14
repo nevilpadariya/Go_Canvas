@@ -3,33 +3,7 @@ import React from "react";
 import { Helmet } from "react-helmet";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
-import {
-  radio,
-  radioChecked,
-  checkBoxChecked,
-  checkBox,
-  selectDropdown,
-  johnsmithside,
-} from "../assets/images";
-
-function CheckboxDefault() {
-  return <img src={checkBox} alt="checkbox" />;
-}
-function CheckboxChecked() {
-  return <img src={checkBoxChecked} alt="checkbox" />;
-}
-function RadioDefault() {
-  return <img src={radio} alt="checkbox" />;
-}
-function RadioChecked() {
-  return <img src={radioChecked} alt="checkbox" />;
-}
-
-function MultiDropdownArrow() {
-  return (
-    <img className="multi-dropdown" src={selectDropdown} alt="downarrow" />
-  );
-}
+import { johnsmithside } from "../assets/images";
 
 function AccountPage() {
   const [personName, setPersonName] = React.useState<string[]>([]);
@@ -88,7 +62,7 @@ function AccountPage() {
                     label="Biography"
                     variant="standard"
                   />
-                  <div style={{display:"flex", justifyContent:"center"}}>
+                  <div style={{ display: "flex", justifyContent: "center" }}>
                     <Button variant="contained">Save Changes</Button>
                   </div>
                 </div>
