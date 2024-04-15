@@ -52,9 +52,6 @@ export default function CustomTabs() {
             <TabPanel value={value} index={1}>
                 <p>2.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam rutrum interdum quisque sed sit. Urna cursus eu libero accumsan odio arcu tempor. Eget amet volutpat consequat suscipit in a netus in magna. Risus mattis sed morbi phasellus est nunc. Sagittis, quam aenean ut vel tristique rhoncus. Id risus vivamus dictum ultricies justo, magna venenatis, elit. Ipsum eu rhoncus egestas eu, orci. In nisl nulla tristique dolor. Vulputate lobortis massa vel massa tempor. Pulvinar urna, metus, in ac aliquet quam. Ligula sit tellus nulla diam ac placerat condimentum suspendisse. Lectus eget id ac viverra in eu dolor vulputate malesuada. Amet gravida placerat congue convallis est.</p>
             </TabPanel>
-            <TabPanel value={value} index={2}>
-                <p>3.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam rutrum interdum quisque sed sit. Urna cursus eu libero accumsan odio arcu tempor. Eget amet volutpat consequat suscipit in a netus in magna. Risus mattis sed morbi phasellus est nunc. Sagittis, quam aenean ut vel tristique rhoncus. Id risus vivamus dictum ultricies justo, magna venenatis, elit. Ipsum eu rhoncus egestas eu, orci. In nisl nulla tristique dolor. Vulputate lobortis massa vel massa tempor. Pulvinar urna, metus, in ac aliquet quam. Ligula sit tellus nulla diam ac placerat condimentum suspendisse. Lectus eget id ac viverra in eu dolor vulputate malesuada. Amet gravida placerat congue convallis est.</p>
-            </TabPanel>
         </Box>
     );
 }
