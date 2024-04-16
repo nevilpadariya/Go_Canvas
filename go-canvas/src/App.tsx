@@ -6,7 +6,8 @@ import LoginPage from './pages/login';
 import DashboardPage from './pages/dashboard';
 import AccountPage from './pages/account';
 import CoursesPage from './pages/courses';
-
+import CourseHomepage from './pages/coursehomepage';
+import Test from './pages/test';
 
 function App() {
   const theme = createTheme({
@@ -41,6 +42,8 @@ function App() {
           <Route path="dashboard" element={<DashboardPage />}></Route>
           <Route path="courses" element={<CoursesPage />}></Route>
           <Route path="account" element={<AccountPage />}></Route>
+          <Route path="courseshome" element={<CourseHomepage />}></Route>
+          <Route path="test" element={<Test />}></Route>
           <Route path="/" element={<LoginPage />}></Route>
         </Routes>
       </BrowserRouter>

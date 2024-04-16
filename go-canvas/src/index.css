@@ -258,6 +258,26 @@ a{text-decoration: none;}
 .MuiDataGrid-virtualScroller{margin-top: 48px !important;}
 .status .MuiDataGrid-cellContent{text-align: center;padding: 3px 10px;color: white;border-radius: 215px;background: #75CA67;width: 90px;}
 
+
+
+/* Course Page */
+
+ .course-content { background: #F3F5F7; min-height: 100vh; display: flex; padding: 30px 15px; width: 100%;}
+ .course-sidebar.sidebar {max-width: 100px; }
+ .course-sidebar .navbar .nav-link{flex-direction: column;}
+ .course-sidebar .nav-link img{margin: 0;}
+
+ /* Test-CSS */
+.test-container{background: #75CA67;
+  height: auto;
+  display: flex;
+  width: 100%;
+  z-index: 0;
+  position: absolute;}
+.test-container .course-content{padding: 0;}
+
+
+
 /* Responsive Media Queries
 --------------------------------------------------------------------------------------------------------*/
 @media (max-width:1559px) {

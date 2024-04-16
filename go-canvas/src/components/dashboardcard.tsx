@@ -4,12 +4,13 @@ import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
 import { Button, CardActionArea, CardActions } from '@mui/material';
+import { Link } from 'react-router-dom';
 
 export default function DashboardCard() {
   return (
     <Card sx={{ maxWidth: 345 }}>
       <CardActionArea>
-        <CardContent>
+        <CardContent component={Link} to="/test">
           <Typography gutterBottom variant="h5" component="div">
             Course 1
           </Typography>
