@@ -33,7 +33,7 @@ export default function SearchBar() {
       <Search>
         <img src={searchIcon} alt="search" />
         <StyledInputBase
-          placeholder="Search…"
+          placeholder="Search."
           inputProps={{ "aria-label": "search" }}
         />
       </Search>
