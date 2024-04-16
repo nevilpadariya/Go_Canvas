@@ -35,7 +35,7 @@ const rows = [
 
 export default function CustomTable() {
     return (
-        <div style={{ height: 308, width: '100%' }}>
+        <div style={{ height: 310, width: '100%' }}>
             <DataGrid rows={rows}
                 columns={columns}
                 pageSize={5}
