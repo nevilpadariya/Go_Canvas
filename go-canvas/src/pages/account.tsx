@@ -7,7 +7,10 @@ import { johnsmithside } from "../assets/images";
 
 function AccountPage() {
   const [personName, setPersonName] = React.useState<string[]>([]);
-
+  const [textState, setTextState] = React.useState("Off");
+  const toggleText = () => {
+    setTextState((state) => (state === "On" ? "Off" : "On"));
+};
   const handleChange2 = (event: SelectChangeEvent<typeof personName>) => {
     const {
       target: { value },
@@ -54,18 +57,30 @@ function AccountPage() {
                   <h6>John Smith</h6>
                 </div>
                 <div style={{ right: "10px", position: "absolute" }}>
-                  <Button variant="contained">Edit Profile</Button>
+                  <Button variant="contained" onClick={toggleText} >{textState == 'Off' ? 'Edit' : 'Cancel'}</Button>
                 </div>
+                {(textState == 'On') ?
                 <div>
                   <TextField
                     id="standard-basic"
-                    label="Biography"
+                    label="First Name"
+                    variant="standard"
+                  />
+                  <TextField
+                    id="standard-basic"
+                    label="Last Name"
                     variant="standard"
                   />
                   <div style={{ display: "flex", justifyContent: "center" }}>
                     <Button variant="contained">Save Changes</Button>
                   </div>
                 </div>
+                : 
+                <div>
+                  First Name <br />
+                  Last Name
+                </div>
+                }
               </div>
             </div>
           </div>
