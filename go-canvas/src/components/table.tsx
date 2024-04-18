@@ -19,7 +19,7 @@ const columns: GridColDef[] = [
 ];
 // row list
 const rows = [
-    { id: 1, name: 'John Smith', email: 'John.smith@company.com', availableData: ' 450 MB', downloads: '55 %', status: 'Active'},
+    { id: 1, name: 'John Smith', email: 'John.smith@company.com', availableData: ' 450 MB', downloads: '95 %', status: 'Active'},
     { id: 2, name: 'David Bough', email: 'david.bough@company,com', availableData: ' 457 MB', downloads: '65 %', status: 'Block'},
     { id: 3, name: 'Kevin Archer', email: 'kevin.archer@gmail.com', availableData: ' 231 MB', downloads: '75 %', status: 'Active'},
     { id: 4, name: 'Sara Ovens', email: 'sara.ovens@company.com', availableData: ' 120 MB', downloads: '25 %', status: 'Block'},
