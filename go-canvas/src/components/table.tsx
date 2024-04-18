@@ -17,7 +17,7 @@ const columns: GridColDef[] = [
         )
     } },
 ];
-
+// row list
 const rows = [
     { id: 1, name: 'John Smith', email: 'John.smith@company.com', availableData: ' 450 MB', downloads: '55 %', status: 'Active'},
     { id: 2, name: 'David Bough', email: 'david.bough@company,com', availableData: ' 457 MB', downloads: '65 %', status: 'Block'},
