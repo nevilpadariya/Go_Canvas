@@ -21,10 +21,7 @@ function Test() {
         ></div>
         <Header></Header>
         <div className="main-background"></div>
-        <div className="test-container">
-          <div className="test-sidebar">
-            <CourseSidebar></CourseSidebar>
-          </div>
+        <div className="course-container">
           <main className="course-content">
             <div className="sidebar course-sidebar">
               <Sidebar></Sidebar>
