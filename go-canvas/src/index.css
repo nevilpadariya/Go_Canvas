@@ -125,10 +125,10 @@ a{text-decoration: none;}
 
 /*-----------------Dashboard-Page---------------*/
 .wrapper{min-height: 100vh;position: relative;}
-.dashnoard-content{background: #F3F5F7;min-height: 100vh;display: flex;padding:30px 15px;width: 100%;}
+.dashnoard-content{background: #F3F5F7;min-height: 100vh;display: flex;padding:30px 15px 30px 10px;width: 100%;}
 .main-background{background: #75CA67;height: 90px;width: 100%;z-index: 0;position: absolute;}
-.sidebar {max-width: 242px;min-height: 100vh;background: #ffffff;box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);flex-grow: 0;flex-shrink: 0;flex-basis: 242px;padding:16px 0;position: relative;border-radius: 6px;}
-.main-content {max-width: calc(100% - 242px);flex-basis: calc(100% - 242px);flex-grow: 0;flex-shrink: 0;padding-left: 22px;position: relative;padding-top: 20px;}
+.sidebar {max-width: 160px;min-height: 100vh;background: #ffffff;box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);flex-grow: 0;flex-shrink: 0;flex-basis: 160px;padding:16px 0;position: relative;border-radius: 6px;}
+.main-content {max-width: calc(100% - 160px);flex-basis: calc(100% - 160px);flex-grow: 0;flex-shrink: 0;padding-left: 20px;position: relative;padding-top: 10px;}
 .card{background: #FFFFFF;box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);border-radius: 4px;min-height: 100px;padding: 20px 30px;display: flex;position: relative;flex-direction: column;margin-bottom: 24px;height: calc(100% - 24px);}
 .grid-sections.MuiGrid-root{margin-top: 0;width: calc(100% + 22px);margin-left: -22px;flex-wrap: nowrap;}
 .grid-section-1.MuiGrid-root{padding: 0;margin: 0;width: 100%;}
@@ -262,19 +262,13 @@ a{text-decoration: none;}
 
 /* Course Page */
 
- .course-content { background: #F3F5F7; min-height: 100vh; display: flex; padding: 30px 15px; width: 100%;}
- .course-sidebar.sidebar {max-width: 100px; }
- .course-sidebar .navbar .nav-link{flex-direction: column;}
+ .course-content { background: #F3F5F7; min-height: 100vh; display: flex; padding: 30px 15px 30px 8px; width: 100%;}
+ .course-sidebar .navbar .nav-link{flex-direction: column; padding: 12px 6px}
  .course-sidebar .nav-link img{margin: 0;}
+ .sidebar.course-sidebar {max-width: 90px;flex-basis:90px; padding: 8px 0;}
+ .course-container .main-content {max-width: calc(100% - 90px);flex-basis: calc(100% - 90px)}
 
  /* Test-CSS */
-.test-container{background: #75CA67;
-  height: auto;
-  display: flex;
-  width: 100%;
-  z-index: 0;
-  position: absolute;}
-.test-container .course-content{padding: 0;}
 
 
 
