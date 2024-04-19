@@ -5,6 +5,12 @@ import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import DashboardCard from "../components/dashboardcard";
 import { orderscard, profitIcon, selectDropdown } from "../assets/images";
+import Accordion from '@mui/material/Accordion';
+import AccordionActions from '@mui/material/AccordionActions';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Button from '@mui/material/Button';
 
 function DropdownArrow() {
   return <img className="dropdown-icon" src={selectDropdown} alt="downarrow" />;
@@ -56,6 +62,27 @@ function DashboardPage() {
                 <Grid item sm={12} md={4} lg={4} className="courses-grid">
                   <DashboardCard></DashboardCard>
                 </Grid>
+              </Grid>
+            </Grid>
+            <div className="dashboard-dropdown">
+            <Accordion>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel1-content"
+          id="panel1-header"
+        >
+          Previous Semesters
+        </AccordionSummary>
+        <AccordionDetails>
+        <Grid container spacing={3} className="grid-sections">
+              <Grid
+                item
+                md={12}
+                lg={12}
+                spacing={3}
+                container
+                className="grid-section-1"
+              >
                 <Grid item sm={12} md={4} lg={4} className="courses-grid">
                   <DashboardCard></DashboardCard>
                 </Grid>
@@ -64,6 +91,9 @@ function DashboardPage() {
                 </Grid>
               </Grid>
             </Grid>
+        </AccordionDetails>
+      </Accordion>
+            </div>
           </div>
         </main>
       </div>
