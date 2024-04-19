@@ -181,6 +181,12 @@ a{text-decoration: none;}
 .table .MuiPaper-root.MuiTableContainer-root{border: none;box-shadow: none;padding-top: 5px;padding-bottom: 20px;}
 .table .card{margin-bottom: 0;height: 100%;}
 
+.dashboard-dropdown{margin: 80px 0 20px 24px;}
+.dashboard-dropdown .css-1086bdv-MuiPaper-root-MuiAccordion-root.Mui-expanded:last-of-type{background: #F3F5F7;}
+.course-card .MuiCardActions-root{justify-content: center;}
+.course-card .MuiTypography-root{padding: 0 14px;}
+.dashboard-dropdown .css-1ofj3n9-MuiGrid-root>.MuiGrid-item{padding: 0;}
+
 /*-----------------inner-page---------------------------*/
 .innerpage-table{margin-bottom: 24px;height: auto;margin-top: 30px;}
 .custom-card{margin-bottom: 24px;height: auto;}

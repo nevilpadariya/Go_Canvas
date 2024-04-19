@@ -8,11 +8,11 @@ import { Link } from 'react-router-dom';
 
 export default function DashboardCard() {
   return (
-    <Card sx={{ maxWidth: 345 }}>
+    <Card sx={{ maxWidth: 345 }} className='course-card'>
       <CardActionArea>
         <CardContent component={Link} to="/test">
-          <Typography gutterBottom variant="h5" component="div">
-            Course 1
+          <Typography gutterBottom variant="h6" component="div">
+            Course ID
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Course Name
@@ -20,8 +20,8 @@ export default function DashboardCard() {
         </CardContent>
       </CardActionArea>
       <CardActions>
-        <Button size="small" color="primary">
-          Share
+        <Button size="small" color="primary" component={Link} to="/test">
+          View Content
         </Button>
       </CardActions>
     </Card>
