@@ -9,6 +9,7 @@ import CoursesPage from './pages/courses';
 import CourseHomepage from './pages/coursehomepage';
 import Test from './pages/test';
 import AdminDashboardPage from './pages/admindashboard';
+import FacultyDashnboard from './pages/faculty/facultydashboard';
 
 function App() {
   const theme = createTheme({
@@ -46,6 +47,7 @@ function App() {
           <Route path="courseshome" element={<CourseHomepage />}></Route>
           <Route path="test" element={<Test />}></Route>
           <Route path="dashadmin" element={<AdminDashboardPage />}></Route>
+          <Route path="faculty_dashboard" element={<FacultyDashnboard />}></Route>
           <Route path="/" element={<LoginPage />}></Route>
         </Routes>
       </BrowserRouter>
