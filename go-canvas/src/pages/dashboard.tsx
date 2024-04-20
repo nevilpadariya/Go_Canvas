@@ -1,20 +1,14 @@
-import { Grid, Select, SelectChangeEvent } from "@mui/material";
+import { Grid, SelectChangeEvent } from "@mui/material";
 import React from "react";
 import { Helmet } from "react-helmet";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
 import DashboardCard from "../components/dashboardcard";
-import { orderscard, profitIcon, selectDropdown } from "../assets/images";
 import Accordion from '@mui/material/Accordion';
-import AccordionActions from '@mui/material/AccordionActions';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Button from '@mui/material/Button';
 
-function DropdownArrow() {
-  return <img className="dropdown-icon" src={selectDropdown} alt="downarrow" />;
-}
 
 function DashboardPage() {
   const [number, setNumber] = React.useState("");
