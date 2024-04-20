@@ -27,6 +27,7 @@ function Test() {
               <Sidebar></Sidebar>
             </div>
             <div className="main-content">
+              <CourseSidebar></CourseSidebar>
               <div className="main-title">
                 <h5>Course</h5>
                 <h6>Go-Canvas</h6>
