@@ -33,7 +33,7 @@ function FacultyDashnboard() {
           </div>
           <div className="main-content">
             <div className="main-title">
-              <h5>Dashboard</h5>
+              <h5>Faculty-Dashboard</h5>
               <h6>Go-Canvas</h6>
             </div>
             <Grid container spacing={3} className="grid-sections">
