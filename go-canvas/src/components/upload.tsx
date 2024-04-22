@@ -12,7 +12,7 @@ export default function Upload() {
       <label htmlFor="contained-button-file" className="upload">
         <Input accept="image/*" id="contained-button-file" multiple type="file" />
         <Button variant="contained" component="span" className='upload-btn'>
-          <img src={uploadIcon} alt="upload" />Choose File
+          <img src={uploadIcon} alt="upload" />Choose Your File
         </Button>
         <p>No files selected</p>
       </label>
