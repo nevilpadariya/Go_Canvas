@@ -268,11 +268,17 @@ a{text-decoration: none;}
 
 /* Course Page */
 
- .course-content { background: #F3F5F7; min-height: 100vh; display: flex; padding: 30px 15px 30px 8px; width: 100%;}
+ .course-content { background: #F3F5F7; min-height: 100vh; display: flex; padding: 30px 10px; width: 100%;}
+ .course-content .main-content{max-width: calc(100% - 230px);
+  flex-basis: calc(100% - 230px);}
  .course-sidebar .navbar .nav-link{flex-direction: column; padding: 12px 6px}
  .course-sidebar .nav-link img{margin: 0;}
  .sidebar.course-sidebar {max-width: 90px;flex-basis:90px; padding: 8px 0;}
  .course-container .main-content {max-width: calc(100% - 90px);flex-basis: calc(100% - 90px)}
+ .toggle-sidebar{position: relative;max-width: 140px;flex-basis: 140px;}
+ .toggle-sidebar {display: block;position: fixed;z-index: 10;top: 0;width: 260px;bottom: 0;padding: 30px 0 0;overflow: auto;left: -260px;transition: all 0.4s ease;}
+ .toggle-open .toggle-sidebar{left: 0;border-radius: 0;left: 0;}
+.toggle-open .overlay {opacity: 1;visibility: visible;}
 
  /* Test-CSS */
 
