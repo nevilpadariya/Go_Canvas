@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet";
 import Sidebar from "../components/sidebar";
 import CourseSidebar from "../components/coursesidebar";
 import Header from "../components/header";
+import DashboardCard from "../components/dashboardcard";
 
 function Test() {
   return (
@@ -27,10 +28,17 @@ function Test() {
               <Sidebar></Sidebar>
             </div>
             <div className="main-content">
-              <CourseSidebar></CourseSidebar>
-              <div className="main-title">
-                <h5>Course</h5>
-                <h6>Go-Canvas</h6>
+              <div className="sidebar-course">
+                <CourseSidebar></CourseSidebar>
+              </div>
+              <div>
+                <div className="main-title">
+                  <h5>Course</h5>
+                  <h6>Go-Canvas</h6>
+                </div>
+                <div>
+                  <DashboardCard></DashboardCard>
+                </div>
               </div>
             </div>
           </main>
