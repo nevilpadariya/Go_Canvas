@@ -1,9 +1,9 @@
-import { Alert, Button, Checkbox, FormControl, FormControlLabel, FormGroup, Grid, InputLabel, MenuItem, OutlinedInput, Radio, RadioGroup, Select, SelectChangeEvent, TextField } from "@mui/material";
+import { SelectChangeEvent } from "@mui/material";
 import React from "react";
 import { Helmet } from "react-helmet";
-import Header from "../components/header";
-import Sidebar from "../components/sidebar";
-import { radio, radioChecked, checkBoxChecked, checkBox, selectDropdown } from "../assets/images";
+import Header from "../../components/header";
+import Sidebar from "../../components/sidebar";
+import { radio, radioChecked, checkBoxChecked, checkBox, selectDropdown } from "../../assets/images";
 
 function CheckboxDefault() {
     return (<img src={checkBox} alt="checkbox" />);

@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 
-function CourseSidebar() {
+function FacultySidebar() {
   return <>
   <nav className="navbar">
             <ul>
@@ -14,4 +14,4 @@ function CourseSidebar() {
   </>;
 }
 
-export default CourseSidebar;
+export default FacultySidebar;

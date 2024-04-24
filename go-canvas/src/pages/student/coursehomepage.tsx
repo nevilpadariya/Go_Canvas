@@ -1,12 +1,9 @@
-import { Button, Grid, IconButton, TextField } from "@mui/material";
 import React from "react";
-import Header from "../components/header";
-import Sidebar from "../components/sidebar";
+import Header from "../../components/header";
+import Sidebar from "../../components/sidebar";
 import { Helmet } from "react-helmet";
-import CourseSidebar from "../components/coursesidebar";
-import TemporaryDrawer from "../components/drawer";
-import { menuIcon } from "../assets/images";
 import { useLocation, useNavigate } from "react-router-dom";
+import Courseheader from "../../components/coursecompo";
 
 
 function CourseHomepage() {
@@ -35,21 +32,8 @@ function CourseHomepage() {
           <div className="sidebar course-sidebar">
             <Sidebar></Sidebar>
           </div>
-          <div className="toggle-sidebar">
-            <CourseSidebar></CourseSidebar>
-            {/* <TemporaryDrawer></TemporaryDrawer> */}
-            </div>
           <div className="main-content">
-            <div className="main-title">
-              
-            <div className="header-section" style={{alignItems: 'center', justifyContent: "center"}}>
-            {
-                location.pathname != '/' && (<IconButton className="menu-btn" style={{left: 0, position: "absolute"}} onClick={e => { document.body.classList.toggle('toggle-open');}}><img src={menuIcon} alt="menu" /></IconButton>) 
-            } </div>
-
-              <h5>Course</h5>
-              <h6>Go-Canvas</h6>
-            </div>
+            <Courseheader></Courseheader>
           </div>
         </main>
       </div>
