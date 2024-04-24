@@ -1,10 +1,11 @@
 import { Grid, SelectChangeEvent } from "@mui/material";
 import React from "react";
 import { Helmet } from "react-helmet";
-import Header from "../components/header";
-import Sidebar from "../components/sidebar";
-import DashboardCard from "../components/dashboardcard";
-import { selectDropdown } from "../assets/images";
+import Header from "../../components/header";
+import Sidebar from "../../components/sidebar";
+import DashboardCard from "../../components/dashboardcard";
+import { selectDropdown } from "../../assets/images";
+import AdminSidebar from "../../components/adminsidebar";
 
 
 
@@ -16,7 +17,7 @@ function AdminDashboardPage() {
   return (
     <>
       <Helmet>
-        <title>Go-Canvas</title>
+        <title>Admin-Dashboard</title>
       </Helmet>
       {/* AdminDashboardPage-Start */}
       <div className="wrapper">
@@ -32,7 +33,7 @@ function AdminDashboardPage() {
         <div className="main-background"></div>
         <main className="dashnoard-content">
           <div className="sidebar">
-            <Sidebar></Sidebar>
+            <AdminSidebar></AdminSidebar>
           </div>
           <div className="main-content">
             <div className="main-title">

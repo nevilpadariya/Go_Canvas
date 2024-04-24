@@ -1,13 +1,9 @@
-import { Button, Grid, IconButton, TextField } from "@mui/material";
 import React from "react";
-import Header from "../components/header";
-import Sidebar from "../components/sidebar";
+import Header from "../../components/header";
+import Sidebar from "../../components/sidebar";
 import { Helmet } from "react-helmet";
-import CourseSidebar from "../components/coursesidebar";
-import TemporaryDrawer from "../components/drawer";
-import { menuIcon } from "../assets/images";
 import { useLocation, useNavigate } from "react-router-dom";
-import Courseheader from "../components/coursecompo";
+import Courseheader from "../../components/coursecompo";
 
 
 function CourseHomepage() {

@@ -1,12 +1,7 @@
 import { Button, IconButton, Menu, MenuItem, Popover } from "@mui/material";
 import React from "react";
-import { bessiecooper, companyLogo, darrellsteward, estherhoward, jennywilson, johnsmith, profileDropdown, robertfox } from "../assets/images";
-import SearchBar from "./search";
-import { messageIcon } from "../assets/images";
-import { notificationIcon } from "../assets/images";
-import { settingIcon } from "../assets/images";
+import { companyLogo } from "../assets/images";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { searchIcon } from "../assets/images";
 import { menuIcon } from "../assets/images";
 
 

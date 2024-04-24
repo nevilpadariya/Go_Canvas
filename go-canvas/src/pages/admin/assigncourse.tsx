@@ -1,12 +1,12 @@
 import React from "react";
 import { Helmet } from "react-helmet";
-import AdminSidebar from "../../components/adminsidebar";
 import Header from "../../components/header";
+import AdminSidebar from "../../components/adminsidebar";
 
-function StudnetList(){
-return(<>
+function AssignCourse() {
+  return (<>
     <Helmet>
-      <title>Student</title>
+      <title>Admin-Courses</title>
     </Helmet>
     <div className="wrapper">
       <div
@@ -21,7 +21,7 @@ return(<>
         </div>
         <div className="main-content">
           <div className="main-title">
-            <h5>Students</h5>
+            <h5>Assign-Course</h5>
             <h6>Go-Canvas</h6>
           </div>
         </div>
@@ -30,4 +30,4 @@ return(<>
   </>)
 }
 
-export default StudnetList;
+export default AssignCourse;

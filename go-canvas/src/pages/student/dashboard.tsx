@@ -1,9 +1,9 @@
 import { Grid, SelectChangeEvent } from "@mui/material";
 import React from "react";
 import { Helmet } from "react-helmet";
-import Header from "../components/header";
-import Sidebar from "../components/sidebar";
-import DashboardCard from "../components/dashboardcard";
+import Header from "../../components/header";
+import Sidebar from "../../components/sidebar";
+import DashboardCard from "../../components/dashboardcard";
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';

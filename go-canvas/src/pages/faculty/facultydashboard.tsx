@@ -8,12 +8,13 @@ import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import FacultySidebar from "../../components/facultysidebar";
 
 function FacultyDashnboard() {
   return (
     <>
       <Helmet>
-        <title>Dashboard-Faculty</title>
+        <title>Dashboard</title>
       </Helmet>
       {/* Dashboardpage-Start */}
       <div className="wrapper">
@@ -21,15 +22,11 @@ function FacultyDashnboard() {
           className="overlay"
           onClick={(e) => document.body.classList.toggle("sidebar-open")}
         ></div>
-        <div
-          className="search-overlay"
-          onClick={(e) => document.body.classList.toggle("search-open")}
-        ></div>
         <Header></Header>
         <div className="main-background"></div>
         <main className="dashnoard-content">
           <div className="sidebar">
-            <Sidebar></Sidebar>
+            <FacultySidebar></FacultySidebar>
           </div>
           <div className="main-content">
             <div className="main-title">

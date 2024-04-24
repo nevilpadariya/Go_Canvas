@@ -1,9 +1,9 @@
 import { Button, SelectChangeEvent, TextField } from "@mui/material";
 import React from "react";
 import { Helmet } from "react-helmet";
-import Header from "../components/header";
-import Sidebar from "../components/sidebar";
-import { johnsmithside } from "../assets/images";
+import Header from "../../components/header";
+import Sidebar from "../../components/sidebar";
+import { johnsmithside } from "../../assets/images";
 
 function AccountPage() {
   const [personName, setPersonName] = React.useState<string[]>([]);
