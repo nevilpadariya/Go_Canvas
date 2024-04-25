@@ -5,11 +5,11 @@ import {
   Card,
   CardContent,
   Checkbox,
-  Container,
   FormControlLabel,
   TextField,
   Typography,
 } from "@mui/material";
+import {jwtDecode} from "jwt-decode";
 import { Helmet } from "react-helmet";
 import { loginlogo } from "../assets/images";
 import { checkBoxChecked } from "../assets/images";
@@ -26,6 +26,13 @@ function CheckboxChecked() {
 interface User {
   username: string;
   password: string;
+}
+
+interface DecodedToken {
+  useremail: string;
+  userrole: string;
+  userid: number;
+  // Add more properties if necessary
 }
 
 const Login: React.FC = () => {
@@ -53,32 +60,55 @@ const Login: React.FC = () => {
     password: user.password
   }
   const handleLogin = async () => {
-    // TODO : replace api url 'your-api-endpoint/login' with backend provided url...
-    try {
-      const response = await fetch("https://dummyjson.com/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-      console.log('api response===>>',response);
-      
-      if (response.ok) {
-        const data = await response.json();
-        const token = data.token; // Assuming your API returns a token upon successful login
-        localStorage.setItem("token", token); // Save token securely in local storage
-        setToken(token);
-        navigate('dashboard')
+  try {
+    // Construct request body
+    const requestBody = new URLSearchParams();
+    requestBody.append('grant_type', 'password');
+    requestBody.append('username', payload.username);
+    requestBody.append('password', payload.password);
+    requestBody.append('scope', '');
+    requestBody.append('client_id', 'string');
+    requestBody.append('client_secret', 'string');
+
+    // Make API request
+    const response = await fetch("http://127.0.0.1:8000/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: requestBody,
+    });
+
+    // Handle response
+    if (response.ok) {
+      const data = await response.json();
+      const token = data.access_token; // Assuming your API returns an access token
+      const payload: DecodedToken = jwtDecode(token);
+      localStorage.setItem("token", token); // Save token securely in local storage
+      setToken(token);
+      // Assuming you have a function to determine user role based on the token
+      const userRole = payload.userrole;
+      // Based on user role, redirect to appropriate page
+      if (userRole === "Faculty") {
+        navigate("/faculty_dashboard");
+      } else if (userRole === "Student") {
+        navigate("/dashboard");
+      } else if (userRole === "Admin") {
+        navigate("/admin_dashboard");
       } else {
-        const data = await response.json();
-        setError(data.message);
+        // Handle unknown or unauthorized roles
+        setError("Unknown user role");
       }
-    } catch (error) {
-      console.error("Error during login:", error);
-      setError("Error during login. Please try again later.");
+    } else {
+      const errorData = await response.json();
+      const errorMessage = errorData.detail || "An error occurred during login.";
+      setError(errorMessage);
     }
-  };
+  } catch (error) {
+    console.error("Error during login:", error);
+    setError("An error occurred during login. Please try again later.");
+  }
+};
 
   const handleLogout = () => {
     // Clear token from local storage and reset state

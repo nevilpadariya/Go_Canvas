@@ -10,7 +10,7 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import FacultySidebar from "../../components/facultysidebar";
 
-function FacultyDashnboard() {
+function FacultyDashboard() {
   return (
     <>
       <Helmet>
@@ -25,9 +25,9 @@ function FacultyDashnboard() {
         <Header></Header>
         <div className="main-background"></div>
         <main className="dashnoard-content">
-          <div className="sidebar">
+          {/* <div className="sidebar">
             <FacultySidebar></FacultySidebar>
-          </div>
+          </div> */}
           <div className="main-content">
             <div className="main-title">
               <h5>Faculty-Dashboard</h5>
@@ -88,4 +88,4 @@ function FacultyDashnboard() {
   );
 }
 
-export default FacultyDashnboard;
+export default FacultyDashboard;

@@ -1,15 +1,15 @@
 import React from "react";
+import FacultySidebar from "../../components/facultysidebar";
 import { Helmet } from "react-helmet";
-import AdminSidebar from "../../components/adminsidebar";
 import Header from "../../components/header";
-import StudentTable from "../../components/table";
 
-function StudnetList() {
+function FacultyCoursePage() {
   return (
     <>
       <Helmet>
-        <title>Student</title>
+        <title>Course</title>
       </Helmet>
+      {/* Dashboardpage-Start */}
       <div className="wrapper">
         <div
           className="overlay"
@@ -19,15 +19,12 @@ function StudnetList() {
         <div className="main-background"></div>
         <main className="dashnoard-content">
           <div className="sidebar">
-            <AdminSidebar></AdminSidebar>
+            <FacultySidebar></FacultySidebar>
           </div>
           <div className="main-content">
             <div className="main-title">
-              <h5>Students</h5>
+              <h5>Course</h5>
               <h6>Go-Canvas</h6>
-            </div>
-            <div className="student-table" style={{marginTop:'40px'}}>
-              <StudentTable></StudentTable>
             </div>
           </div>
         </main>
@@ -36,4 +33,4 @@ function StudnetList() {
   );
 }
 
-export default StudnetList;
+export default FacultyCoursePage;

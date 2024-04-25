@@ -10,55 +10,55 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-function AddAnnouncement() {
-  interface AnnouncementData {
+function AddQuiz() {
+  interface QuizData {
     id: number;
-    announcementName: string;
-    announcementDescription: string;
+    quizName: string;
+    quizDescription: string;
   }
 
   const [showForm, setShowForm] = useState(false); // State to manage visibility of the form
-  const [announcementName, setAnnouncementName] = useState("");
-  const [announcementDescription, setAnnouncementDescription] = useState("");
-  const [savedAnnouncements, setSavedAnnouncements] = useState<AnnouncementData[]>(
+  const [quizName, setQuizName] = useState("");
+  const [quizDescription, setQuizDescription] = useState("");
+  const [savedQuizs, setSavedQuizs] = useState<QuizData[]>(
     []
-  ); // State to store saved announcements
+  ); // State to store saved quizs
   const [error, setError] = useState<string>(""); // State to manage error message
 
-  const handleSubmit = (data: AnnouncementData) => {
+  const handleSubmit = (data: QuizData) => {
     // Handle form submission here
     console.log("Form submitted with data:", data);
-    setSavedAnnouncements([...savedAnnouncements, data]); // Add new announcement data to savedAnnouncements state
-    setAnnouncementName("");
-    setAnnouncementDescription("");
+    setSavedQuizs([...savedQuizs, data]); // Add new quiz data to savedQuizs state
+    setQuizName("");
+    setQuizDescription("");
     setShowForm(false); // Hide the form after submission
     setError("");
   };
 
-  const handleAddAnnouncementClick = () => {
-    setShowForm(true); // Show the form when the "Add Announcement" button is clicked
+  const handleAddQuizClick = () => {
+    setShowForm(true); // Show the form when the "Add Quiz" button is clicked
   };
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent default form submission behavior
 
     // Check if fields are empty
-    if (!announcementName.trim() || !announcementDescription.trim()) {
+    if (!quizName.trim() || !quizDescription.trim()) {
       setError("Please fill out all fields."); // Set error message
       return; // Exit early if fields are empty
     }
 
-    // Pass announcement details to parent component for submission
+    // Pass quiz details to parent component for submission
     handleSubmit({
-      id: savedAnnouncements.length + 1,
-      announcementName,
-      announcementDescription,
+      id: savedQuizs.length + 1,
+      quizName,
+      quizDescription,
     });
   };
 
   const handleCancel = () => {
-    setAnnouncementName("");
-    setAnnouncementDescription("");
+    setQuizName("");
+    setQuizDescription("");
     setShowForm(false); // Hide the form when the "Cancel" button is clicked
     setError("");
   };
@@ -82,42 +82,42 @@ function AddAnnouncement() {
           </div>
           <div className="main-content">
             <div className="main-title">
-              <h5>Announcements</h5>
+              <h5>Quizs</h5>
               <h6>Go-Canvas</h6>
             </div>
             <div style={{marginTop:'30px'}}>
               {!showForm ? (
                 <Button
-                  onClick={handleAddAnnouncementClick}
+                  onClick={handleAddQuizClick}
                   variant="contained"
                   color="primary"
                   style={{display:'block', marginLeft:'auto'}}
                 >
-                  Add Announcement
+                  Add Quiz
                 </Button>
               ) : (
                 <>
                   {error && <p style={{ color: "red" }}>{error}</p>}
                   <form onSubmit={handleFormSubmit}>
                     <TextField
-                      label="Announcement Name"
+                      label="Quiz Name"
                       variant="outlined"
-                      value={announcementName}
-                      onChange={(e) => setAnnouncementName(e.target.value)}
+                      value={quizName}
+                      onChange={(e) => setQuizName(e.target.value)}
                       fullWidth
                       margin="normal"
-                      placeholder="Enter Announcement Name"
+                      placeholder="Enter Quiz Name"
                     />
                     <TextField
-                      label="Announcement Description"
+                      label="Quiz Description"
                       variant="outlined"
-                      value={announcementDescription}
-                      onChange={(e) => setAnnouncementDescription(e.target.value)}
+                      value={quizDescription}
+                      onChange={(e) => setQuizDescription(e.target.value)}
                       fullWidth
                       multiline
                       rows={4}
                       margin="normal"
-                      placeholder="Enter Announcement Description"
+                      placeholder="Enter Quiz Description"
                     />
                     <Button type="submit" variant="contained" color="primary">
                       Submit
@@ -139,19 +139,19 @@ function AddAnnouncement() {
                   aria-controls="panel1a-content"
                   id="panel1a-header"
                 >
-                  <Typography>Announcements</Typography>
+                  <Typography>Quizzes</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
                   <div>
-                    {savedAnnouncements.map((announcement) => (
-                      <div key={announcement.id}>
+                    {savedQuizs.map((quiz) => (
+                      <div key={quiz.id}>
                         <h3>
-                          Announcement {announcement.id}:{" "}
-                          {announcement.announcementName}
+                          Quiz {quiz.id}:{" "}
+                          {quiz.quizName}
                         </h3>
                         <p>
                           <strong>Description:</strong>{" "}
-                          {announcement.announcementDescription}
+                          {quiz.quizDescription}
                         </p>
                       </div>
                     ))}
@@ -166,4 +166,4 @@ function AddAnnouncement() {
   );
 }
 
-export default AddAnnouncement;
+export default AddQuiz;
