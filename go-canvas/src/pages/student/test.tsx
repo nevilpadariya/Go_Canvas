@@ -1,7 +1,6 @@
 import React from "react";
 import { Helmet } from "react-helmet";
 import Sidebar from "../../components/sidebar";
-import CourseSidebar from "../../components/coursesidebar";
 import Header from "../../components/header";
 import DashboardCard from "../../components/dashboardcard";
 import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material";

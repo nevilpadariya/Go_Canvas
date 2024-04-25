@@ -1,7 +1,6 @@
 import React from "react";
 import Sidebar from "../../components/sidebar";
 import Header from "../../components/header";
-import Courseheader from "../../components/coursecompo";
 
 function Sample() {
   return (
@@ -20,7 +19,6 @@ function Sample() {
           <div className="sidebar">
             <Sidebar></Sidebar>
           </div>
-          <div><Courseheader></Courseheader></div>
         </div>
       </div>
     </div>
