@@ -82,7 +82,7 @@ function AddQuiz() {
           </div>
           <div className="main-content">
             <div className="main-title">
-              <h5>Quizs</h5>
+              <h5>Quizzes</h5>
               <h6>Go-Canvas</h6>
             </div>
             <div style={{marginTop:'30px'}}>
