@@ -2,13 +2,11 @@ import React from "react";
 import { Grid, SelectChangeEvent } from "@mui/material";
 import { Helmet } from "react-helmet";
 import Header from "../../components/header";
-import Sidebar from "../../components/sidebar";
 import DashboardCard from "../../components/dashboardcard";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import FacultySidebar from "../../components/facultysidebar";
 
 function FacultyDashboard() {
   return (
@@ -16,7 +14,7 @@ function FacultyDashboard() {
       <Helmet>
         <title>Dashboard</title>
       </Helmet>
-      {/* Dashboardpage-Start */}
+      {/* Faculty-Dashboardpage-Start */}
       <div className="wrapper">
         <div
           className="overlay"
@@ -25,9 +23,6 @@ function FacultyDashboard() {
         <Header></Header>
         <div className="main-background"></div>
         <main className="dashnoard-content">
-          {/* <div className="sidebar">
-            <FacultySidebar></FacultySidebar>
-          </div> */}
           <div className="main-content">
             <div className="main-title">
               <h5>Faculty-Dashboard</h5>
@@ -83,7 +78,7 @@ function FacultyDashboard() {
           </div>
         </main>
       </div>
-      {/* Dashboardpage-End */}
+      {/* Faculty-Dashboardpage-End */}
     </>
   );
 }
