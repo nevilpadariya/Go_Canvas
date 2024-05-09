@@ -66,7 +66,7 @@ function AddQuiz() {
   return (
     <>
       <Helmet>
-        <title>Dashboard-Faculty</title>
+        <title>Quizzes</title>
       </Helmet>
       {/* Dashboardpage-Start */}
       <div className="wrapper">
