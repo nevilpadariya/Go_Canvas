@@ -43,7 +43,7 @@ function CoursesPage() {
             <Helmet>
                 <title>Course | Go-Canvas</title>
             </Helmet>
-        {/* Innerpage-Start */}
+        {/* CoursePage-Start */}
             <div className="wrapper">
                 <div className="overlay" onClick={e => document.body.classList.toggle('sidebar-open')}></div>
                 <div className="search-overlay" onClick={e => document.body.classList.toggle('search-open')}></div>
