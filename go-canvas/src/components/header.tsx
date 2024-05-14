@@ -41,7 +41,7 @@ function Header() {
                 <h2>Go-Canvas</h2>
                 </a>
                 {
-                    location.pathname != '/' && ( <Button variant="contained" color="info" style={{position: "absolute", right: "10px"}}
+                    location.pathname != '/' && ( <Button variant="contained" color="info" style={{position: "absolute", right: "12px"}}
                     onClick={()=>{ localStorage.removeItem('token'); navigate('/')}}>Log Out</Button>) 
                 }
             </div>
