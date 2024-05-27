@@ -14,7 +14,7 @@ export default function DashboardCard() {
             Course ID
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Course Name
+            Course
           </Typography>
         </CardContent>
       </CardActionArea>
