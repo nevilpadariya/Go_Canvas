@@ -28,7 +28,7 @@ export default function StudentTable() {
       <Table sx={{ minWidth: 650 }} aria-label="simple table">
         <TableHead>
           <TableRow>
-            <TableCell>Name</TableCell>
+            <TableCell> Name</TableCell>
             <TableCell align="right">Contact</TableCell>
             <TableCell align="right">Course</TableCell>
             <TableCell align="right">Semester</TableCell>
