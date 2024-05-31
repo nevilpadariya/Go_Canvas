@@ -10,7 +10,7 @@ function CourseHomepage() {
   return (
     <>
       <Helmet>
-        <title>Test</title>
+        <title>Test-2</title>
       </Helmet>
       <div className="wrapper">
         <div
