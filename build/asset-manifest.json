@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/Go-Canvas/static/css/main.e843d720.css",
-    "main.js": "/Go-Canvas/static/js/main.80ffd243.js",
+    "main.js": "/Go-Canvas/static/js/main.9538b657.js",
     "static/js/453.4cdb799c.chunk.js": "/Go-Canvas/static/js/453.4cdb799c.chunk.js",
     "static/media/login-banner.svg": "/Go-Canvas/static/media/login-banner.ac1a637ccda11824ef9c.svg",
     "static/media/statistics-graph.png": "/Go-Canvas/static/media/statistics-graph.8ea7500c5bba983d2420.png",
@@ -40,11 +40,11 @@
     "static/media/checkbox.svg": "/Go-Canvas/static/media/checkbox.e52a2eba0c3287cf8e192f566f6a9aa1.svg",
     "static/media/radio.svg": "/Go-Canvas/static/media/radio.4b792450c698973e057fd228b8e3ade2.svg",
     "main.e843d720.css.map": "/Go-Canvas/static/css/main.e843d720.css.map",
-    "main.80ffd243.js.map": "/Go-Canvas/static/js/main.80ffd243.js.map",
+    "main.9538b657.js.map": "/Go-Canvas/static/js/main.9538b657.js.map",
     "453.4cdb799c.chunk.js.map": "/Go-Canvas/static/js/453.4cdb799c.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e843d720.css",
-    "static/js/main.80ffd243.js"
+    "static/js/main.9538b657.js"
   ]
 }
