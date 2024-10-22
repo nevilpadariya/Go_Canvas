@@ -64,7 +64,7 @@ function App() {
           <Route path="assign_course" element={<AssignCourse />}></Route>
           <Route path="student_list" element={<StudnetList />}></Route>
           <Route path="sample" element={<Sample />}></Route>
-          <Route path="/" element={<LoginPage />}></Route>
+          <Route path="/Go-Canvas" element={<LoginPage />}></Route>
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
