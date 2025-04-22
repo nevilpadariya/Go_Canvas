@@ -43,4 +43,73 @@
 * Database -> MySQL
 * Frontend -> React
 * Wireframes -> Figma
-* Deployment -> Amazon Web Services
+* Deployment -> Render (Backend) & Vercel (Frontend)
+
+## Deployment Instructions
+
+### Backend Deployment on Render
+
+1. Push your code to GitHub
+2. Go to [Render Dashboard](https://dashboard.render.com/)
+3. Click on "New+" and select "Blueprint"
+4. Connect your GitHub repository
+5. Configure the Web Service:
+   - Environment: Docker
+   - Branch: main (or your preferred branch)
+   - Set the following environment variables:
+     - SECRET_KEY (generate a new secure key)
+     - DATABASE_URL
+     - CORS_ORIGINS (add your Vercel frontend URL)
+6. Click "Create Blueprint" to deploy
+
+Alternatively, you can manually deploy:
+1. Click "New+" and select "Web Service"
+2. Connect your GitHub repository
+3. Select "Docker" as the environment
+4. Configure the settings and environment variables
+5. Deploy
+
+### Frontend Deployment on Vercel
+
+1. Push your frontend code to GitHub (make sure it has the vercel.json file)
+2. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+3. Click "New Project"
+4. Import your GitHub repository
+5. Configure the project:
+   - Framework Preset: Create React App
+   - Root Directory: frontend (if you're deploying from the main repository)
+   - Environment Variables:
+     - REACT_APP_API_URL (your Render backend URL)
+6. Click "Deploy"
+
+Once deployed:
+- Backend API will be available at https://your-app-name.onrender.com
+- Frontend will be available at https://your-app-name.vercel.app
+
+## Security Best Practices
+
+### Environment Variables
+- Never commit `.env` files to version control
+- Always use `.env.example` as a template for required environment variables
+- Generate a strong, unique SECRET_KEY for production
+
+### Database Security
+- Use strong, unique passwords for database access
+- Restrict database user permissions to only what is necessary
+- Set up proper network security for database access
+
+### Deployment Security
+- Configure SSL/TLS for all production traffic
+- Use secure headers in your FastAPI application
+- Regularly update dependencies to patch security vulnerabilities
+
+### Deployment on Render
+1. Create a new Web Service in Render
+2. Connect your GitHub repository
+3. Select "Docker" as the environment
+4. Set up the required environment variables in the Render dashboard
+5. Deploy your application
+
+Remember to set these environment variables in your Render dashboard:
+- SECRET_KEY (generate a new secure key for production)
+- DATABASE_URL (use your production database connection string)

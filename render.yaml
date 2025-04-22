@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: go-canvas-api
+    runtime: docker
+    repo: https://github.com/yourusername/Go-Canvas.git # Replace with your actual GitHub repository URL
+    branch: main # Adjust this if you're using a different branch
+    buildFilter:
+      paths:
+        - Dockerfile
+        - "**/*.py"
+        - requirements.txt
+        - render.yaml
+    healthCheckPath: /
+    envVars:
+      - key: SECRET_KEY
+        sync: false # This ensures the value is not stored in the Git repository
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      - key: ALGORITHM
+        value: HS256
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        value: "https://go-canvas-frontend.vercel.app,https://go-canvas.vercel.app" # Add your Vercel domain here
+    autoDeploy: true
+    plan: free # Change to a paid plan if needed 
