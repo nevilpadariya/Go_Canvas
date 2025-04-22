@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: go-canvas
+    runtime: docker
+    repo: https://github.com/nevilpadariya/Go-Canvas.git # Replace with your actual GitHub repository URL
+    branch: main # Adjust this if you're using a different branch
+    buildFilter:
+      paths:
+        - Dockerfile
+        - ./**
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
+    plan: free # You can change this to a paid plan if needed 
