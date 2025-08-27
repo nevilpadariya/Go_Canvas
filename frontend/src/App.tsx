@@ -162,7 +162,8 @@ function App() {
               </ProtectedRoute>
             }
           ></Route>
-          <Route path="/" element={<LoginPage />}></Route>
+          <Route path="/" element={<DashboardPage />}></Route>
+          <Route path="/login" element={<LoginPage />}></Route>
           <Route path="student_list" element={<ProtectedRoute role="admin"><StudentList /></ProtectedRoute>}></Route>
           <Route path="error" element={<UnauthorizedAccess />}></Route>
         </Routes>

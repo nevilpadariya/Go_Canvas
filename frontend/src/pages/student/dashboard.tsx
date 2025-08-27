@@ -19,9 +19,18 @@ function DashboardPage() {
   const fetchCurrentSemesterData = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        // Demo data for unauthenticated visitors
+        setCurrentSemesterData([
+          { Courseid: 101, Coursename: "Intro to Go-Canvas", Coursedescription: "Explore features", Coursesemester: "DEMO" },
+          { Courseid: 102, Coursename: "Student Portal", Coursedescription: "Grades, Assignments", Coursesemester: "DEMO" },
+          { Courseid: 103, Coursename: "Faculty Tools", Coursedescription: "Quizzes, Announcements", Coursesemester: "DEMO" },
+        ] as any);
+        return;
+      }
 
       const response = await axios.get(
-        "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/student/view_contents",
+        `${process.env.REACT_APP_API_URL}/student/view_contents`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -44,11 +53,15 @@ function DashboardPage() {
             const token = localStorage.getItem("token");
 
             if (!token) {
-                throw new Error("No token found");
+                // Minimal demo previous data
+                setPreviousSemesterData([
+                  { Courseid: 201, Coursename: "Archived Demo Course", Coursedescription: "Past features", EnrollmentSemester: "DEMO-ARCHIVE" },
+                ] as any);
+                return;
             }
 
             const response = await axios.get(
-                "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/student/previous_enrollment",
+                `${process.env.REACT_APP_API_URL}/student/previous_enrollment`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
