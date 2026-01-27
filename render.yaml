@@ -21,6 +21,6 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: CORS_ORIGINS
-        value: "https://go-canvas-frontend.vercel.app,https://go-canvas.vercel.app" # Add your Vercel domain here
+        value: "https://gocanvas.vercel.app,https://gocanvas.vercel.app" # Add your Vercel domain here
     autoDeploy: true
     plan: free # Change to a paid plan if needed 
