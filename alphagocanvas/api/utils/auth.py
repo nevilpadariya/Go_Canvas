@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
+from sqlalchemy import text
 from starlette import status
 
 from alphagocanvas.api.models import TokenData
@@ -91,3 +92,24 @@ def decode_token(token: str):
     decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
     return decoded_token
+
+
+def get_user_name(db, user_id: int, user_role: str) -> str:
+    """Get user's display name from database based on role"""
+    if user_role == "Student":
+        query = text("SELECT Studentfirstname, Studentlastname FROM student WHERE Studentid = :id")
+        result = db.execute(query, {"id": user_id}).fetchone()
+        if result:
+            return f"{result.Studentfirstname} {result.Studentlastname}"
+    elif user_role == "Faculty":
+        query = text("SELECT Facultyfirstname, Facultylastname FROM faculty WHERE Facultyid = :id")
+        result = db.execute(query, {"id": user_id}).fetchone()
+        if result:
+            return f"{result.Facultyfirstname} {result.Facultylastname}"
+    elif user_role == "Admin":
+        query = text("SELECT Username FROM users WHERE UserID = :id")
+        result = db.execute(query, {"id": user_id}).fetchone()
+        if result:
+            return result.Username
+    return "Unknown User"
+
