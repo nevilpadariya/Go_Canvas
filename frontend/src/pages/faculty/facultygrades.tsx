@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
-import Header from "../../components/header";
-import axios from "axios";
-import Button from "@mui/material/Button";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 import { useParams } from "react-router-dom";
+import axios from "axios";
+
+import Header from "../../components/header";
 import FacultySidebar from "../../components/facultysidebar";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 
 interface Student {
   Studentid: number;
@@ -15,27 +25,15 @@ interface Student {
 
 function AssignGrades() {
   const [studentList, setStudentList] = useState<Student[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<number>(-1);
+  const [selectedStudent, setSelectedStudent] = useState<string>("");
   const [selectedGrade, setSelectedGrade] = useState<string>("");
-  const [anchorElStudent, setAnchorElStudent] = useState<null | HTMLElement>(
-    null
-  );
-  const [anchorElGrade, setAnchorElGrade] = useState<null | HTMLElement>(
-    null
-  );
-  const openStudent = Boolean(anchorElStudent);
-  const openGrade = Boolean(anchorElGrade);
   const token = localStorage.getItem("token");
   const { courseid } = useParams();
-
-  useEffect(() => {
-    fetchStudents();
-  }, []);
 
   const fetchStudents = async () => {
     try {
       const response = await axios.get(
-        `http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/faculty/view_students?courseid=${courseid}`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/view_students?courseid=${courseid}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -56,38 +54,17 @@ function AssignGrades() {
     fetchStudents();
   }, [token, courseid]);
 
-  const handleStudentClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElStudent(event.currentTarget);
-  };
-
-  const handleStudentClose = () => {
-    setAnchorElStudent(null);
-  };
-
-  const handleGradeClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElGrade(event.currentTarget);
-  };
-
-  const handleGradeClose = () => {
-    setAnchorElGrade(null);
-  };
-
-  const handleStudentSelect = (studentId: number, studentName: string) => {
-    setSelectedStudent(studentId);
-    handleStudentClose();
-  };
-
-  const handleGradeSelect = (grade: string) => {
-    setSelectedGrade(grade);
-    handleGradeClose();
-  };
-
   const handleSave = async () => {
+    if (!selectedStudent || !selectedGrade) {
+      alert("Please select both a student and a grade.");
+      return;
+    }
+
     try {
       const response = await axios.post(
-        "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/faculty/assign_grades",
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/assign_grades`,
         {
-          Studentid: selectedStudent,
+          Studentid: parseInt(selectedStudent),
           Courseid: courseid,
           Semester: "SPRING24",
           Grade: selectedGrade,
@@ -100,7 +77,7 @@ function AssignGrades() {
       );
       if (response.status === 200) {
         console.log("Data saved successfully:", response.data);
-        setSelectedStudent(-1);
+        setSelectedStudent("");
         setSelectedGrade("");
         window.alert("Grade Successfully Assigned");
       } else {
@@ -114,99 +91,78 @@ function AssignGrades() {
   return (
     <>
       <Helmet>
-        <title>Grades</title>
+        <title>Assignments Grades | Go-Canvas</title>
       </Helmet>
-      <div className="wrapper">
+      
+      <div className="min-h-screen bg-background text-foreground">
         <div
-          className="overlay"
-          onClick={(e) => document.body.classList.toggle("sidebar-open")}
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
+          onClick={() => document.body.classList.remove("sidebar-open")}
         ></div>
-        <Header></Header>
-        <div className="main-background"></div>
-        <main className="dashboard-content">
-          <div className="sidebar">
-            <FacultySidebar></FacultySidebar>
-          </div>
-          <div className="main-content">
-            <div className="main-title">
-              <h5>Assign-Grade</h5>
-              <h6>Go-Canvas</h6>
+        
+        <Header />
+        <FacultySidebar />
+        
+        <main className="pt-16 md:pl-64 transition-all duration-200">
+          <div className="container mx-auto p-6 md:p-8 max-w-4xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold tracking-tight">Assign Grades</h1>
+              <p className="text-muted-foreground mt-1">Assignments Grade Management</p>
             </div>
-            <div
-              style={{
-                display: "flex",
-                marginTop: "50px",
-                justifyContent: "space-around",
-              }}
-            >
-              <div style={{ marginLeft: "30px" }}>
-                <Button
-                  id="student-button"
-                  variant="outlined"
-                  aria-controls={openStudent ? "student-menu" : undefined}
-                  aria-haspopup="true"
-                  onClick={handleStudentClick}
-                >
-                  {selectedStudent !== -1
-                    ? studentList.find(
-                        (student) => student.Studentid === selectedStudent
-                      )?.Studentname
-                    : "Select Student"}
-                </Button>
-                <Menu
-                  id="student-menu"
-                  anchorEl={anchorElStudent}
-                  open={openStudent}
-                  onClose={handleStudentClose}
-                >
-                  {studentList.map((student) => (
-                    <MenuItem
-                      key={student.Studentid}
-                      onClick={() =>
-                        handleStudentSelect(
-                          student.Studentid,
-                          student.Studentname
-                        )
-                      }
-                    >
-                      {student.Studentname}
-                    </MenuItem>
-                  ))}
-                </Menu>
-              </div>
-              <div style={{ marginLeft: "30px" }}>
-                <Button
-                  id="grade-button"
-                  variant="outlined"
-                  aria-controls={openGrade ? "grade-menu" : undefined}
-                  aria-haspopup="true"
-                  onClick={handleGradeClick}
-                >
-                  {selectedGrade || "Select Grade"}
-                </Button>
-                <Menu
-                  id="grade-menu"
-                  anchorEl={anchorElGrade}
-                  open={openGrade}
-                  onClose={handleGradeClose}
-                >
-                  {["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D"].map(
-                    (grade) => (
-                      <MenuItem key={grade} onClick={() => handleGradeSelect(grade)}>
-                        {grade}
-                      </MenuItem>
-                    )
-                  )}
-                </Menu>
-              </div>
-              <Button
-                variant="contained"
-                style={{ marginLeft: "30px" }}
-                onClick={handleSave}
-              >
-                Save
-              </Button>
-            </div>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Grade Selection</CardTitle>
+                <CardDescription>Select a student and assign a grade for the current course.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="student-select">Student</Label>
+                    <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+                      <SelectTrigger id="student-select">
+                        <SelectValue placeholder="Select Student" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Students</SelectLabel>
+                          {studentList.map((student) => (
+                            <SelectItem key={student.Studentid} value={student.Studentid.toString()}>
+                              {student.Studentname}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="grade-select">Grade</Label>
+                    <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+                      <SelectTrigger id="grade-select">
+                        <SelectValue placeholder="Select Grade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Grades</SelectLabel>
+                          {["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D", "F"].map((grade) => (
+                            <SelectItem key={grade} value={grade}>
+                              {grade}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end pt-4">
+                  <Button onClick={handleSave} className="w-full md:w-auto">
+                    Save Grade
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </main>
       </div>

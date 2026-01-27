@@ -1,52 +1,60 @@
-import { Button, IconButton, Menu, MenuItem, Popover } from "@mui/material";
 import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Menu, LogOut } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { companyLogo } from "../assets/images";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { menuIcon } from "../assets/images";
-
-
 
 function Header() {
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    const open = Boolean(anchorEl);
-    const location = useLocation();
-    const navigate = useNavigate();
-    
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        setAnchorEl(event.currentTarget);
-    };
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
+  const location = useLocation();
+  const navigate = useNavigate();
 
-    const [anchorEl2, setAnchorEl2] = React.useState<HTMLButtonElement | null>(null);
-    const handleClick2 = (event: React.MouseEvent<HTMLButtonElement>) => {
-        setAnchorEl2(event.currentTarget);
-    };
-    const handleClose2 = () => {
-        setAnchorEl2(null);
-    };
+  const toggleSidebar = () => {
+    document.body.classList.toggle("sidebar-open");
+    document.body.classList.remove("search-open");
+  };
 
-    const open2 = Boolean(anchorEl2);
-    const id2 = open ? 'simple-popover' : undefined;
-    return (<>
-        <div className="header">
-            <div className="header-section" style={{alignItems: 'center', justifyContent: "center"}}>
-            {
-                location.pathname != '/' && (<IconButton className="menu-btn" style={{left: 0, position: "absolute"}} onClick={e => { document.body.classList.toggle('sidebar-open'); document.body.classList.remove('search-open') }}><img src={menuIcon} alt="menu" /></IconButton>) 
-            } 
-            
-                <a href="#">
-                    <img src={companyLogo} alt="company" className="logo" />
-                <h2>Go-Canvas</h2>
-                </a>
-                {
-                    location.pathname != '/' && ( <Button variant="contained" color="info" style={{position: "absolute", right: "10px"}}
-                    onClick={()=>{ localStorage.removeItem('token'); navigate('/')}}>Log Out</Button>) 
-                }
-            </div>
-        </div>
-    </>
-    );
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+
+  return (
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border h-16">
+      <div className="flex items-center justify-between h-full px-4">
+        {/* Menu button - only show when not on login page */}
+        {location.pathname !== "/" && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="md:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
+
+        {/* Logo */}
+        <a href="#" className="flex items-center gap-2 mx-auto md:mx-0">
+          <img src={companyLogo} alt="Go-Canvas" className="h-8 w-auto" />
+          <h2 className="text-xl font-bold text-primary">Go-Canvas</h2>
+        </a>
+
+        {/* Logout button - only show when not on login page */}
+        {location.pathname !== "/" && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Log Out</span>
+          </Button>
+        )}
+      </div>
+    </header>
+  );
 }
+
 export default Header;

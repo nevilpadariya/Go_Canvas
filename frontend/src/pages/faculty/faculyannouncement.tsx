@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from "react";
+import { Helmet } from "react-helmet";
+import { useParams } from "react-router-dom";
+
 import FacultySidebar from "../../components/facultysidebar";
 import Header from "../../components/header";
-import { Helmet } from "react-helmet";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import Typography from "@mui/material/Typography";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface AnnouncementData {
   id: number;
@@ -20,13 +25,12 @@ interface AnnouncementData {
 
 function AddAnnouncement() {
   const { courseid } = useParams();
-  
   const courseId = courseid || ""; 
+  const token = localStorage.getItem("token");
 
   const [showForm, setShowForm] = useState(false);
   const [announcementName, setAnnouncementName] = useState("");
   const [announcementDescription, setAnnouncementDescription] = useState("");
-  const [semester, setSemester] = useState("");
   const [savedAnnouncements, setSavedAnnouncements] = useState<AnnouncementData[]>([]);
   const [error, setError] = useState("");
 
@@ -34,12 +38,12 @@ function AddAnnouncement() {
     const fetchAnnouncements = async () => {
       try {
         const response = await fetch(
-          `http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/faculty/view_announcement_by_courseid?courseid=${courseId}`,
+          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/view_announcement_by_courseid?courseid=${courseId}`,
           {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -62,17 +66,17 @@ function AddAnnouncement() {
     };
   
     fetchAnnouncements();
-  }, [courseId]);
+  }, [courseId, token]);
 
   const handleSubmit = async () => {
     try {
       const response = await fetch(
-        "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/faculty/add_announcements",
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/add_announcements`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             Courseid: courseId,
@@ -84,13 +88,18 @@ function AddAnnouncement() {
       );
       if (response.ok) {
         const newAnnouncement = await response.json();
-        setSavedAnnouncements(prevAnnouncements => [...prevAnnouncements, newAnnouncement]);
+        setSavedAnnouncements(prevAnnouncements => [...prevAnnouncements, {
+            id: newAnnouncement.Announcementid, // Mapping the response correctly if needed
+            announcementName: announcementName,
+            announcementDescription: announcementDescription, 
+            Semester: "SPRING24"
+        }]); // Note: Ideally the backend returns the full object with ID
+        
         setAnnouncementName("");
         setAnnouncementDescription("");
         setShowForm(false);
         setError("");
         alert("Your Announcement Added Successfully");
-        window.location.reload();
       } else {
         const errorMessage = await response.text();
         setError(errorMessage || "Failed to add announcement");
@@ -101,123 +110,108 @@ function AddAnnouncement() {
     }
   };
 
-  const handleAddAnnouncementClick = () => {
-    setShowForm(true);
-  };
-
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-  
     if (!announcementName.trim() || !announcementDescription.trim()) {
       setError("Please fill out all fields.");
       return;
     }
-  
     handleSubmit();
-  };
-
-  const handleCancel = () => {
-    setAnnouncementName("");
-    setAnnouncementDescription("");
-    setShowForm(false);
-    setError("");
   };
 
   return (
     <>
       <Helmet>
-        <title>Announcement</title>
+        <title>Announcements | Go-Canvas</title>
       </Helmet>
-      <div className="wrapper">
+      
+      <div className="min-h-screen bg-background text-foreground">
         <div
-          className="overlay"
-          onClick={() => document.body.classList.toggle("sidebar-open")}
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
+          onClick={() => document.body.classList.remove("sidebar-open")}
         ></div>
-        <Header></Header>
-        <div className="main-background"></div>
-        <main className="dashboard-content">
-          <div className="sidebar">
-            <FacultySidebar></FacultySidebar>
-          </div>
-          <div className="main-content">
-            <div className="main-title">
-              <h5>Announcements</h5>
-              <h6>Go-Canvas</h6>
+        
+        <Header />
+        <FacultySidebar />
+        
+        <main className="pt-16 md:pl-64 transition-all duration-200">
+          <div className="container mx-auto p-6 md:p-8 max-w-4xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold tracking-tight">Announcements</h1>
+              <p className="text-muted-foreground mt-1">Manage Course Announcements</p>
             </div>
-            <div style={{ marginTop: "30px" }}>
-              {!showForm ? (
-                <Button
-                  onClick={handleAddAnnouncementClick}
-                  variant="contained"
-                  color="primary"
-                  style={{ display: "block", marginLeft: "auto" }}
-                >
+
+            <div className="flex justify-end mb-6">
+              {!showForm && (
+                <Button onClick={() => setShowForm(true)}>
                   Add Announcement
                 </Button>
-              ) : (
-                <>
-                  {error && <p style={{ color: "red" }}>{error}</p>}
-                  <form onSubmit={handleFormSubmit}>
-                    <TextField
-                      label="Announcement Name"
-                      variant="outlined"
-                      value={announcementName}
-                      onChange={(e) => setAnnouncementName(e.target.value)}
-                      fullWidth
-                      margin="normal"
-                      placeholder="Enter Announcement Name"
-                    />
-                    <TextField
-                      label="Announcement Description"
-                      variant="outlined"
-                      value={announcementDescription}
-                      onChange={(e) => setAnnouncementDescription(e.target.value)}
-                      fullWidth
-                      multiline
-                      rows={4}
-                      margin="normal"
-                      placeholder="Enter Announcement Description"
-                    />
-                    <Button type="submit" variant="contained" color="primary">
-                      Submit
-                    </Button>
-                    <Button
-                      onClick={handleCancel}
-                      variant="contained"
-                      color="error"
-                      style={{marginLeft:'20px'}}
-                    >
-                      Cancel
-                    </Button>
-                  </form>
-                </>
               )}
-              <Accordion defaultExpanded style={{ marginTop: "20px" }}>
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  aria-controls="panel1a-content"
-                  id="panel1a-header"
-                >
-                  <Typography>Announcements</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <div>
-                    {savedAnnouncements.map((announcement, index) => (
-                      <div key={index} style={{borderBottom:'1px solid grey'}}>
-                        <h3>
-                          Announcement {index + 1}:{" "}
-                          {announcement.announcementName}
-                        </h3>
-                        <p>
-                          <strong>Description:</strong>{" "}
+            </div>
+
+            {showForm && (
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle>Add New Announcement</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {error && <p className="text-destructive text-sm mb-4 font-medium">{error}</p>}
+                  <form onSubmit={handleFormSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="announcementName">Announcement Name</Label>
+                      <Input
+                        id="announcementName"
+                        placeholder="Enter Announcement Name"
+                        value={announcementName}
+                        onChange={(e) => setAnnouncementName(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="announcementDescription">Announcement Description</Label>
+                      <Textarea
+                        id="announcementDescription"
+                        placeholder="Enter Announcement Description"
+                        rows={4}
+                        value={announcementDescription}
+                        onChange={(e) => setAnnouncementDescription(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center gap-4 pt-4">
+                      <Button type="submit">Submit</Button>
+                      <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
+
+            <Accordion type="single" collapsible className="w-full bg-card rounded-lg border" defaultValue="announcement-item-0">
+              {savedAnnouncements.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  No announcements available. Click "Add Announcement" to create one.
+                </div>
+              ) : (
+                savedAnnouncements.map((announcement, index) => (
+                  <AccordionItem key={index} value={`announcement-item-${index}`}>
+                    <AccordionTrigger className="px-4">
+                      Announcement {index + 1}: {announcement.announcementName}
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      <div className="pt-2">
+                        <Label className="text-base font-semibold">Description:</Label>
+                        <p className="mt-2 text-muted-foreground whitespace-pre-wrap">
                           {announcement.announcementDescription}
                         </p>
                       </div>
-                    ))}
-                  </div>
-                </AccordionDetails>
-              </Accordion>
-            </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))
+              )}
+            </Accordion>
           </div>
         </main>
       </div>

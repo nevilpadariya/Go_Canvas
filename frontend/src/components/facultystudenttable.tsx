@@ -1,34 +1,42 @@
 import React, { useEffect, useState } from "react";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface Student {
-  Coursename: string
-  Coursesemester : string
-  Studentcontactnumber : string
-  Studentid : string
-  Studentname : string
-  Coursegrade : string
+  Coursename: string;
+  Coursesemester: string;
+  Studentcontactnumber: string;
+  Studentid: string;
+  Studentname: string;
+  Coursegrade: string;
 }
 
 interface Row {
   studentfirstname: string;
   studentcontactnumber: string;
   coursesemester: string;
-  coursegrade : string
+  coursegrade: string;
 }
 
 function createRow(student: Student): Row {
   const { Studentname, Studentcontactnumber, Coursesemester, Coursegrade } = student;
-  return { studentfirstname: Studentname, studentcontactnumber: Studentcontactnumber, coursesemester: Coursesemester, coursegrade: Coursegrade };
+  return {
+    studentfirstname: Studentname,
+    studentcontactnumber: Studentcontactnumber,
+    coursesemester: Coursesemester,
+    coursegrade: Coursegrade,
+  };
 }
 
-const StudentTable: React.FC<{ students: Student[] }> = ({ students }) => {
+const FacultyStudentTable: React.FC<{ students: Student[] }> = ({ students }) => {
   const [rows, setRows] = useState<Row[]>([]);
 
   useEffect(() => {
@@ -37,34 +45,43 @@ const StudentTable: React.FC<{ students: Student[] }> = ({ students }) => {
       setRows(mappedRows);
     }
   }, [students]);
-  console.log(students);
 
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="simple table">
-        <TableHead>
+    <Card className="overflow-hidden">
+      <Table>
+        <TableHeader>
           <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell align="right">Contact</TableCell>
-            <TableCell align="right">Semester</TableCell>
-            <TableCell align="right">Grades</TableCell>
+            <TableHead>Name</TableHead>
+            <TableHead className="text-right">Contact</TableHead>
+            <TableHead className="text-right">Semester</TableHead>
+            <TableHead className="text-right">Grades</TableHead>
           </TableRow>
-        </TableHead>
+        </TableHeader>
         <TableBody>
-          {rows.map((row: Row, index: number) => (
-            <TableRow key={index}>
-              <TableCell component="th" scope="row">
-                {row.studentfirstname}
+          {rows.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                No students found
               </TableCell>
-              <TableCell align="right">{row.studentcontactnumber}</TableCell>
-              <TableCell align="right">{row.coursesemester}</TableCell>
-              <TableCell align="right">{row.coursegrade}</TableCell>
             </TableRow>
-          ))}
+          ) : (
+            rows.map((row: Row, index: number) => (
+              <TableRow key={index}>
+                <TableCell className="font-medium">{row.studentfirstname}</TableCell>
+                <TableCell className="text-right">{row.studentcontactnumber}</TableCell>
+                <TableCell className="text-right">{row.coursesemester}</TableCell>
+                <TableCell className="text-right">
+                  <Badge variant={row.coursegrade ? "default" : "secondary"}>
+                    {row.coursegrade || "N/A"}
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
-    </TableContainer>
+    </Card>
   );
 };
 
-export default StudentTable;
+export default FacultyStudentTable;

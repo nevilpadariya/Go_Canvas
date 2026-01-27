@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
+import axios from "axios";
+import { useParams } from "react-router-dom";
+
 import Header from "../../components/header";
 import Sidebar from "../../components/sidebar";
 import DashboardCardFaculty from "../../components/facultydashboardcard";
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import axios from "axios";
-import { useParams } from "react-router-dom";
-import { Grid } from "@mui/material";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface Course {
   Courseid: string;
@@ -20,18 +22,15 @@ interface Course {
 }
 
 function FacultyDashboard() {
-  const [previousSemesterData, setPreviousSemesterData] = useState<Course[]>(
-    []
-  );
+  const [previousSemesterData, setPreviousSemesterData] = useState<Course[]>([]);
   const [currentSemesterData, setCurrentSemesterData] = useState<Course[]>([]);
   const { courseid } = useParams();
-
 
   const fetchCourses = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get<Course[]>(
-        "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/faculty/courses_taught",
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/courses_taught`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -64,74 +63,61 @@ function FacultyDashboard() {
   return (
     <>
       <Helmet>
-        <title>Go-Canvas</title>
+        <title>Dashboard | Go-Canvas</title>
       </Helmet>
-      <div className="wrapper">
+      
+      <div className="min-h-screen bg-background text-foreground">
         <div
-          className="overlay"
-          onClick={(e) => document.body.classList.toggle("sidebar-open")}
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
+          onClick={() => document.body.classList.remove("sidebar-open")}
         ></div>
+        
         <Header />
-        <div className="main-background"></div>
-        <main className="dashboard-content">
-          <div className="main-content" style={{flexBasis:'100%',maxWidth:'100%'}}>
-            <div className="main-title">
-              <h5>Dashboard</h5>
-              <h6>Go-Canvas</h6>
+        <Sidebar />
+        
+        <main className="pt-16 md:pl-64 transition-all duration-200">
+          <div className="container mx-auto p-6 md:p-8 max-w-7xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+              <p className="text-muted-foreground mt-1">Faculty Portal</p>
             </div>
-            <div className="dashboard-dropdown">
-              <Grid container spacing={3} className="grid-sections">
-                {currentSemesterData.map((course, index) => (
-                  <Grid
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {currentSemesterData.map((course, index) => (
+                <div key={index}>
+                  <DashboardCardFaculty
                     key={index}
-                    item
-                    sm={12}
-                    md={6}
-                    lg={6}
-                    className="courses-grid"
-                  >
-                    <DashboardCardFaculty
-                      key={index}
-                      courseid={course.Courseid}
-                      coursename={course.Coursename}
-                      coursedescription={course.Coursedescription}
-                      coursesemester={course.Coursesemester}
-                      buttondisabled={!course.Coursepublished}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-              <Accordion style={{marginTop:'20px'}}>
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  aria-controls="panel1-content"
-                  id="panel1-header"
-                >
-                  Previous Semesters & Unpublished Courses
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Grid container spacing={3} className="grid-sections">
-                    {previousSemesterData.map((course, index) => (
-                      <Grid
-                        key={index}
-                        item
-                        sm={12}
-                        md={6}
-                        lg={6}
-                        className="courses-grid"
-                      >
-                        <DashboardCardFaculty
-                          key={index}
-                          courseid={course.Courseid}
-                          coursename={course.Coursename}
-                          coursedescription={course.Coursedescription}
-                          coursesemester={course.Coursesemester}
-                          buttondisabled={!course.Coursepublished}
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-                </AccordionDetails>
+                    courseid={course.Courseid}
+                    coursename={course.Coursename}
+                    coursedescription={course.Coursedescription}
+                    coursesemester={course.Coursesemester}
+                    buttondisabled={!course.Coursepublished}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8">
+              <Accordion type="single" collapsible className="w-full bg-card rounded-lg border">
+                <AccordionItem value="previous-semesters" className="border-b-0">
+                  <AccordionTrigger className="px-4">Previous Semesters & Unpublished Courses</AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+                      {previousSemesterData.map((course, index) => (
+                        <div key={index}>
+                          <DashboardCardFaculty
+                            key={index}
+                            courseid={course.Courseid}
+                            coursename={course.Coursename}
+                            coursedescription={course.Coursedescription}
+                            coursesemester={course.Coursesemester}
+                            buttondisabled={!course.Coursepublished}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
               </Accordion>
             </div>
           </div>

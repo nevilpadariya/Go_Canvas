@@ -1,15 +1,17 @@
-import { Grid, SelectChangeEvent } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
+import axios from "axios";
+import { useParams } from "react-router-dom";
+
 import Header from "../../components/header";
 import Sidebar from "../../components/sidebar";
 import DashboardCard from "../../components/dashboardcardstudent";
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import axios from "axios";
-import { useParams } from "react-router-dom";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 function DashboardPage() {
   const [previousSemesterData, setPreviousSemesterData] = useState([]);
@@ -30,7 +32,7 @@ function DashboardPage() {
       }
 
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/student/view_contents`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/student/view_contents`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -48,40 +50,39 @@ function DashboardPage() {
     }
   };
 
-    const fetchPreviousSemesterData = async () => {
-        try {
-            const token = localStorage.getItem("token");
+  const fetchPreviousSemesterData = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-            if (!token) {
-                // Minimal demo previous data
-                setPreviousSemesterData([
-                  { Courseid: 201, Coursename: "Archived Demo Course", Coursedescription: "Past features", EnrollmentSemester: "DEMO-ARCHIVE" },
-                ] as any);
-                return;
-            }
+      if (!token) {
+        // Minimal demo previous data
+        setPreviousSemesterData([
+          { Courseid: 201, Coursename: "Archived Demo Course", Coursedescription: "Past features", EnrollmentSemester: "DEMO-ARCHIVE" },
+        ] as any);
+        return;
+      }
 
-            const response = await axios.get(
-                `${process.env.REACT_APP_API_URL}/student/previous_enrollment`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            if (response.status === 200) {
-                // Filter the data to exclude entries with EnrollmentSemester "SPRING24"
-                const filteredData = response.data.filter(
-                    (enrollment: { EnrollmentSemester: string; }) => enrollment.EnrollmentSemester !== "SPRING24"
-                );
-                setPreviousSemesterData(filteredData);
-            } else {
-                throw new Error("Failed to fetch previous semester data");
-            }
-        } catch (error) {
-            console.error("Error fetching previous semester data:", error);
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/student/previous_enrollment`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-    };
+      );
+
+      if (response.status === 200) {
+        const filteredData = response.data.filter(
+          (enrollment: { EnrollmentSemester: string; }) => enrollment.EnrollmentSemester !== "SPRING24"
+        );
+        setPreviousSemesterData(filteredData);
+      } else {
+        throw new Error("Failed to fetch previous semester data");
+      }
+    } catch (error) {
+      console.error("Error fetching previous semester data:", error);
+    }
+  };
 
   useEffect(() => {
     fetchCurrentSemesterData();
@@ -91,86 +92,60 @@ function DashboardPage() {
   return (
     <>
       <Helmet>
-        <title>Go-Canvas</title>
+        <title>Dashboard | Go-Canvas</title>
       </Helmet>
-      <div className="wrapper">
+      
+      <div className="min-h-screen bg-background text-foreground">
+        {/* Overlay for sidebar */}
         <div
-          className="overlay"
-          onClick={(e) => document.body.classList.toggle("sidebar-open")}
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 sidebar-overlay hidden"
+          onClick={() => document.body.classList.remove("sidebar-open")}
         ></div>
+        
         <Header />
-        <div className="main-background"></div>
-        <main className="dashboard-content">
-          <div className="sidebar">
-            <Sidebar />
-          </div>
-          <div className="main-content">
-            <div className="main-title">
-              <h5>Dashboard</h5>
-              <h6>Go-Canvas</h6>
+        <Sidebar />
+        
+        <main className="pt-16 md:pl-64 transition-all duration-200">
+          <div className="container mx-auto p-6 md:p-8 max-w-7xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+              <p className="text-muted-foreground mt-1">Welcome to Go-Canvas</p>
             </div>
-            <Grid container spacing={3} className="grid-sections">
-              <Grid
-                item
-                md={12}
-                lg={12}
-                spacing={3}
-                container
-                className="grid-section-1"
-              >
-                {currentSemesterData.map((course, index) => (
-                  <Grid
-                    key={index}
-                    item
-                    sm={12}
-                    md={4}
-                    lg={4}
-                    className="courses-grid"
-                  >
-                    <DashboardCard
-                      courseid={course["Courseid"]}
-                      coursename={course["Coursename"]}
-                      coursedescription={course["Coursedescription"]}
-                      coursesemester={course["Coursesemester"]}
-                      buttondisabled={false}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-            </Grid>
-            <div className="dashboard-dropdown">
-              <Accordion>
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  aria-controls="panel1-content"
-                  id="panel1-header"
-                >
-                  Previous Semesters
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Grid container spacing={3} className="grid-sections">
-                    {previousSemesterData.map((course, index) => (
-                      <Grid
-                        key={index}
-                        item
-                        xs={12}
-                        sm={4}
-                        md={4}
-                        lg={4}
-                        className="courses-grid"
-                        style={{ marginBottom: "20px" }}
-                      >
-                        <DashboardCard
-                          courseid={course["Courseid"]}
-                          coursename={course["Coursename"]}
-                          coursedescription={course["Coursedescription"]}
-                          coursesemester={course["EnrollmentSemester"]}
-                          buttondisabled={true}
-                        />
-                      </Grid>
-                    ))}
-                  </Grid>
-                </AccordionDetails>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {currentSemesterData.map((course, index) => (
+                <div key={index}>
+                  <DashboardCard
+                    courseid={course["Courseid"]}
+                    coursename={course["Coursename"]}
+                    coursedescription={course["Coursedescription"]}
+                    coursesemester={course["Coursesemester"]}
+                    buttondisabled={false}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8">
+              <Accordion type="single" collapsible className="w-full bg-card rounded-lg border">
+                <AccordionItem value="previous-semesters" className="border-b-0">
+                  <AccordionTrigger className="px-4">Previous Semesters</AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+                      {previousSemesterData.map((course, index) => (
+                        <div key={index}>
+                          <DashboardCard
+                            courseid={course["Courseid"]}
+                            coursename={course["Coursename"]}
+                            coursedescription={course["Coursedescription"]}
+                            coursesemester={course["EnrollmentSemester"]}
+                            buttondisabled={true}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
               </Accordion>
             </div>
           </div>

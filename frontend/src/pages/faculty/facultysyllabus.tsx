@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from "react";
+import { Helmet } from "react-helmet";
+import { useParams } from "react-router-dom";
 import FacultySidebar from "../../components/facultysidebar";
 import Header from "../../components/header";
-import { Helmet } from "react-helmet";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import Typography from "@mui/material/Typography";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
 
 function AddSyllabus() {
-
   const { courseid } = useParams();
-  
-  const courseId = courseid || ""; 
+  const courseId = courseid || "";
   
   const [showForm, setShowForm] = useState(false);
   const [syllabusName, setSyllabusName] = useState("");
@@ -27,7 +30,7 @@ function AddSyllabus() {
     const fetchSyllabus = async () => {
       try {
         const response = await fetch(
-          "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/faculty/view_content_by_courseid?courseid=2",
+          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/view_content_by_courseid?courseid=${courseId}`,
           {
             method: "GET",
             headers: {
@@ -40,21 +43,20 @@ function AddSyllabus() {
           const data = await response.json();
           setSavedSyllabus(data);
         } else {
-          setError("Failed to fetch syllabus");
+          console.error("Failed to fetch syllabus");
         }
       } catch (error) {
         console.error("Error fetching syllabus:", error);
-        setError("Failed to fetch syllabus");
       }
     };
 
     fetchSyllabus();
-  }, []);
+  }, [courseId]);
 
   const handleSubmit = async () => {
     try {
       const response = await fetch(
-        "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/faculty/update-syllabus/",
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/update-syllabus/`,
         {
           method: "PUT",
           headers: {
@@ -75,8 +77,6 @@ function AddSyllabus() {
         setSyllabusDescription("");
         setShowForm(false);
         setError("");
-        alert("Syllabus added successfully");
-        window.location.reload();
       } else {
         const errorMessage = await response.text();
         setError(errorMessage || "Failed to add syllabus");
@@ -87,11 +87,7 @@ function AddSyllabus() {
     }
   };
 
-  const handleAddSyllabusClick = () => {
-    setShowForm(true);
-  };
-
-  const handleFormSubmit = (e:any) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!syllabusName.trim() || !syllabusDescription.trim()) {
@@ -112,96 +108,96 @@ function AddSyllabus() {
   return (
     <>
       <Helmet>
-        <title>Syllabus</title>
+        <title>Syllabus | Go-Canvas</title>
       </Helmet>
-      <div className="wrapper">
+      
+      <div className="min-h-screen bg-background text-foreground">
         <div
-          className="overlay"
-          onClick={() => document.body.classList.toggle("sidebar-open")}
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
+          onClick={() => document.body.classList.remove("sidebar-open")}
         ></div>
-        <Header></Header>
-        <div className="main-background"></div>
-        <main className="dashboard-content">
-          <div className="sidebar">
-            <FacultySidebar></FacultySidebar>
-          </div>
-          <div className="main-content">
-            <div className="main-title">
-              <h5>Syllabus</h5>
-              <h6>Go-Canvas</h6>
+        
+        <Header />
+        <FacultySidebar />
+        
+        <main className="pt-16 md:pl-64 transition-all duration-200">
+          <div className="container mx-auto p-6 md:p-8 max-w-4xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold tracking-tight">Syllabus</h1>
+              <p className="text-muted-foreground mt-1">Manage Course Syllabus</p>
             </div>
-            <div style={{ marginTop: "30px" }}>
-              {!showForm ? (
-                <Button
-                  onClick={handleAddSyllabusClick}
-                  variant="contained"
-                  color="primary"
-                  style={{ display: "block", marginLeft: "auto" }}
-                >
+
+            <div className="flex justify-end mb-6">
+              {!showForm && (
+                <Button onClick={() => setShowForm(true)}>
                   Update Syllabus
                 </Button>
-              ) : (
-                <>
-                  {error && <p style={{ color: "red" }}>{error}</p>}
-                  <form onSubmit={handleFormSubmit}>
-                    <TextField
-                      label="Title"
-                      variant="outlined"
-                      value={syllabusName}
-                      onChange={(e) => setSyllabusName(e.target.value)}
-                      fullWidth
-                      margin="normal"
-                      placeholder="Enter Title"
-                    />
-                    <TextField
-                      label="Content Description"
-                      variant="outlined"
-                      value={syllabusDescription}
-                      onChange={(e) => setSyllabusDescription(e.target.value)}
-                      fullWidth
-                      multiline
-                      rows={4}
-                      margin="normal"
-                      placeholder="Enter Content Description"
-                    />
-                    <Button type="submit" variant="contained" color="primary">
-                      Submit
-                    </Button>
-                    <Button
-                      onClick={handleCancel}
-                      variant="contained"
-                      color="error"
-                      style={{ marginLeft: "20px" }}
-                    >
-                      Cancel
-                    </Button>
-                  </form>
-                </>
               )}
-              <Accordion defaultExpanded style={{ marginTop: "20px" }}>
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  aria-controls="panel1a-content"
-                  id="panel1a-header"
-                >
-                  <Typography>Syllabus</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <div>
-                    {savedSyllabus.map((syllabus, index) => (
-                      <div key={index} style={{ borderBottom: "1px solid grey" }}>
-                        <h3>
-                          Syllabus {index + 1}: {syllabus.Coursesemester}
-                        </h3>
-                        <p>
-                          <strong>Description:</strong> {syllabus.Coursedescription}
+            </div>
+
+            {showForm && (
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle>Add New Syllabus Entry</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {error && <p className="text-destructive text-sm mb-4 font-medium">{error}</p>}
+                  <form onSubmit={handleFormSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Title</Label>
+                      <Input
+                        id="title"
+                        placeholder="Enter Title"
+                        value={syllabusName}
+                        onChange={(e) => setSyllabusName(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Content Description</Label>
+                      <Textarea
+                        id="description"
+                        placeholder="Enter Content Description"
+                        rows={4}
+                        value={syllabusDescription}
+                        onChange={(e) => setSyllabusDescription(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center gap-4 pt-4">
+                      <Button type="submit">Submit</Button>
+                      <Button type="button" variant="outline" onClick={handleCancel}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
+
+            <Accordion type="single" collapsible className="w-full bg-card rounded-lg border" defaultValue="syllabus-item-0">
+              {savedSyllabus.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  No syllabus available. Click "Update Syllabus" to add one.
+                </div>
+              ) : (
+                savedSyllabus.map((syllabus, index) => (
+                  <AccordionItem key={index} value={`syllabus-item-${index}`}>
+                    <AccordionTrigger className="px-4">
+                      Syllabus {index + 1}: {syllabus.Coursesemester}
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      <div className="pt-2">
+                        <Label className="text-base font-semibold">Description:</Label>
+                        <p className="mt-2 text-muted-foreground whitespace-pre-wrap">
+                          {syllabus.Coursedescription}
                         </p>
                       </div>
-                    ))}
-                  </div>
-                </AccordionDetails>
-              </Accordion>
-            </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))
+              )}
+            </Accordion>
           </div>
         </main>
       </div>

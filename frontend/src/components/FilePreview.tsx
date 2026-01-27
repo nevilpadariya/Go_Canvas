@@ -1,18 +1,9 @@
 import React from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  IconButton,
-  Link,
-} from '@mui/material';
-import DownloadIcon from '@mui/icons-material/Download';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import ImageIcon from '@mui/icons-material/Image';
-import CodeIcon from '@mui/icons-material/Code';
-import DescriptionIcon from '@mui/icons-material/Description';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import { Download, FileText, Image, Code, FileIcon } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface FilePreviewProps {
   filename: string;
@@ -32,13 +23,13 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   showDownload = true,
 }) => {
   const getFileIcon = () => {
-    if (!mimeType) return <InsertDriveFileIcon sx={{ fontSize: 40, color: '#999' }} />;
+    if (!mimeType) return <FileIcon className="h-10 w-10 text-muted-foreground" />;
 
     if (mimeType.includes('pdf')) {
-      return <PictureAsPdfIcon sx={{ fontSize: 40, color: '#E53935' }} />;
+      return <FileText className="h-10 w-10 text-red-500" />;
     }
     if (mimeType.includes('image')) {
-      return <ImageIcon sx={{ fontSize: 40, color: '#43A047' }} />;
+      return <Image className="h-10 w-10 text-green-500" />;
     }
     if (
       mimeType.includes('text') ||
@@ -46,13 +37,13 @@ const FilePreview: React.FC<FilePreviewProps> = ({
       mimeType.includes('python') ||
       mimeType.includes('java')
     ) {
-      return <CodeIcon sx={{ fontSize: 40, color: '#1976D2' }} />;
+      return <Code className="h-10 w-10 text-blue-500" />;
     }
     if (mimeType.includes('word') || mimeType.includes('document')) {
-      return <DescriptionIcon sx={{ fontSize: 40, color: '#2196F3' }} />;
+      return <FileText className="h-10 w-10 text-blue-600" />;
     }
 
-    return <InsertDriveFileIcon sx={{ fontSize: 40, color: '#999' }} />;
+    return <FileIcon className="h-10 w-10 text-muted-foreground" />;
   };
 
   const formatFileSize = (bytes?: number): string => {
@@ -63,68 +54,34 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   };
 
   const isImage = mimeType?.includes('image');
-  const isPdf = mimeType?.includes('pdf');
-  const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const fullUrl = fileUrl.startsWith('http') ? fileUrl : `${baseUrl}${fileUrl}`;
 
   return (
-    <Card
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        p: 2,
-        backgroundColor: '#f5f5f5',
-        borderRadius: 2,
-      }}
-    >
+    <Card className="flex items-center p-4 bg-muted rounded-lg">
       {isImage ? (
-        <Box
-          component="img"
+        <img
           src={fullUrl}
           alt={originalName}
-          sx={{
-            width: 60,
-            height: 60,
-            objectFit: 'cover',
-            borderRadius: 1,
-            mr: 2,
-          }}
+          className="w-14 h-14 object-cover rounded mr-3"
         />
       ) : (
-        <Box sx={{ mr: 2 }}>{getFileIcon()}</Box>
+        <div className="mr-3">{getFileIcon()}</div>
       )}
 
-      <CardContent sx={{ flex: 1, py: 0, '&:last-child': { pb: 0 } }}>
-        <Typography
-          variant="subtitle1"
-          sx={{
-            fontWeight: 500,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            maxWidth: 250,
-          }}
-        >
-          {originalName}
-        </Typography>
+      <div className="flex-1 min-w-0">
+        <p className="font-medium truncate max-w-[250px]">{originalName}</p>
         {fileSize && (
-          <Typography variant="body2" color="text.secondary">
-            {formatFileSize(fileSize)}
-          </Typography>
+          <p className="text-sm text-muted-foreground">{formatFileSize(fileSize)}</p>
         )}
-      </CardContent>
+      </div>
 
       {showDownload && (
-        <Link href={fullUrl} download={originalName} target="_blank">
-          <IconButton
-            sx={{
-              color: '#75CA67',
-              '&:hover': { backgroundColor: 'rgba(117, 202, 103, 0.1)' },
-            }}
-          >
-            <DownloadIcon />
-          </IconButton>
-        </Link>
+        <a href={fullUrl} download={originalName} target="_blank" rel="noreferrer">
+          <Button variant="ghost" size="icon" className="text-primary hover:bg-primary/10">
+            <Download className="h-5 w-5" />
+          </Button>
+        </a>
       )}
     </Card>
   );

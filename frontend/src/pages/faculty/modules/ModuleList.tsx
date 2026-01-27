@@ -1,45 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Typography,
-  IconButton,
-  Collapse,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  ListItemSecondaryAction,
-  Chip,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Alert,
-  CircularProgress,
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import QuizIcon from '@mui/icons-material/Quiz';
-import ArticleIcon from '@mui/icons-material/Article';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import LinkIcon from '@mui/icons-material/Link';
-import TitleIcon from '@mui/icons-material/Title';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+  Plus,
+  Edit,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Link as LinkIcon,
+  Type,
+  Eye,
+  EyeOff,
+  GripVertical,
+  BookOpen
+} from 'lucide-react';
 import axios from 'axios';
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Separator } from '@/components/ui/separator';
 
 interface ModuleItem {
   Itemid: number;
@@ -74,7 +78,6 @@ const ModuleList: React.FC<ModuleListProps> = ({ courseId, isEditable = true }) 
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedModules, setExpandedModules] = useState<Set<number>>(new Set());
   
   // Dialog states
   const [moduleDialogOpen, setModuleDialogOpen] = useState(false);
@@ -92,7 +95,7 @@ const ModuleList: React.FC<ModuleListProps> = ({ courseId, isEditable = true }) 
   const [itemContent, setItemContent] = useState('');
   const [itemUrl, setItemUrl] = useState('');
 
-  const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   const fetchModules = async () => {
     try {
@@ -101,38 +104,31 @@ const ModuleList: React.FC<ModuleListProps> = ({ courseId, isEditable = true }) 
         headers: { Authorization: `Bearer ${token}` },
       });
       setModules(response.data.Modules || []);
-      // Expand all modules by default
-      setExpandedModules(new Set(response.data.Modules?.map((m: Module) => m.Moduleid) || []));
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to load modules');
+      // Don't show error if it's just no modules found (404 for empty list sometimes)
+      if (err.response?.status !== 404) {
+        setError(err.response?.data?.detail || 'Failed to load modules');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchModules();
-  }, [courseId]);
-
-  const toggleModule = (moduleId: number) => {
-    const newExpanded = new Set(expandedModules);
-    if (newExpanded.has(moduleId)) {
-      newExpanded.delete(moduleId);
-    } else {
-      newExpanded.add(moduleId);
+    if (courseId) {
+       fetchModules();
     }
-    setExpandedModules(newExpanded);
-  };
+  }, [courseId]);
 
   const getItemIcon = (type: string) => {
     switch (type) {
-      case 'assignment': return <AssignmentIcon sx={{ color: '#E53935' }} />;
-      case 'quiz': return <QuizIcon sx={{ color: '#1976D2' }} />;
-      case 'page': return <ArticleIcon sx={{ color: '#43A047' }} />;
-      case 'file': return <InsertDriveFileIcon sx={{ color: '#FB8C00' }} />;
-      case 'link': return <LinkIcon sx={{ color: '#8E24AA' }} />;
-      case 'header': return <TitleIcon sx={{ color: '#757575' }} />;
-      default: return <ArticleIcon />;
+      case 'assignment': return <BookOpen className="h-4 w-4 text-red-500" />;
+      case 'quiz': return <FileText className="h-4 w-4 text-blue-500" />;
+      case 'page': return <FileText className="h-4 w-4 text-green-500" />;
+      case 'file': return <FileText className="h-4 w-4 text-orange-500" />;
+      case 'link': return <LinkIcon className="h-4 w-4 text-purple-500" />;
+      case 'header': return <Type className="h-4 w-4 text-gray-500" />;
+      default: return <FileText className="h-4 w-4" />;
     }
   };
 
@@ -280,226 +276,207 @@ const ModuleList: React.FC<ModuleListProps> = ({ courseId, isEditable = true }) 
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress sx={{ color: '#75CA67' }} />
-      </Box>
+      <div className="flex justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
   return (
-    <Box>
+    <div className='w-full'>
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-          {error}
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {isEditable && (
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenModuleDialog()}
-            sx={{
-              backgroundColor: '#75CA67',
-              '&:hover': { backgroundColor: '#528d48' },
-            }}
-          >
-            Add Module
+        <div className="mb-6 flex justify-end">
+          <Button onClick={() => handleOpenModuleDialog()} className="gap-2">
+            <Plus className="h-4 w-4" /> Add Module
           </Button>
-        </Box>
+        </div>
       )}
 
       {modules.length === 0 ? (
-        <Card sx={{ textAlign: 'center', py: 4 }}>
-          <Typography color="text.secondary">
-            No modules yet. {isEditable && 'Click "Add Module" to create one.'}
-          </Typography>
+        <Card className="text-center py-8">
+          <CardContent>
+            <p className="text-muted-foreground">
+              No modules yet. {isEditable && 'Click "Add Module" to create one.'}
+            </p>
+          </CardContent>
         </Card>
       ) : (
-        modules.map((module) => (
-          <Card key={module.Moduleid} sx={{ mb: 2, overflow: 'visible' }}>
-            <CardContent sx={{ pb: 0 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {isEditable && (
-                  <DragIndicatorIcon sx={{ color: '#999', cursor: 'grab' }} />
-                )}
-                <IconButton onClick={() => toggleModule(module.Moduleid)} size="small">
-                  {expandedModules.has(module.Moduleid) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </IconButton>
-                <Typography variant="h6" sx={{ flex: 1, fontWeight: 600 }}>
-                  {module.Modulename}
-                </Typography>
-                <Chip
-                  size="small"
-                  label={module.Modulepublished ? 'Published' : 'Unpublished'}
-                  color={module.Modulepublished ? 'success' : 'default'}
-                  sx={{ mr: 1 }}
-                />
-                {isEditable && (
-                  <>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleTogglePublish(module)}
-                      title={module.Modulepublished ? 'Unpublish' : 'Publish'}
-                    >
-                      {module.Modulepublished ? <VisibilityIcon /> : <VisibilityOffIcon />}
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleOpenModuleDialog(module)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleDeleteModule(module.Moduleid)}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </>
-                )}
-              </Box>
-              {module.Moduledescription && (
-                <Typography variant="body2" color="text.secondary" sx={{ ml: 6, mt: 1 }}>
-                  {module.Moduledescription}
-                </Typography>
-              )}
-            </CardContent>
+        <Accordion type="multiple" className="w-full space-y-4" defaultValue={modules.map(m => `module-${m.Moduleid}`)}>
+          {modules.map((module) => (
+            <AccordionItem key={module.Moduleid} value={`module-${module.Moduleid}`} className="border rounded-lg bg-card px-2">
+               <div className="flex items-center justify-between py-2">
+                  <div className="flex items-center gap-2 flex-1">
+                     <AccordionTrigger className="hover:no-underline py-2 pr-4">
+                       <span className="text-lg font-semibold text-left">{module.Modulename}</span>
+                     </AccordionTrigger>
+                     <Badge variant={module.Modulepublished ? "default" : "secondary"}>
+                        {module.Modulepublished ? 'Published' : 'Unpublished'}
+                     </Badge>
+                  </div>
+                  
+                  {isEditable && (
+                    <div className="flex items-center gap-1 z-10 relative">
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleTogglePublish(module); }} title={module.Modulepublished ? 'Unpublish' : 'Publish'}>
+                           {module.Modulepublished ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleOpenModuleDialog(module); }}>
+                           <Edit className="h-4 w-4" />
+                        </Button>
+                         <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDeleteModule(module.Moduleid); }} className="text-destructive hover:text-destructive">
+                           <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                  )}
+               </div>
+              
+              <AccordionContent className="pt-0 pb-4">
+                 {module.Moduledescription && (
+                    <p className="text-sm text-muted-foreground mb-4 pl-4">{module.Moduledescription}</p>
+                 )}
 
-            <Collapse in={expandedModules.has(module.Moduleid)}>
-              <List sx={{ pl: 4 }}>
-                {module.Items.map((item) => (
-                  <ListItem
-                    key={item.Itemid}
-                    sx={{
-                      backgroundColor: '#f9f9f9',
-                      borderRadius: 1,
-                      mb: 1,
-                      mx: 2,
-                    }}
-                  >
-                    <ListItemIcon>{getItemIcon(item.Itemtype)}</ListItemIcon>
-                    <ListItemText
-                      primary={item.Itemname}
-                      secondary={item.Itemtype.charAt(0).toUpperCase() + item.Itemtype.slice(1)}
-                    />
+                 <div className="flex flex-col gap-2 pl-4">
+                    {module.Items.map((item) => (
+                       <div key={item.Itemid} className="flex items-center p-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors group">
+                           <div className="mr-3 mt-1">
+                              {getItemIcon(item.Itemtype)}
+                           </div>
+                           <div className="flex-1">
+                              <p className="font-medium text-sm">{item.Itemname}</p>
+                              <p className="text-xs text-muted-foreground capitalize">{item.Itemtype}</p>
+                           </div>
+                           
+                           {isEditable && (
+                              <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenItemDialog(module.Moduleid, item)}>
+                                    <Edit className="h-3 w-3" />
+                                 </Button>
+                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteItem(item.Itemid)}>
+                                    <Trash2 className="h-3 w-3" />
+                                 </Button>
+                              </div>
+                           )}
+                       </div>
+                    ))}
+                    
                     {isEditable && (
-                      <ListItemSecondaryAction>
-                        <IconButton size="small" onClick={() => handleOpenItemDialog(module.Moduleid, item)}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton size="small" onClick={() => handleDeleteItem(item.Itemid)}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </ListItemSecondaryAction>
+                       <Button variant="ghost" size="sm" className="self-start mt-2 gap-2 text-muted-foreground hover:text-primary" onClick={() => handleOpenItemDialog(module.Moduleid)}>
+                          <Plus className="h-3 w-3" /> Add Item
+                       </Button>
                     )}
-                  </ListItem>
-                ))}
-                {isEditable && (
-                  <ListItem sx={{ mx: 2 }}>
-                    <Button
-                      size="small"
-                      startIcon={<AddIcon />}
-                      onClick={() => handleOpenItemDialog(module.Moduleid)}
-                      sx={{ color: '#75CA67' }}
-                    >
-                      Add Item
-                    </Button>
-                  </ListItem>
-                )}
-              </List>
-            </Collapse>
-          </Card>
-        ))
+                 </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       )}
 
       {/* Module Dialog */}
-      <Dialog open={moduleDialogOpen} onClose={() => setModuleDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingModule ? 'Edit Module' : 'Create Module'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Module Name"
-            value={moduleName}
-            onChange={(e) => setModuleName(e.target.value)}
-            sx={{ mt: 2, mb: 2 }}
-          />
-          <TextField
-            fullWidth
-            multiline
-            rows={3}
-            label="Description (optional)"
-            value={moduleDescription}
-            onChange={(e) => setModuleDescription(e.target.value)}
-            sx={{ mb: 2 }}
-          />
+      <Dialog open={moduleDialogOpen} onOpenChange={setModuleDialogOpen}>
+        <DialogContent className='sm:max-w-[500px]'>
+          <DialogHeader>
+            <DialogTitle>{editingModule ? 'Edit Module' : 'Create Module'}</DialogTitle>
+            <DialogDescription>
+               Fill in the details for the module.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="moduleName">Module Name</Label>
+              <Input
+                id="moduleName"
+                value={moduleName}
+                onChange={(e) => setModuleName(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="moduleDescription">Description (optional)</Label>
+              <Textarea
+                id="moduleDescription"
+                value={moduleDescription}
+                onChange={(e) => setModuleDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+             <Button variant="outline" onClick={() => setModuleDialogOpen(false)}>Cancel</Button>
+             <Button onClick={handleSaveModule}>Save</Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setModuleDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleSaveModule}
-            variant="contained"
-            sx={{ backgroundColor: '#75CA67', '&:hover': { backgroundColor: '#528d48' } }}
-          >
-            Save
-          </Button>
-        </DialogActions>
       </Dialog>
 
       {/* Item Dialog */}
-      <Dialog open={itemDialogOpen} onClose={() => setItemDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingItem ? 'Edit Item' : 'Add Item'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Item Name"
-            value={itemName}
-            onChange={(e) => setItemName(e.target.value)}
-            sx={{ mt: 2, mb: 2 }}
-          />
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Item Type</InputLabel>
-            <Select
-              value={itemType}
-              label="Item Type"
-              onChange={(e) => setItemType(e.target.value)}
-            >
-              <MenuItem value="page">Page</MenuItem>
-              <MenuItem value="assignment">Assignment</MenuItem>
-              <MenuItem value="quiz">Quiz</MenuItem>
-              <MenuItem value="file">File</MenuItem>
-              <MenuItem value="link">External Link</MenuItem>
-              <MenuItem value="header">Header</MenuItem>
-            </Select>
-          </FormControl>
-          {itemType === 'page' && (
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              label="Content"
-              value={itemContent}
-              onChange={(e) => setItemContent(e.target.value)}
-              sx={{ mb: 2 }}
-            />
-          )}
-          {itemType === 'link' && (
-            <TextField
-              fullWidth
-              label="URL"
-              value={itemUrl}
-              onChange={(e) => setItemUrl(e.target.value)}
-              sx={{ mb: 2 }}
-            />
-          )}
+      <Dialog open={itemDialogOpen} onOpenChange={setItemDialogOpen}>
+        <DialogContent className='sm:max-w-[500px]'>
+          <DialogHeader>
+            <DialogTitle>{editingItem ? 'Edit Item' : 'Add Item'}</DialogTitle>
+             <DialogDescription>
+               Add content or resources to your module.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="itemName">Item Name</Label>
+              <Input
+                id="itemName"
+                value={itemName}
+                onChange={(e) => setItemName(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="itemType">Item Type</Label>
+              <Select value={itemType} onValueChange={setItemType}>
+                <SelectTrigger id="itemType">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="page">Page</SelectItem>
+                  <SelectItem value="assignment">Assignment</SelectItem>
+                  <SelectItem value="quiz">Quiz</SelectItem>
+                  <SelectItem value="file">File</SelectItem>
+                  <SelectItem value="link">External Link</SelectItem>
+                  <SelectItem value="header">Header</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {itemType === 'page' && (
+              <div className="grid gap-2">
+                <Label htmlFor="itemContent">Content</Label>
+                <Textarea
+                  id="itemContent"
+                  value={itemContent}
+                  onChange={(e) => setItemContent(e.target.value)}
+                  rows={4}
+                />
+              </div>
+            )}
+            
+            {itemType === 'link' && (
+              <div className="grid gap-2">
+                <Label htmlFor="itemUrl">URL</Label>
+                <Input
+                  id="itemUrl"
+                  value={itemUrl}
+                  onChange={(e) => setItemUrl(e.target.value)}
+                  placeholder="https://..."
+                />
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+             <Button variant="outline" onClick={() => setItemDialogOpen(false)}>Cancel</Button>
+             <Button onClick={handleSaveItem}>Save</Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setItemDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleSaveItem}
-            variant="contained"
-            sx={{ backgroundColor: '#75CA67', '&:hover': { backgroundColor: '#528d48' } }}
-          >
-            Save
-          </Button>
-        </DialogActions>
       </Dialog>
-    </Box>
+    </div>
   );
 };
 

@@ -1,24 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import {
-  Box,
-  Button,
-  Typography,
-  LinearProgress,
-  Card,
-  CardContent,
-  IconButton,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  ListItemSecondaryAction,
-  Alert,
-} from '@mui/material';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import DeleteIcon from '@mui/icons-material/Delete';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { Upload, FileIcon, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
 import axios from 'axios';
+
+import { cn } from '@/lib/utils';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface FileUploadProps {
   onFileUploaded?: (fileInfo: UploadedFile) => void;
@@ -80,7 +66,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
     try {
       const response = await axios.post<UploadedFile>(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/files/upload`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/files/upload`,
         formData,
         {
           headers: {
@@ -118,13 +104,11 @@ const FileUpload: React.FC<FileUploadProps> = ({
     setError(null);
     const newFiles = Array.from(selectedFiles);
 
-    // Check max files limit
     if (files.length + newFiles.length > maxFiles) {
       setError(`Maximum ${maxFiles} files allowed`);
       return;
     }
 
-    // Add files to state
     const fileWithProgress: FileWithProgress[] = newFiles.map((file) => ({
       file,
       progress: 0,
@@ -132,7 +116,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
     }));
     setFiles((prev) => [...prev, ...fileWithProgress]);
 
-    // Upload each file
     for (const file of newFiles) {
       const result = await uploadFile(file);
       if (result) {
@@ -154,7 +137,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       setIsDragOver(false);
       handleFiles(e.dataTransfer.files);
     },
-    [handleFiles, disabled]
+    [disabled]
   );
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,12 +147,11 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const handleRemoveFile = async (index: number) => {
     const fileToRemove = files[index];
     
-    // If file was uploaded, call delete API
     if (fileToRemove.uploadedFile?.Fileid) {
       try {
         const token = localStorage.getItem('token');
         await axios.delete(
-          `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/files/${fileToRemove.uploadedFile.Fileid}`,
+          `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/files/${fileToRemove.uploadedFile.Fileid}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -193,121 +175,94 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
   return (
     <Card
-      sx={{
-        border: isDragOver ? '2px dashed #75CA67' : '2px dashed #DDDDDD',
-        backgroundColor: isDragOver ? 'rgba(117, 202, 103, 0.05)' : 'transparent',
-        transition: 'all 0.2s ease',
-      }}
+      className={cn(
+        "border-2 border-dashed transition-all duration-200",
+        isDragOver ? "border-primary bg-primary/5" : "border-border",
+        disabled && "opacity-50 cursor-not-allowed"
+      )}
     >
-      <CardContent>
-        <Box
+      <CardContent className="p-6">
+        <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          sx={{
-            textAlign: 'center',
-            py: 4,
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            opacity: disabled ? 0.5 : 1,
-          }}
+          className={cn(
+            "text-center py-8",
+            disabled ? "cursor-not-allowed" : "cursor-pointer"
+          )}
         >
           <input
             type="file"
             multiple
             accept={acceptedTypes}
             onChange={handleInputChange}
-            style={{ display: 'none' }}
+            className="hidden"
             id="file-upload-input"
             disabled={disabled}
           />
-          <label htmlFor="file-upload-input">
-            <CloudUploadIcon
-              sx={{ fontSize: 48, color: '#75CA67', mb: 2, cursor: 'pointer' }}
-            />
-            <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
-              Drag and drop files here
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              or
-            </Typography>
-            <Button
-              variant="contained"
-              component="span"
-              disabled={disabled}
-              sx={{
-                backgroundColor: '#75CA67',
-                '&:hover': { backgroundColor: '#528d48' },
-              }}
-            >
-              Browse Files
+          <label htmlFor="file-upload-input" className="cursor-pointer">
+            <Upload className="h-12 w-12 mx-auto mb-4 text-primary" />
+            <h3 className="text-lg font-medium mb-1">Drag and drop files here</h3>
+            <p className="text-sm text-muted-foreground mb-4">or</p>
+            <Button variant="default" disabled={disabled} asChild>
+              <span>Browse Files</span>
             </Button>
           </label>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
+          <p className="text-xs text-muted-foreground mt-4">
             Supported formats: PDF, DOC, DOCX, TXT, code files, images (max 10MB each)
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
         {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
+          <div className="flex items-center gap-2 mt-4 p-3 rounded-md bg-destructive/15 text-destructive text-sm">
+            <AlertCircle className="h-4 w-4" />
             {error}
-          </Alert>
+          </div>
         )}
 
         {files.length > 0 && (
-          <List sx={{ mt: 2 }}>
+          <ul className="mt-4 space-y-2">
             {files.map((fileItem, index) => (
-              <ListItem
+              <li
                 key={index}
-                sx={{
-                  backgroundColor: '#f5f5f5',
-                  borderRadius: 1,
-                  mb: 1,
-                }}
+                className="flex items-center gap-3 p-3 bg-muted rounded-lg"
               >
-                <ListItemIcon>
-                  {fileItem.uploaded ? (
-                    <CheckCircleIcon sx={{ color: '#75CA67' }} />
-                  ) : (
-                    <InsertDriveFileIcon sx={{ color: '#999' }} />
-                  )}
-                </ListItemIcon>
-                <ListItemText
-                  primary={fileItem.file.name}
-                  secondary={
-                    fileItem.error ? (
-                      <Typography color="error" variant="caption">
-                        {fileItem.error}
-                      </Typography>
-                    ) : (
-                      formatFileSize(fileItem.file.size)
-                    )
-                  }
-                />
-                {!fileItem.uploaded && !fileItem.error && (
-                  <Box sx={{ width: 100, mr: 2 }}>
-                    <LinearProgress
-                      variant="determinate"
-                      value={fileItem.progress}
-                      sx={{
-                        '& .MuiLinearProgress-bar': {
-                          backgroundColor: '#75CA67',
-                        },
-                      }}
-                    />
-                  </Box>
+                {fileItem.uploaded ? (
+                  <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
+                ) : (
+                  <FileIcon className="h-5 w-5 text-muted-foreground shrink-0" />
                 )}
-                <ListItemSecondaryAction>
-                  <IconButton
-                    edge="end"
-                    onClick={() => handleRemoveFile(index)}
-                    size="small"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </ListItemSecondaryAction>
-              </ListItem>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{fileItem.file.name}</p>
+                  {fileItem.error ? (
+                    <p className="text-xs text-destructive">{fileItem.error}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      {formatFileSize(fileItem.file.size)}
+                    </p>
+                  )}
+                </div>
+                {!fileItem.uploaded && !fileItem.error && (
+                  <div className="w-20">
+                    <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary transition-all duration-200"
+                        style={{ width: `${fileItem.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleRemoveFile(index)}
+                  className="shrink-0"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </li>
             ))}
-          </List>
+          </ul>
         )}
       </CardContent>
     </Card>

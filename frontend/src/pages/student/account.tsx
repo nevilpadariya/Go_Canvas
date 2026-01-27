@@ -1,10 +1,21 @@
-import { Button, Switch, TextField, Tooltip, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
-import Header from "../../components/header";
-import Sidebar from "../../components/sidebar";
 import axios from "axios";
 import { johnsmithside } from "../../assets/images";
+
+import Header from "../../components/header";
+import Sidebar from "../../components/sidebar";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Card, CardContent } from "@/components/ui/card";
 
 function AccountPage() {
   const [firstname, setFirstName] = useState("");
@@ -26,12 +37,15 @@ function AccountPage() {
     try {
       const token = localStorage.getItem("token");
 
-      const response = await axios.get("http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/student/profile", {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/student/profile`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
       if (response.status === 200) {
         const data = response.data;
@@ -52,19 +66,22 @@ function AccountPage() {
     event.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      const profileData = JSON.parse(localStorage.getItem("profile") || "{}");
 
-      const response = await axios.put("http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/student/update_profile", {
-        Studentfirstname: firstname,
-        Studentlastname: lastname,
-        Studentcontactnumber: contactNumber,
-        Studentnotification: studentNotification,
-      }, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/student/update_profile`,
+        {
+          Studentfirstname: firstname,
+          Studentlastname: lastname,
+          Studentcontactnumber: contactNumber,
+          Studentnotification: studentNotification,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
       if (response.status === 200) {
         console.log("Profile updated successfully");
@@ -87,90 +104,109 @@ function AccountPage() {
       <Helmet>
         <title>Profile | Go-Canvas</title>
       </Helmet>
-      <div className="wrapper">
-        <div className="overlay" onClick={(e) => document.body.classList.toggle("sidebar-open")}></div>
-        <div className="search-overlay" onClick={(e) => document.body.classList.toggle("search-open")}></div>
-        <Header></Header>
-        <div className="main-background"></div>
-        <main className="dashboard-content">
-          <div className="sidebar">
-            <Sidebar></Sidebar>
-          </div>
-          <div className="main-content">
-            <div className="main-title">
-              <h5>Profile</h5>
-              <h6>Go-Canvas</h6>
+      
+      <div className="min-h-screen bg-background text-foreground">
+        {/* Overlays */}
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
+          onClick={() => document.body.classList.remove("sidebar-open")}
+        ></div>
+        
+        <Header />
+        <Sidebar />
+        
+        <main className="pt-16 md:pl-64 transition-all duration-200">
+          <div className="container mx-auto p-6 md:p-8 max-w-4xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
+              <p className="text-muted-foreground mt-1">Manage your account settings</p>
             </div>
-            <div className="innerpage-table table">
-              <div className="card">
-              <div style={{ display: "flex", alignItems: "center", justifyContent:'end' }}>
+            
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-end gap-4 mb-6">
                   {editMode && (
-                    <Tooltip title={studentNotification ? "Disable Notification" : "Enable Notification"}>
-                      <Switch
-                        checked={studentNotification}
-                        onChange={() => setStudentNotification(prevState => !prevState)}
-                      />
-                    </Tooltip>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-2">
+                            <Label htmlFor="notifications" className="cursor-pointer">Notifications</Label>
+                            <Switch
+                              id="notifications"
+                              checked={studentNotification}
+                              onCheckedChange={setStudentNotification}
+                            />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{studentNotification ? "Disable Notification" : "Enable Notification"}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
-                  <Button variant="contained" onClick={toggleText} style={{ marginLeft: "10px" }}>
-                    {textState === 'Off' ? 'Edit' : 'Cancel'}
+                  <Button variant={textState === 'Off' ? "default" : "secondary"} onClick={toggleText}>
+                    {textState === 'Off' ? 'Edit Profile' : 'Cancel'}
                   </Button>
                 </div>
-                <div className="profile">
-                  <div className="profile-img">
-                    <img src={johnsmithside} alt="john-smith" />
+                
+                <div className="flex flex-col items-center mb-8">
+                  <div className="w-24 h-24 rounded-full overflow-hidden mb-4 bg-muted">
+                    <img src={johnsmithside} alt="Profile" className="w-full h-full object-cover" />
                   </div>
-                  <h6>{firstname}  {lastname}</h6>
+                  <h2 className="text-xl font-semibold">{firstname} {lastname}</h2>
                 </div>
                 
                 {textState === 'On' ? (
-                  <div>
-                    <div>
-                      <Typography variant="body1">First Name:</Typography>
-                      <TextField
-                        variant="standard"
+                  <form onSubmit={handleSubmit} className="space-y-6 max-w-md mx-auto">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstname">First Name</Label>
+                      <Input
+                        id="firstname"
                         value={firstname}
                         onChange={(e) => setFirstName(e.target.value)}
                       />
                     </div>
-                    <div>
-                      <Typography variant="body1">Last Name:</Typography>
-                      <TextField
-                        variant="standard"
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="lastname">Last Name</Label>
+                      <Input
+                        id="lastname"
                         value={lastname}
                         onChange={(e) => setLastName(e.target.value)}
                       />
                     </div>
-                    <div>
-                      <Typography variant="body1">Contact No.:</Typography>
-                      <TextField
-                        variant="standard"
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="contact">Contact No.</Label>
+                      <Input
+                        id="contact"
                         value={contactNumber}
                         onChange={(e) => setContactNumber(e.target.value)}
                       />
                     </div>
-                    <div style={{ display: "flex", justifyContent: "center" }}>
-                      <Button variant="contained" onClick={handleSubmit}>Save Changes</Button>
+                    
+                    <div className="flex justify-center pt-4">
+                      <Button type="submit">Save Changes</Button>
                     </div>
-                  </div>
+                  </form>
                 ) : (
-                  <div>
-                    <div style={{display:'flex', alignItems:'center'}}>
-                      <Typography variant="body1">First Name:</Typography>
-                      <span>{firstname}</span>
+                  <div className="space-y-4 max-w-md mx-auto">
+                    <div className="grid grid-cols-3 gap-4 py-2 border-b">
+                      <span className="font-medium text-muted-foreground">First Name:</span>
+                      <span className="col-span-2 font-medium">{firstname}</span>
                     </div>
-                    <div style={{display:'flex', alignItems:'center'}}>
-                      <Typography variant="body1">Last Name:</Typography>
-                      <span>{lastname}</span>
+                    <div className="grid grid-cols-3 gap-4 py-2 border-b">
+                      <span className="font-medium text-muted-foreground">Last Name:</span>
+                      <span className="col-span-2 font-medium">{lastname}</span>
                     </div>
-                    <div style={{display:'flex', alignItems:'center'}}>
-                      <Typography variant="body1">Contact No:</Typography>
-                      <span>{contactNumber}</span>
+                    <div className="grid grid-cols-3 gap-4 py-2 border-b">
+                      <span className="font-medium text-muted-foreground">Contact No:</span>
+                      <span className="col-span-2 font-medium">{contactNumber}</span>
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </main>
       </div>

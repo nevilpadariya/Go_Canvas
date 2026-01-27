@@ -1,16 +1,44 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { LayoutDashboard, BookOpen, Users } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function AdminSidebar() {
-  return <>
-  <nav className="navbar">
-            <ul>
-            <li><NavLink className="nav-link" onClick={e => document.body.classList.remove('sidebar-open')} to={"/admin_dashboard"} title="Dashboard">Dashboard</NavLink></li>
-            <li><NavLink className="nav-link" onClick={e => document.body.classList.remove('sidebar-open')} to={"/assign_course"} title="Courses">Courses</NavLink></li>
-            <li><NavLink className="nav-link" onClick={e => document.body.classList.remove('sidebar-open')} to={"/student_list"} title="Students">Students</NavLink></li>
-            </ul>
-        </nav>
-  </>;
+  const closeSidebar = () => {
+    document.body.classList.remove("sidebar-open");
+  };
+
+  const navItems = [
+    { path: "/admin_dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { path: "/assign_course", icon: BookOpen, label: "Courses" },
+    { path: "/student_list", icon: Users, label: "Students" },
+  ];
+
+  return (
+    <nav className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-background border-r border-border p-4 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out z-40">
+      <ul className="space-y-1">
+        {navItems.map((item) => (
+          <li key={item.path}>
+            <NavLink
+              to={item.path}
+              onClick={closeSidebar}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )
+              }
+            >
+              <item.icon className="h-4 w-4" />
+              {item.label}
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
 }
 
 export default AdminSidebar;

@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from "react";
+import { Helmet } from "react-helmet";
+import { useParams } from "react-router-dom";
+
 import FacultySidebar from "../../components/facultysidebar";
 import Header from "../../components/header";
-import { Helmet } from "react-helmet";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Accordion from "@mui/material/Accordion";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import Typography from "@mui/material/Typography";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface QuizData {
   id: number;
@@ -20,10 +25,7 @@ interface QuizData {
 
 function AddQuiz() {
   const { courseid } = useParams();
-  
-  // Providing a default value for courseid if it's undefined
   const courseId = courseid || ""; 
-
   const [showForm, setShowForm] = useState(false);
   const [quizName, setQuizName] = useState("");
   const [quizDescription, setQuizDescription] = useState("");
@@ -34,7 +36,7 @@ function AddQuiz() {
     const fetchQuizzes = async () => {
       try {
         const response = await fetch(
-          `http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/faculty/view_quiz_by_courseid?courseid=${courseId}`,
+          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/view_quiz_by_courseid?courseid=${courseId}`,
           {
             method: "GET",
             headers: {
@@ -56,12 +58,12 @@ function AddQuiz() {
     };
 
     fetchQuizzes();
-  }, []);
+  }, [courseId]);
 
   const handleSubmit = async () => {
     try {
       const response = await fetch(
-        "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/faculty/add_quiz",
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/add_quiz`,
         {
           method: "POST",
           headers: {
@@ -83,9 +85,7 @@ function AddQuiz() {
         setQuizDescription("");
         setShowForm(false);
         setError("");
-        // Show success alert and refresh the page on OK
         alert("Quiz added successfully");
-        window.location.reload();
       } else {
         const errorMessage = await response.text();
         setError(errorMessage || "Failed to add quiz");
@@ -96,121 +96,108 @@ function AddQuiz() {
     }
   };
 
-  const handleAddQuizClick = () => {
-    setShowForm(true);
-  };
-
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!quizName.trim() || !quizDescription.trim()) {
       setError("Please fill out all fields.");
       return;
     }
-
     handleSubmit();
-  };
-
-  const handleCancel = () => {
-    setQuizName("");
-    setQuizDescription("");
-    setShowForm(false);
-    setError("");
   };
 
   return (
     <>
       <Helmet>
-        <title>Quizzes</title>
+        <title>Quizzes | Go-Canvas</title>
       </Helmet>
-      <div className="wrapper">
+      
+      <div className="min-h-screen bg-background text-foreground">
         <div
-          className="overlay"
-          onClick={() => document.body.classList.toggle("sidebar-open")}
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
+          onClick={() => document.body.classList.remove("sidebar-open")}
         ></div>
-        <Header></Header>
-        <div className="main-background"></div>
-        <main className="dashboard-content">
-          <div className="sidebar">
-            <FacultySidebar></FacultySidebar>
-          </div>
-          <div className="main-content">
-            <div className="main-title">
-              <h5>Quizzes</h5>
-              <h6>Go-Canvas</h6>
+        
+        <Header />
+        <FacultySidebar />
+        
+        <main className="pt-16 md:pl-64 transition-all duration-200">
+          <div className="container mx-auto p-6 md:p-8 max-w-4xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold tracking-tight">Quizzes</h1>
+              <p className="text-muted-foreground mt-1">Manage Course Quizzes</p>
             </div>
-            <div style={{ marginTop: "30px" }}>
-              {!showForm ? (
-                <Button
-                  onClick={handleAddQuizClick}
-                  variant="contained"
-                  color="primary"
-                  style={{ display: "block", marginLeft: "auto" }}
-                >
+
+            <div className="flex justify-end mb-6">
+              {!showForm && (
+                <Button onClick={() => setShowForm(true)}>
                   Add Quiz
                 </Button>
-              ) : (
-                <>
-                  {error && <p style={{ color: "red" }}>{error}</p>}
-                  <form onSubmit={handleFormSubmit}>
-                    <TextField
-                      label="Quiz Name"
-                      variant="outlined"
-                      value={quizName}
-                      onChange={(e) => setQuizName(e.target.value)}
-                      fullWidth
-                      margin="normal"
-                      placeholder="Enter Quiz Name"
-                    />
-                    <TextField
-                      label="Quiz Description"
-                      variant="outlined"
-                      value={quizDescription}
-                      onChange={(e) => setQuizDescription(e.target.value)}
-                      fullWidth
-                      multiline
-                      rows={4}
-                      margin="normal"
-                      placeholder="Enter Quiz Description"
-                    />
-                    <Button type="submit" variant="contained" color="primary">
-                      Submit
-                    </Button>
-                    <Button
-                      onClick={handleCancel}
-                      variant="contained"
-                      color="error"
-                      style={{ marginLeft: "20px" }}
-                    >
-                      Cancel
-                    </Button>
-                  </form>
-                </>
               )}
-              <Accordion defaultExpanded style={{ marginTop: "20px" }}>
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  aria-controls="panel1a-content"
-                  id="panel1a-header"
-                >
-                  <Typography>Quizzes</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <div>
-                    {savedQuizzes.map((quiz, index) => (
-                      <div key={index} style={{ borderBottom: "1px solid grey" }}>
-                        <h3>
-                          Quiz {index + 1}: {quiz.Quizname}
-                        </h3>
-                        <p>
-                          <strong>Description:</strong> {quiz.Quizdescription}
+            </div>
+
+            {showForm && (
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle>Add New Quiz</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {error && <p className="text-destructive text-sm mb-4 font-medium">{error}</p>}
+                  <form onSubmit={handleFormSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="quizName">Quiz Name</Label>
+                      <Input
+                        id="quizName"
+                        placeholder="Enter Quiz Name"
+                        value={quizName}
+                        onChange={(e) => setQuizName(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="quizDescription">Quiz Description</Label>
+                      <Textarea
+                        id="quizDescription"
+                        placeholder="Enter Quiz Description"
+                        rows={4}
+                        value={quizDescription}
+                        onChange={(e) => setQuizDescription(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center gap-4 pt-4">
+                      <Button type="submit">Submit</Button>
+                      <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
+
+            <Accordion type="single" collapsible className="w-full bg-card rounded-lg border" defaultValue="quiz-item-0">
+              {savedQuizzes.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  No quizzes available. Click "Add Quiz" to create one.
+                </div>
+              ) : (
+                savedQuizzes.map((quiz, index) => (
+                  <AccordionItem key={index} value={`quiz-item-${index}`}>
+                    <AccordionTrigger className="px-4">
+                      Quiz {index + 1}: {quiz.Quizname}
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      <div className="pt-2">
+                        <Label className="text-base font-semibold">Description:</Label>
+                        <p className="mt-2 text-muted-foreground whitespace-pre-wrap">
+                          {quiz.Quizdescription}
                         </p>
                       </div>
-                    ))}
-                  </div>
-                </AccordionDetails>
-              </Accordion>
-            </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))
+              )}
+            </Accordion>
           </div>
         </main>
       </div>

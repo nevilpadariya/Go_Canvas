@@ -1,54 +1,11 @@
-import React, {useEffect, useState} from "react";
-import {Helmet} from "react-helmet";
-import Sidebar from "../../components/sidebar";
-import Header from "../../components/header";
-import DashboardCard from "../../components/dashboardcardstudent";
-import {Accordion, AccordionDetails, AccordionSummary, Grid} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import React, { useEffect, useState } from "react";
+import { Helmet } from "react-helmet";
 import axios from "axios";
-import {useParams} from "react-router-dom";
-import {Interface} from "node:readline";
+import { useParams } from "react-router-dom";
+
+import Header from "../../components/header";
 import FacultySidebar from "../../components/facultysidebar";
 import DashboardCardFaculty from "../../components/facultydashboardcard";
-interface Assignment {
-    Courseid: string;
-    Coursename: string;
-    Assignmentid: string;
-    Assignmentname: string;
-    Assignmentdescription: string;
-}
-
-interface Quiz {
-    Courseid: string;
-    Coursename: string;
-    Quizid: string;
-    Quizname: string;
-    Quizdescription: string;
-}
-
-interface Announcement {
-    Courseid: string;
-    Coursename: string;
-    Announcementid: string;
-    Announcementname: string;
-    Announcementdescription: string;
-}
-
-interface Grade {
-    Studentid: string
-    Courseid: string;
-    Coursename: string;
-    EnrollmentGrades: string;
-    EnrollmentSemester: string;
-}
-
-interface Content {
-    Courseid : string
-    Coursename : string
-    Coursedescription : string
-    Coursesemester : string
-
-}
 
 interface Course {
   Courseid: string;
@@ -59,18 +16,17 @@ interface Course {
 }
 
 function CourseFaculty() {
-    const courseid = useParams().courseid;
-    localStorage.setItem("courseid", courseid || "");
+  const courseid = useParams().courseid;
+  localStorage.setItem("courseid", courseid || "");
 
-    const [currentSemesterData, setCurrentSemesterData] = useState<Course[]>([]);
+  const [currentSemesterData, setCurrentSemesterData] = useState<Course[]>([]);
 
-    const fetchCourses = async () => {
+  const fetchCourses = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get<Course[]>(
-        "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/faculty/courses_taught",
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/courses_taught`,
         {
-  
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -81,10 +37,7 @@ function CourseFaculty() {
         const currentSemesterCourses = response.data.filter(
           (course) => course.Coursesemester === "SPRING24"
         );
-
-
         setCurrentSemesterData(currentSemesterCourses);
-        console.log(currentSemesterCourses);
       } else {
         throw new Error("Failed to fetch courses");
       }
@@ -93,57 +46,49 @@ function CourseFaculty() {
     }
   };
 
-    useEffect(() => {
-        fetchCourses();
-    }, []);
+  useEffect(() => {
+    fetchCourses();
+  }, []);
 
-return (
+  return (
     <>
       <Helmet>
-        <title>Dashboard</title>
+        <title>Dashboard | Go-Canvas</title>
       </Helmet>
-      {/* Faculty-CoursePage-Start */}
-      <div className="wrapper">
+      
+      <div className="min-h-screen bg-background text-foreground">
         <div
-          className="overlay"
-          onClick={(e) => document.body.classList.toggle("sidebar-open")}
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
+          onClick={() => document.body.classList.remove("sidebar-open")}
         ></div>
-        <Header></Header>
-        <div className="main-background"></div>
-        <main className="dashboard-content">
-          <div className="sidebar">
-            <FacultySidebar/>
-          </div>
-          <div className="main-content">
-            <div className="main-title">
-              <h5>Faculty-Dashboard</h5>
-              <h6>Go-Canvas</h6>
+        
+        <Header />
+        <FacultySidebar />
+        
+        <main className="pt-16 md:pl-64 transition-all duration-200">
+          <div className="container mx-auto p-6 md:p-8 max-w-7xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold tracking-tight">Faculty Dashboard</h1>
+              <p className="text-muted-foreground mt-1">Manage Your Courses</p>
             </div>
-            <Grid container spacing={3} className="grid-sections">
-                {currentSemesterData.map((course, index) => (
-                  <Grid
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {currentSemesterData.map((course, index) => (
+                <div key={index}>
+                  <DashboardCardFaculty
                     key={index}
-                    item
-                    sm={12}
-                    md={6}
-                    lg={6}
-                    className="courses-grid"
-                  >
-                    <DashboardCardFaculty
-                      key={index}
-                      courseid={course.Courseid}
-                      coursename={course.Coursename}
-                      coursedescription={course.Coursedescription}
-                      coursesemester={course.Coursesemester}
-                      buttondisabled={false}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
+                    courseid={course.Courseid}
+                    coursename={course.Coursename}
+                    coursedescription={course.Coursedescription}
+                    coursesemester={course.Coursesemester}
+                    buttondisabled={false}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </main>
       </div>
-      {/* Faculty-CoursePage-End */}
     </>
   );
 }

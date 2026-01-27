@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
+import axios from "axios";
+
 import Header from "../../components/header";
 import AdminSidebar from "../../components/adminsidebar";
-import axios from "axios";
-import Button from "@mui/material/Button";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 
 interface Faculty {
   Facultyid: number;
@@ -28,21 +38,9 @@ function AssignCourse() {
     "SPRING26",
     "FALL26"
   ]);
-  const [selectedFaculty, setSelectedFaculty] = useState<number>(-1); // Initialize with -1
-  const [selectedCourse, setSelectedCourse] = useState<number>(-1); // Initialize with -1
+  const [selectedFaculty, setSelectedFaculty] = useState<string>("");
+  const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [selectedSemester, setSelectedSemester] = useState<string>("");
-  const [anchorElFaculty, setAnchorElFaculty] = useState<null | HTMLElement>(
-    null
-  );
-  const [anchorElCourse, setAnchorElCourse] = useState<null | HTMLElement>(
-    null
-  );
-  const [anchorElSemester, setAnchorElSemester] = useState<null | HTMLElement>(
-    null
-  );
-  const openFaculty = Boolean(anchorElFaculty);
-  const openCourse = Boolean(anchorElCourse);
-  const openSemester = Boolean(anchorElSemester);
 
   useEffect(() => {
     fetchFaculties();
@@ -52,7 +50,7 @@ function AssignCourse() {
   const fetchFaculties = async () => {
     try {
       const response = await axios.get(
-        "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/admin/view_faculties",
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/view_faculties`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -72,7 +70,7 @@ function AssignCourse() {
   const fetchCourses = async () => {
     try {
       const response = await axios.get(
-        "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/admin/view_courses",
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/view_courses`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -89,49 +87,15 @@ function AssignCourse() {
     }
   };
 
-  const handleFacultyClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElFaculty(event.currentTarget);
-  };
-
-  const handleFacultyClose = () => {
-    setAnchorElFaculty(null);
-  };
-
-  const handleCourseClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElCourse(event.currentTarget);
-  };
-
-  const handleCourseClose = () => {
-    setAnchorElCourse(null);
-  };
-
-  const handleSemesterClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElSemester(event.currentTarget);
-  };
-
-  const handleSemesterClose = () => {
-    setAnchorElSemester(null);
-  };
-
-  const handleFacultySelect = (facultyId: number, facultyName: string) => {
-    setSelectedFaculty(facultyId);
-    handleFacultyClose();
-  };
-
-  const handleCourseSelect = (courseId: number, courseName: string) => {
-    setSelectedCourse(courseId);
-    handleCourseClose();
-  };
-
-  const handleSemesterSelect = (semester: string) => {
-    setSelectedSemester(semester);
-    handleSemesterClose();
-  };
-
   const handleSave = async () => {
+    if (!selectedCourse || !selectedFaculty || !selectedSemester) {
+        window.alert("Please select Course, Faculty, and Semester");
+        return;
+    }
+
     try {
       // Check if the course is already assigned to the faculty for the selected semester
-      const alreadyAssigned = await checkIfCourseAlreadyAssigned(selectedCourse, selectedFaculty, selectedSemester);
+      const alreadyAssigned = await checkIfCourseAlreadyAssigned(parseInt(selectedCourse), parseInt(selectedFaculty), selectedSemester);
       
       if (alreadyAssigned) {
         window.alert("Course already assigned");
@@ -139,10 +103,10 @@ function AssignCourse() {
       }
 
       const response = await axios.post(
-        "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/admin/assign_course",
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/assign_course`,
         {
-          Courseid: selectedCourse,
-          Facultyid: selectedFaculty,
+          Courseid: parseInt(selectedCourse),
+          Facultyid: parseInt(selectedFaculty),
           Coursesemester: selectedSemester,
         },
         {
@@ -153,8 +117,8 @@ function AssignCourse() {
       );
       if (response.status === 200) {
         console.log("Data saved successfully:", response.data);
-        setSelectedFaculty(-1);
-        setSelectedCourse(-1);
+        setSelectedFaculty("");
+        setSelectedCourse("");
         setSelectedSemester("");
         window.alert("Course Successfully Assigned");
       } else {
@@ -172,7 +136,7 @@ function AssignCourse() {
   const checkIfCourseAlreadyAssigned = async (courseId: number, facultyId: number, semester: string): Promise<boolean> => {
     try {
       const response = await axios.get(
-        `http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/admin/check_course_assignment?Courseid=${courseId}&Facultyid=${facultyId}&Coursesemester=${semester}`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/check_course_assignment?Courseid=${courseId}&Facultyid=${facultyId}&Coursesemester=${semester}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -189,124 +153,97 @@ function AssignCourse() {
   return (
     <>
       <Helmet>
-        <title>Admin-Courses</title>
+        <title>Assign Course | Go-Canvas</title>
       </Helmet>
-      <div className="wrapper">
+      
+      <div className="min-h-screen bg-background text-foreground">
         <div
-          className="overlay"
-          onClick={(e) => document.body.classList.toggle("sidebar-open")}
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
+          onClick={() => document.body.classList.remove("sidebar-open")}
         ></div>
-        <Header></Header>
-        <div className="main-background"></div>
-        <main className="dashboard-content">
-          <div className="sidebar">
-            <AdminSidebar></AdminSidebar>
-          </div>
-          <div className="main-content">
-            <div className="main-title">
-              <h5>Assign-Course</h5>
-              <h6>Go-Canvas</h6>
+        
+        <Header />
+        <AdminSidebar />
+        
+        <main className="pt-16 md:pl-64 transition-all duration-200">
+          <div className="container mx-auto p-6 md:p-8 max-w-4xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold tracking-tight">Assign Course</h1>
+              <p className="text-muted-foreground mt-1">Assign Courses to Faculty Members</p>
             </div>
-            <div
-              style={{
-                display: "flex",
-                marginTop: "50px",
-                justifyContent: "space-around"
-              }}
-            >
-              <div>
-                <Button
-                  id="semester-button"
-                  variant="outlined"
-                  aria-controls={openSemester ? "semester-menu" : undefined}
-                  aria-haspopup="true"
-                  onClick={handleSemesterClick}
-                >
-                  {selectedSemester || "Select Semester"}
-                </Button>
-                <Menu
-                  id="semester-menu"
-                  anchorEl={anchorElSemester}
-                  open={openSemester}
-                  onClose={handleSemesterClose}
-                >
-                  {semesterList.map((semester) => (
-                    <MenuItem
-                      key={semester}
-                      onClick={() => handleSemesterSelect(semester)}
-                    >
-                      {semester}
-                    </MenuItem>
-                  ))}
-                </Menu>
-              </div>
-              <div style={{ marginLeft: "30px" }}>
-                <Button
-                  id="course-button"
-                  variant="outlined"
-                  aria-controls={openCourse ? "course-menu" : undefined}
-                  aria-haspopup="true"
-                  onClick={handleCourseClick}
-                >
-                  {selectedCourse !== -1 ? courseList.find(course => course.Courseid === selectedCourse)?.Coursename : "Select Course"}
-                </Button>
-                <Menu
-                  id="course-menu"
-                  anchorEl={anchorElCourse}
-                  open={openCourse}
-                  onClose={handleCourseClose}
-                >
-                  {courseList.map((course) => (
-                    <MenuItem
-                      key={course.Courseid}
-                      onClick={() =>
-                        handleCourseSelect(course.Courseid, course.Coursename)
-                      }
-                    >
-                      {course.Coursename}
-                    </MenuItem>
-                  ))}
-                </Menu>
-              </div>
-              <div style={{ marginLeft: "30px" }}>
-                <Button
-                  id="faculty-button"
-                  variant="outlined"
-                  aria-controls={openFaculty ? "faculty-menu" : undefined}
-                  aria-haspopup="true"
-                  onClick={handleFacultyClick}
-                >
-                  {selectedFaculty !== -1 ? facultyList.find(faculty => faculty.Facultyid === selectedFaculty)?.Facultyname : "Select Faculty"}
-                </Button>
-                <Menu
-                  id="faculty-menu"
-                  anchorEl={anchorElFaculty}
-                  open={openFaculty}
-                  onClose={handleFacultyClose}
-                >
-                  {facultyList.map((faculty) => (
-                    <MenuItem
-                      key={faculty.Facultyid}
-                      onClick={() =>
-                        handleFacultySelect(
-                          faculty.Facultyid,
-                          faculty.Facultyname
-                        )
-                      }
-                    >
-                      {faculty.Facultyname}
-                    </MenuItem>
-                  ))}
-                </Menu>
-              </div>
-              <Button
-                variant="contained"
-                style={{ marginLeft: "30px" }}
-                onClick={handleSave}
-              >
-                Save
-              </Button>
-            </div>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Assignment Details</CardTitle>
+                <CardDescription>Select the semester, course, and faculty member to create an assignment.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="semester-select">Semester</Label>
+                    <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+                      <SelectTrigger id="semester-select">
+                        <SelectValue placeholder="Select Semester" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Semesters</SelectLabel>
+                          {semesterList.map((semester) => (
+                            <SelectItem key={semester} value={semester}>
+                              {semester}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="course-select">Course</Label>
+                    <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                      <SelectTrigger id="course-select">
+                        <SelectValue placeholder="Select Course" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Courses</SelectLabel>
+                          {courseList.map((course) => (
+                            <SelectItem key={course.Courseid} value={course.Courseid.toString()}>
+                              {course.Coursename}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="faculty-select">Faculty</Label>
+                    <Select value={selectedFaculty} onValueChange={setSelectedFaculty}>
+                      <SelectTrigger id="faculty-select">
+                        <SelectValue placeholder="Select Faculty" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Faculty Members</SelectLabel>
+                          {facultyList.map((faculty) => (
+                            <SelectItem key={faculty.Facultyid} value={faculty.Facultyid.toString()}>
+                              {faculty.Facultyname}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end pt-4">
+                  <Button onClick={handleSave} className="w-full md:w-auto">
+                    Assign Course
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </main>
       </div>

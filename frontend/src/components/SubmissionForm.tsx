@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  TextField,
-  Typography,
-  Alert,
-  CircularProgress,
-  Divider,
-} from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
+import { Send, Loader2 } from 'lucide-react';
 import axios from 'axios';
+
+import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
 import FileUpload, { UploadedFile } from './FileUpload';
 import FilePreview from './FilePreview';
 
@@ -86,10 +83,8 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({
         formData.append('submissioncontent', textContent);
       }
 
-      // If we already have an uploaded file, we need to create the submission with its ID
-      // For simplicity, we'll use a JSON endpoint instead
       const response = await axios.post<SubmissionData>(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/submissions/`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/submissions/`,
         formData,
         {
           headers: {
@@ -109,43 +104,38 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({
   };
 
   return (
-    <Card sx={{ mb: 3 }}>
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle className="text-lg">Submit Assignment: {assignmentName}</CardTitle>
+      </CardHeader>
       <CardContent>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: '#4F4F4F' }}>
-          Submit Assignment: {assignmentName}
-        </Typography>
-
         {existingSubmission && (
-          <Alert 
-            severity={existingSubmission.Submissiongraded ? 'success' : 'info'} 
-            sx={{ mb: 2 }}
-          >
-            {existingSubmission.Submissiongraded ? (
-              <>
-                <strong>Graded:</strong> {existingSubmission.Submissionscore}
-                {existingSubmission.Submissionfeedback && (
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    <strong>Feedback:</strong> {existingSubmission.Submissionfeedback}
-                  </Typography>
-                )}
-              </>
-            ) : (
-              <>
-                <strong>Submitted:</strong> {new Date(existingSubmission.Submitteddate).toLocaleString()}
-                <br />
-                <Typography variant="body2" color="text.secondary">
-                  You can resubmit to update your work
-                </Typography>
-              </>
-            )}
+          <Alert variant={existingSubmission.Submissiongraded ? 'success' : 'info'} className="mb-4">
+            <AlertDescription>
+              {existingSubmission.Submissiongraded ? (
+                <div>
+                  <strong>Graded:</strong> {existingSubmission.Submissionscore}
+                  {existingSubmission.Submissionfeedback && (
+                    <p className="mt-1">
+                      <strong>Feedback:</strong> {existingSubmission.Submissionfeedback}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <strong>Submitted:</strong> {new Date(existingSubmission.Submitteddate).toLocaleString()}
+                  <p className="text-sm text-muted-foreground mt-1">
+                    You can resubmit to update your work
+                  </p>
+                </div>
+              )}
+            </AlertDescription>
           </Alert>
         )}
 
         {existingSubmission?.Fileinfo && (
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              Previously Submitted File:
-            </Typography>
+          <div className="mb-4">
+            <Label className="mb-2 block">Previously Submitted File:</Label>
             <FilePreview
               filename={existingSubmission.Fileinfo.Filename}
               originalName={existingSubmission.Fileinfo.Fileoriginalname}
@@ -153,38 +143,36 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({
               fileUrl={existingSubmission.Fileinfo.Fileurl}
               fileSize={existingSubmission.Fileinfo.Filesize}
             />
-          </Box>
+          </div>
         )}
 
-        <Divider sx={{ my: 2 }} />
+        <Separator className="my-4" />
 
-        <form onSubmit={handleSubmit}>
-          <TextField
-            fullWidth
-            multiline
-            rows={6}
-            label="Text Submission (optional)"
-            placeholder="Enter your response here..."
-            value={textContent}
-            onChange={(e) => setTextContent(e.target.value)}
-            sx={{ mb: 3 }}
-          />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="textContent">Text Submission (optional)</Label>
+            <Textarea
+              id="textContent"
+              rows={6}
+              placeholder="Enter your response here..."
+              value={textContent}
+              onChange={(e) => setTextContent(e.target.value)}
+            />
+          </div>
 
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            Upload File (optional):
-          </Typography>
-          <FileUpload
-            onFileUploaded={handleFileUploaded}
-            onFileRemoved={handleFileRemoved}
-            maxFiles={1}
-            disabled={isSubmitting}
-          />
+          <div className="space-y-2">
+            <Label>Upload File (optional):</Label>
+            <FileUpload
+              onFileUploaded={handleFileUploaded}
+              onFileRemoved={handleFileRemoved}
+              maxFiles={1}
+              disabled={isSubmitting}
+            />
+          </div>
 
           {uploadedFile && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                File ready for submission:
-              </Typography>
+            <div className="space-y-2">
+              <Label>File ready for submission:</Label>
               <FilePreview
                 filename={uploadedFile.Filename}
                 originalName={uploadedFile.Fileoriginalname}
@@ -193,36 +181,36 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({
                 fileSize={uploadedFile.Filesize}
                 showDownload={false}
               />
-            </Box>
+            </div>
           )}
 
           {error && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {error}
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
           {success && (
-            <Alert severity="success" sx={{ mt: 2 }}>
-              Assignment submitted successfully!
+            <Alert variant="success">
+              <AlertDescription>Assignment submitted successfully!</AlertDescription>
             </Alert>
           )}
 
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={isSubmitting}
-              startIcon={isSubmitting ? <CircularProgress size={20} /> : <SendIcon />}
-              sx={{
-                backgroundColor: '#75CA67',
-                '&:hover': { backgroundColor: '#528d48' },
-                px: 4,
-              }}
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit Assignment'}
+          <div className="flex justify-end pt-2">
+            <Button type="submit" disabled={isSubmitting} className="px-6">
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Submit Assignment
+                </>
+              )}
             </Button>
-          </Box>
+          </div>
         </form>
       </CardContent>
     </Card>

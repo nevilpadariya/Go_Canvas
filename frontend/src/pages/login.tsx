@@ -1,29 +1,14 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Checkbox,
-  Container,
-  FormControlLabel,
-  TextField,
-  Typography,
-} from "@mui/material";
+import React, { useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { Helmet } from "react-helmet";
-import { loginlogo } from "../assets/images";
-import { checkBoxChecked } from "../assets/images";
-import { checkBox } from "../assets/images";
-import Header from "../components/header";
 import { useNavigate } from "react-router-dom";
-import { post } from "../service/Https-services";
-function CheckboxDefault() {
-  return <img src={checkBox} alt="checkbox" />;
-}
-function CheckboxChecked() {
-  return <img src={checkBoxChecked} alt="checkbox" />;
-}
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { loginlogo } from "../assets/images";
 
 interface User {
   username: string;
@@ -40,43 +25,43 @@ const Login: React.FC = () => {
   const [user, setUser] = useState<User>({ username: "", password: "" });
   const [error, setError] = useState<string>("");
   const [token, setToken] = useState<string | null>(null);
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUser({ ...user, [e.target.name]: e.target.value });
   };
 
-  const payload = {
-    username: user.username,
-    password: user.password,
-  };
   const handleLogin = async () => {
     try {
       const requestBody = new URLSearchParams();
       requestBody.append("grant_type", "password");
-      requestBody.append("username", payload.username);
-      requestBody.append("password", payload.password);
+      requestBody.append("username", user.username);
+      requestBody.append("password", user.password);
       requestBody.append("scope", "");
       requestBody.append("client_id", "string");
       requestBody.append("client_secret", "string");
 
-      const response = await fetch("http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/token", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: requestBody,
-      });
+      const response = await fetch(
+        "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/token",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: requestBody,
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
-        const token = data.access_token;
-        const payload: DecodedToken = jwtDecode(token);
-        localStorage.setItem("token", token);
-        setToken(token);
+        const newToken = data.access_token;
+        const payload: DecodedToken = jwtDecode(newToken);
+        localStorage.setItem("token", newToken);
+        setToken(newToken);
         const userRole = payload.userrole;
         localStorage.setItem("role", userRole);
-        setToken(token);
+        
         if (userRole === "Faculty") {
           navigate("/faculty_dashboard");
         } else if (userRole === "Student") {
@@ -98,109 +83,86 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
-  };
-
-  const sendAuthenticatedRequest = async () => {
-    try {
-      const response = await fetch("your-api-endpoint/data", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Data:", data);
-      } else {
-        console.error("Error:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
   return (
     <>
       <Helmet>
         <title>Login | Go-Canvas</title>
       </Helmet>
-      <Header></Header>
-      <section className="login-wrapper">
-        <Card>
+      
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <Card className="w-full max-w-md shadow-xl">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4">
+              <img src={loginlogo} alt="Go-Canvas" className="h-16 w-auto mx-auto" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Welcome Back!</CardTitle>
+            <p className="text-muted-foreground">Please log in to continue</p>
+          </CardHeader>
+          
           <CardContent>
-            <Box mt={5}>
-              <Box>
-                {error && (
-                  <Typography variant="body1" color="error">
-                    {error}
-                  </Typography>
-                )}
-                <div className="login-banner">
-                  <div className="sign-up">
-                    <h6>Welcome Back !</h6>
-                    <p>Please Log In to continue</p>
-                  </div>
-                  <div className="login-logo">
-                    <img src={loginlogo} alt="company" />
-                  </div>
-                </div>
-                <form
-                  className="login-form"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleLogin();
-                  }}
-                >
-                  <TextField
-                    fullWidth
-                    label="Username"
-                    name="username"
-                    value={user.username}
-                    onChange={handleInputChange}
-                    margin="normal"
-                    variant="standard"
-                  />
-                  <TextField
-                    fullWidth
-                    label="Password"
-                    type="password"
-                    name="password"
-                    value={user.password}
-                    onChange={handleInputChange}
-                    margin="normal"
-                    variant="standard"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checkedIcon={<CheckboxChecked />}
-                        icon={<CheckboxDefault />}
-                      />
-                    }
-                    label="Keep me signed in"
-                  />
-                  <Button
-                    variant="contained"
-                    type="submit"
-                    className="btn-primary"
-                  >
-                    Login
-                  </Button>
-                  <div style={{ textAlign: "center" }}>
-                    <a href="#" className="forgot">
-                      Forgot your password?
-                    </a>
-                  </div>
-                </form>
-              </Box>
-            </Box>
+            {error && (
+              <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md mb-4">
+                {error}
+              </div>
+            )}
+            
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleLogin();
+              }}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  name="username"
+                  type="text"
+                  placeholder="Enter your username"
+                  value={user.username}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={user.password}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="remember" 
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                />
+                <Label htmlFor="remember" className="text-sm font-normal cursor-pointer">
+                  Keep me signed in
+                </Label>
+              </div>
+              
+              <Button type="submit" className="w-full">
+                Login
+              </Button>
+              
+              <div className="text-center">
+                <a href="#" className="text-sm text-primary hover:underline">
+                  Forgot your password?
+                </a>
+              </div>
+            </form>
           </CardContent>
         </Card>
-      </section>
+      </div>
     </>
   );
 };

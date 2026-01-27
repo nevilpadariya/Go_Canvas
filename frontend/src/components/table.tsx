@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
 
 interface Student {
   Courseid: string;
@@ -26,7 +28,12 @@ interface Row {
 
 function createRow(student: Student): Row {
   const { Studentfirstname, Studentlastname, Studentcontactnumber, Coursesemester } = student;
-  return { studentfirstname: Studentfirstname, studentlastname: Studentlastname, studentcontactnumber: Studentcontactnumber, coursesemester: Coursesemester };
+  return {
+    studentfirstname: Studentfirstname,
+    studentlastname: Studentlastname,
+    studentcontactnumber: Studentcontactnumber,
+    coursesemester: Coursesemester,
+  };
 }
 
 const StudentTable: React.FC<{ students: Student[] }> = ({ students }) => {
@@ -40,28 +47,36 @@ const StudentTable: React.FC<{ students: Student[] }> = ({ students }) => {
   }, [students]);
 
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="simple table">
-        <TableHead>
+    <Card className="overflow-hidden">
+      <Table>
+        <TableHeader>
           <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell align="right">Contact</TableCell>
-            <TableCell align="right">Semester</TableCell>
+            <TableHead>Name</TableHead>
+            <TableHead className="text-right">Contact</TableHead>
+            <TableHead className="text-right">Semester</TableHead>
           </TableRow>
-        </TableHead>
+        </TableHeader>
         <TableBody>
-          {rows.map((row: Row, index: number) => (
-            <TableRow key={index}>
-              <TableCell component="th" scope="row">
-                {row.studentfirstname} {row.studentlastname}
+          {rows.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                No students found
               </TableCell>
-              <TableCell align="right">{row.studentcontactnumber}</TableCell>
-              <TableCell align="right">{row.coursesemester}</TableCell>
             </TableRow>
-          ))}
+          ) : (
+            rows.map((row: Row, index: number) => (
+              <TableRow key={index}>
+                <TableCell className="font-medium">
+                  {row.studentfirstname} {row.studentlastname}
+                </TableCell>
+                <TableCell className="text-right">{row.studentcontactnumber}</TableCell>
+                <TableCell className="text-right">{row.coursesemester}</TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
-    </TableContainer>
+    </Card>
   );
 };
 

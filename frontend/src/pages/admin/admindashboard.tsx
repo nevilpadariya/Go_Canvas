@@ -1,104 +1,96 @@
-import {Grid} from "@mui/material";
-import React, {useEffect} from "react";
-import {Helmet} from "react-helmet";
-import Header from "../../components/header";
-import DashboardCardAdmin from "../../components/admindashboardcard";
-import AdminSidebar from "../../components/adminsidebar";
+import React, { useEffect, useState } from "react";
+import { Helmet } from "react-helmet";
 import axios from "axios";
 
+import Header from "../../components/header";
+import AdminSidebar from "../../components/adminsidebar";
+import DashboardCardAdmin from "../../components/admindashboardcard";
+
+interface Course {
+  Coursename: string;
+  Faculty: string;
+  Coursesemester: string;
+}
 
 function AdminDashboardPage() {
+  const token = localStorage.getItem("token");
+  const [courses, setCourses] = useState<Course[]>([]);
 
-    const token = localStorage.getItem("token");
-    const [courses, setCourses] = React.useState([]);
-
-    useEffect(() => {
-        fetchCourses();
-    }, []);
-
+  useEffect(() => {
     const fetchCourses = async () => {
-        try {
-            const response = await axios.get("http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/admin/view_courses_by_faculty", {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            if (response.status === 200) {
-                const courses = response.data.map((course: {
-                    Coursename: any;
-                    Facultyfirstname: any;
-                    Facultylastname: any;
-                    Coursesemester: any;
-                }) => {
-                    const {Coursename, Facultyfirstname, Facultylastname, Coursesemester} = course;
-                    const facultyName = `${Facultyfirstname} ${Facultylastname}`;
-                    return {
-                        Coursename,
-                        Faculty: facultyName,
-                        Coursesemester
-                    };
-                });
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/view_courses_by_faculty`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (response.status === 200) {
+          const coursesData = response.data.map((course: {
+            Coursename: any;
+            Facultyfirstname: any;
+            Facultylastname: any;
+            Coursesemester: any;
+          }) => {
+            const { Coursename, Facultyfirstname, Facultylastname, Coursesemester } = course;
+            const facultyName = `${Facultyfirstname} ${Facultylastname}`;
+            return {
+              Coursename,
+              Faculty: facultyName,
+              Coursesemester
+            };
+          });
 
-                setCourses(courses);
-                console.log(courses);
-            }
-        } catch (error) {
-            console.error("Error fetching courses:", error);
+          setCourses(coursesData);
         }
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      }
     };
 
+    fetchCourses();
+  }, [token]);
 
-    return (
-        <>
-            <Helmet>
-                <title>Admin-Dashboard</title>
-            </Helmet>
-            {/* AdminDashboardPage-Start */}
-            <div className="wrapper">
-                <div
-                    className="overlay"
-                    onClick={(e) => document.body.classList.toggle("sidebar-open")}
-                ></div>
-                <div
-                    className="search-overlay"
-                    onClick={(e) => document.body.classList.toggle("search-open")}
-                ></div>
-                <Header></Header>
-                <div className="main-background"></div>
-                <main className="dashboard-content">
-                    <div className="sidebar">
-                        <AdminSidebar></AdminSidebar>
-                    </div>
-                    <div className="main-content">
-                        <div className="main-title">
-                            <h5>Admin-Dashboard</h5>
-                            <h6>Go-Canvas</h6>
-                        </div>
-                        <Grid container spacing={3} className="grid-sections">
-                            <Grid
-                                item
-                                md={12}
-                                lg={12}
-                                spacing={3}
-                                container
-                                className="grid-section-1"
-                            >
-                                {courses.map((course, index) => (
-                                    <Grid item sm={12} md={4} lg={4} className="courses-grid" key={index}>
-                                        <DashboardCardAdmin coursename={course["Coursename"]}
-                                                            coursesemester={course["Coursesemester"]}
-                                                            facultyname={course["Faculty"]}
-                                        />
-                                    </Grid>
-                                ))}
-                            </Grid>
-                        </Grid>
-                    </div>
-                </main>
+  return (
+    <>
+      <Helmet>
+        <title>Dashboard | Go-Canvas</title>
+      </Helmet>
+      
+      <div className="min-h-screen bg-background text-foreground">
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
+          onClick={() => document.body.classList.remove("sidebar-open")}
+        ></div>
+        
+        <Header />
+        <AdminSidebar />
+        
+        <main className="pt-16 md:pl-64 transition-all duration-200">
+          <div className="container mx-auto p-6 md:p-8 max-w-7xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+              <p className="text-muted-foreground mt-1">Overview of Courses and Faculty</p>
             </div>
-            {/* AdminDashboardPage-End */}
-        </>
-    );
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {courses.map((course, index) => (
+                <div key={index}>
+                  <DashboardCardAdmin 
+                    coursename={course.Coursename}
+                    coursesemester={course.Coursesemester}
+                    facultyname={course.Faculty}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </main>
+      </div>
+    </>
+  );
 }
 
 export default AdminDashboardPage;
