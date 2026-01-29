@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   api:
     build: .
@@ -17,8 +15,8 @@ services:
   db:
     image: mysql:8
     environment:
-      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-root}
+      - MYSQL_DATABASE=${DB_NAME:-gocanvas}
     ports:
       - "3306:3306"
     volumes:
@@ -26,4 +24,4 @@ services:
     restart: always
 
 volumes:
-  mysql_data: 
+  mysql_data:

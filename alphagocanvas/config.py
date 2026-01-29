@@ -10,4 +10,4 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
 # Database URL
-URL_DATABASE = os.getenv("DATABASE_URL", "mysql+pymysql://root:root@localhost:3307/project202cmpefinal")
+URL_DATABASE = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/gocanvas")

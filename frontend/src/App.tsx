@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import LoginPage from "./pages/login";
+import SignupPage from "./pages/signup";
 import DashboardPage from "./pages/student/dashboard";
 import AccountPage from "./pages/student//account";
 import AdminDashboardPage from "./pages/admin//admindashboard";
@@ -136,6 +137,7 @@ function App() {
         ></Route>
         <Route path="/" element={<DashboardPage />}></Route>
         <Route path="/login" element={<LoginPage />}></Route>
+        <Route path="/signup" element={<SignupPage />}></Route>
         <Route path="student_list" element={<ProtectedRoute role="admin"><StudentList /></ProtectedRoute>}></Route>
         <Route path="error" element={<UnauthorizedAccess />}></Route>
       </Routes>

@@ -42,8 +42,10 @@ const Login: React.FC = () => {
       requestBody.append("client_id", "string");
       requestBody.append("client_secret", "string");
 
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      
       const response = await fetch(
-        "http://alphago-fastapi-dev-dev.us-east-1.elasticbeanstalk.com/token",
+        `${API_URL}/token`,
         {
           method: "POST",
           headers: {
@@ -114,12 +116,12 @@ const Login: React.FC = () => {
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username">Email or ID</Label>
                 <Input
                   id="username"
                   name="username"
                   type="text"
-                  placeholder="Enter your username"
+                  placeholder="Enter your email or Student/Faculty ID"
                   value={user.username}
                   onChange={handleInputChange}
                   required
@@ -154,10 +156,16 @@ const Login: React.FC = () => {
                 Login
               </Button>
               
-              <div className="text-center">
-                <a href="#" className="text-sm text-primary hover:underline">
+              <div className="text-center space-y-2">
+                <a href="#" className="block text-sm text-primary hover:underline">
                   Forgot your password?
                 </a>
+                <p className="text-sm text-muted-foreground">
+                  Don't have an account?{" "}
+                  <a href="/signup" className="text-primary hover:underline font-medium">
+                    Sign up
+                  </a>
+                </p>
               </div>
             </form>
           </CardContent>
