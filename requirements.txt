@@ -25,6 +25,7 @@ pyasn1==0.5.1
 pycparser==2.21
 pydantic
 pydantic_core
+email-validator
 PyJWT==2.8.0
 psycopg2-binary==2.9.9
 python-dateutil==2.9.0.post0
