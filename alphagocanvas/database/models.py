@@ -37,7 +37,7 @@ class StudentEnrollmentTable(Base):
     Courseid = Column(Integer, ForeignKey('courses.Courseid'))
     EnrollmentSemester = Column(String)
     EnrollmentGrades = Column(String)
-    Facultyid = Column(String, ForeignKey('faculty.Facultyid'))
+    Facultyid = Column(Integer, ForeignKey('faculty.Facultyid'))
 
 
 class CourseTable(Base):
