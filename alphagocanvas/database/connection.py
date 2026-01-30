@@ -11,7 +11,7 @@ from alphagocanvas.config import URL_DATABASE
 connect_args = {}
 
 # Check if SSL mode is required (DigitalOcean, Supabase production)
-if "sslmode=require" in URL_DATABASE or "supabase.co" in URL_DATABASE:
+if "sslmode=require" in URL_DATABASE or "supabase.co" in URL_DATABASE or "ondigitalocean.com" in URL_DATABASE:
     connect_args["sslmode"] = "require"
 
 # Support both postgres:// and postgresql:// schemes
