@@ -1,0 +1,77 @@
+spec:
+  name: go-canvas-api
+  region: nyc
+  
+  # Managed PostgreSQL Database
+  databases:
+    - name: go-canvas-db
+      engine: PG
+      version: "14"
+      production: false
+      cluster_name: gocanvas-db-cluster
+  
+  # Backend Web Service
+  services:
+    - name: backend
+      # Use Dockerfile for building
+      dockerfile_path: Dockerfile
+      
+      # GitHub repository settings
+      github:
+        branch: main
+        deploy_on_push: true
+        repo: nevilpadariya/Go_Canvas  # Update with your GitHub username/repo
+      
+      # Instance configuration
+      instance_count: 1
+      instance_size_slug: basic-xxs  # $5/month
+      
+      # HTTP configuration
+      http_port: 8000
+      
+      # Health check
+      health_check:
+        http_path: /
+        initial_delay_seconds: 20
+        period_seconds: 10
+        timeout_seconds: 5
+        success_threshold: 1
+        failure_threshold: 3
+      
+      # Environment variables
+      envs:
+        # JWT Configuration
+        - key: SECRET_KEY
+          scope: RUN_TIME
+          type: SECRET
+          # Set this in DigitalOcean dashboard - generate with: openssl rand -hex 32
+        
+        - key: ACCESS_TOKEN_EXPIRE_MINUTES
+          scope: RUN_TIME
+          value: "30"
+        
+        - key: ALGORITHM
+          scope: RUN_TIME
+          value: "HS256"
+        
+        # Database URL (auto-injected by DigitalOcean)
+        - key: DATABASE_URL
+          scope: RUN_TIME
+          value: ${go-canvas-db.DATABASE_URL}
+        
+        # CORS Configuration - Update with your Vercel frontend URL
+        - key: CORS_ORIGINS
+          scope: RUN_TIME
+          value: "http://localhost:3000,https://go-canvas-frontend.vercel.app"
+        
+        # Production flag
+        - key: ENVIRONMENT
+          scope: RUN_TIME
+          value: "production"
+      
+      # Routes (optional - customize your domain)
+      routes:
+        - path: /
+      
+      # Auto-deploy from GitHub
+      source_dir: /

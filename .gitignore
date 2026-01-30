@@ -48,3 +48,9 @@ yarn-error.log*
 Thumbs.db
 venv/
 .venv/
+
+# Database backups
+*.dump
+*.sql
+supabase_backup_*
+

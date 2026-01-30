@@ -40,14 +40,45 @@
 ## Project Technologies Stack:
 
 * Backend -> Python, FastAPI
-* Database -> MySQL
+* Database -> PostgreSQL
 * Frontend -> React
 * Wireframes -> Figma
-* Deployment -> Render (Backend) & Vercel (Frontend)
+* Deployment -> DigitalOcean (Backend & Database) & Vercel (Frontend)
 
 ## Deployment Instructions
 
-### Backend Deployment on Render
+### Recommended: DigitalOcean (GitHub Student Developer Pack) 🎓
+
+**Best for students with GitHub Student Developer Pack ($200 credit for 1 year)**
+
+For complete step-by-step instructions, see [.do/deploy.md](.do/deploy.md)
+
+**Quick Start:**
+1. Claim your [GitHub Student Developer Pack](https://education.github.com/pack)
+2. Get $200 DigitalOcean credit (covers ~10 months)
+3. Deploy using App Spec:
+   ```bash
+   # Update .do/app.yaml with your GitHub repo
+   # Then upload to DigitalOcean App Platform
+   ```
+4. DigitalOcean automatically provisions:
+   - Managed PostgreSQL database
+   - FastAPI backend with Docker
+   - SSL certificates
+   - Auto-deployment from GitHub
+
+**Cost:** ~$20/month (Database $15 + App Platform $5)
+
+**Features:**
+- ✅ No DNS issues (managed database)
+- ✅ SSL connections included
+- ✅ Automatic deployments from GitHub
+- ✅ Built-in monitoring and logs
+- ✅ Easy scaling
+
+---
+
+### Alternative: Backend Deployment on Render
 
 1. Push your code to GitHub
 2. Go to [Render Dashboard](https://dashboard.render.com/)
