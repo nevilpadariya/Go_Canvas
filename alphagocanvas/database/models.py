@@ -53,7 +53,7 @@ class GradeTable(Base):
     __tablename__ = 'grades'
     Gradeid = Column(Integer, primary_key=True, index=True)
     Studentid = Column(Integer, ForeignKey('student.Studentid'))
-    Courseid = Column(Integer, ForeignKey('course.Courseid'))
+    Courseid = Column(Integer, ForeignKey('courses.Courseid'))
 
 
 class FacultyTable(Base):
