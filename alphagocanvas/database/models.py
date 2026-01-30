@@ -250,3 +250,54 @@ class MessageTable(Base):
     Sendername = Column(String(255))
     Isread = Column(Boolean, default=False)
     Createdat = Column(String(50))
+
+
+# ============== QUIZ SYSTEM MODELS ==============
+
+class QuizQuestionTable(Base):
+    """Table for quiz questions"""
+    __tablename__ = 'quiz_questions'
+    Questionid = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    Quizid = Column(Integer, ForeignKey('quizzes.quizid'), nullable=False)
+    Questiontext = Column(Text, nullable=False)
+    Questiontype = Column(String(50), nullable=False)  # 'multiple_choice', 'true_false', 'short_answer', 'essay'
+    Questionpoints = Column(Integer, default=1)
+    Questionorder = Column(Integer, default=0)
+    Createdat = Column(String(50))
+
+
+class QuizQuestionOptionTable(Base):
+    """Table for quiz question options (for multiple choice and true/false)"""
+    __tablename__ = 'quiz_question_options'
+    Optionid = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    Questionid = Column(Integer, ForeignKey('quiz_questions.Questionid'), nullable=False)
+    Optiontext = Column(String(500), nullable=False)
+    Iscorrect = Column(Boolean, default=False)
+    Optionorder = Column(Integer, default=0)
+
+
+class QuizAttemptTable(Base):
+    """Table for quiz attempts (student quiz submissions)"""
+    __tablename__ = 'quiz_attempts'
+    Attemptid = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    Quizid = Column(Integer, ForeignKey('quizzes.quizid'), nullable=False)
+    Studentid = Column(Integer, ForeignKey('student.Studentid'), nullable=False)
+    Attemptscore = Column(Integer)  # Points earned
+    Attemptmaxscore = Column(Integer)  # Maximum possible points
+    Attemptgraded = Column(Boolean, default=False)
+    Attemptstarted = Column(String(50))  # ISO timestamp
+    Attemptsubmitted = Column(String(50))  # ISO timestamp
+    Attemptfeedback = Column(Text)  # Overall feedback from faculty
+
+
+class QuizAnswerTable(Base):
+    """Table for individual question answers within a quiz attempt"""
+    __tablename__ = 'quiz_answers'
+    Answerid = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    Attemptid = Column(Integer, ForeignKey('quiz_attempts.Attemptid'), nullable=False)
+    Questionid = Column(Integer, ForeignKey('quiz_questions.Questionid'), nullable=False)
+    Selectedoptionid = Column(Integer, ForeignKey('quiz_question_options.Optionid'))  # For MC/TF
+    Answertext = Column(Text)  # For short answer/essay
+    Iscorrect = Column(Boolean)  # Auto-graded for MC/TF
+    Pointsearned = Column(Integer, default=0)
+    Feedback = Column(Text)  # Faculty feedback for this specific answer

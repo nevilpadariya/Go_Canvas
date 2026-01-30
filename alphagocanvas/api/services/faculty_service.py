@@ -25,15 +25,15 @@ def get_courses_by_faculty(db: database_dependency, facultyid: int) -> List[Cour
     raw_query = text(
         """
     SELECT 
-        c.Courseid, c.Coursename, cf.Coursesemester, f.Facultyfirstname, f.Facultylastname, f.Facultyid, cf.Coursepublished
+        c."Courseid", c."Coursename", cf."Coursesemester", f."Facultyfirstname", f."Facultylastname", f."Facultyid", cf."Coursepublished"
     FROM 
         coursefaculty cf
     JOIN 
-        courses c ON cf.Coursecourseid = c.Courseid
+        courses c ON cf."Coursecourseid" = c."Courseid"
     JOIN 
-        faculty f ON cf.Coursefacultyid = f.Facultyid
+        faculty f ON cf."Coursefacultyid" = f."Facultyid"
     WHERE
-        f.Facultyid = :facultyid;"""
+        f."Facultyid" = :facultyid;"""
     )
 
     courses = db.execute(raw_query, {"facultyid": facultyid}).fetchall()
@@ -92,20 +92,20 @@ def view_students_for_each_course(db: database_dependency, courseid: int) -> Lis
     raw_query = text(
         """
         SELECT 
-            se.Studentid,
-            CONCAT(s.Studentfirstname, ' ', s.Studentlastname) AS Studentname,
-            s.Studentcontactnumber,
-            c.Coursename,
-            se.EnrollmentSemester,
-            se.EnrollmentGrades
+            se."Studentid",
+            CONCAT(s."Studentfirstname", ' ', s."Studentlastname") AS "Studentname",
+            s."Studentcontactnumber",
+            c."Coursename",
+            se."EnrollmentSemester",
+            se."EnrollmentGrades"
         FROM 
             studentenrollment se
         JOIN 
-            student s ON se.Studentid = s.Studentid
+            student s ON se."Studentid" = s."Studentid"
         JOIN 
-            courses c ON se.Courseid = c.Courseid
+            courses c ON se."Courseid" = c."Courseid"
         WHERE 
-            se.Courseid = :courseid;
+            se."Courseid" = :courseid;
         """
     )
 
@@ -136,19 +136,19 @@ def view_students_for_each_course_service(db: database_dependency, courseid: int
     raw_query = text(
         """
         SELECT
-            se.Studentid,
-            se.EnrollmentGrades,
-            CONCAT(s.Studentfirstname, ' ', s.Studentlastname) AS Studentname,
-            se.EnrollmentSemester,
-            c.Coursename
+            se."Studentid",
+            se."EnrollmentGrades",
+            CONCAT(s."Studentfirstname", ' ', s."Studentlastname") AS "Studentname",
+            se."EnrollmentSemester",
+            c."Coursename"
         FROM
             studentenrollment se
         JOIN
-            student s ON se.Studentid = s.Studentid
+            student s ON se."Studentid" = s."Studentid"
         JOIN
-           courses c ON se.Courseid = c.Courseid
+           courses c ON se."Courseid" = c."Courseid"
         WHERE
-            se.Courseid = :courseid;
+            se."Courseid" = :courseid;
         """
     )
 
@@ -326,9 +326,9 @@ def get_assignments_by_courseid(db: database_dependency, courseid: int) -> List[
     :return: List of assignments
     """
     raw_query = """
-        SELECT a.Assignmentid, a.Assignmentname, a.AssignmentDescription, a.Courseid
+        SELECT a."Assignmentid", a."Assignmentname", a."Assignmentdescription", a."Courseid"
         FROM assignments a
-        WHERE a.Courseid = :courseid;
+        WHERE a."Courseid" = :courseid;
     """
 
     results = db.execute(text(raw_query), {"courseid": courseid})
@@ -356,9 +356,9 @@ def get_quizzes_by_courseid(db: database_dependency, courseid: int) -> List[Quiz
     :return: List of quizzes
     """
     raw_query = """
-        SELECT q.Quizid, q.Quizname, q.QuizDescription, q.Courseid
+        SELECT q."Quizid", q."Quizname", q."Quizdescription", q."Courseid"
         FROM quizzes q
-        WHERE q.Courseid = :courseid;
+        WHERE q."Courseid" = :courseid;
     """
 
     results = db.execute(text(raw_query), {"courseid": courseid})
@@ -386,9 +386,9 @@ def get_announcements_by_courseid(db: database_dependency, courseid: int) -> Lis
     :return: List of announcements
     """
     raw_query = """
-        SELECT ann.Announcementid, ann.Announcementname, ann.AnnouncementDescription, ann.Courseid
+        SELECT ann."Announcementid", ann."Announcementname", ann."Announcementdescription", ann."Courseid"
         FROM announcements ann
-        WHERE ann.Courseid = :courseid;
+        WHERE ann."Courseid" = :courseid;
     """
 
     results = db.execute(text(raw_query), {"courseid": courseid})
@@ -410,13 +410,13 @@ def get_announcements_by_courseid(db: database_dependency, courseid: int) -> Lis
 def get_course_faculty_details(db: database_dependency, courseid: int) -> List[FacultyCourseDetails]:
     raw_query = text("""
         SELECT
-            cf.Coursecourseid,
-            cf.Coursesemester,
-            cf.Coursedescription
+            cf."Coursecourseid",
+            cf."Coursesemester",
+            cf."Coursedescription"
         FROM
             coursefaculty cf
         WHERE
-            cf.Coursecourseid = :courseid AND cf.Coursepublished = TRUE;
+            cf."Coursecourseid" = :courseid AND cf."Coursepublished" = TRUE;
         """)
 
     published_courses = db.execute(raw_query, {"courseid": courseid}).fetchall()

@@ -64,17 +64,17 @@ def get_grades(studentid: int, db: database_dependency, current_semester: str) -
     """
     raw_query = """
         SELECT 
-            studentenrollment.Studentid,
-            studentenrollment.EnrollmentSemester,
-            studentenrollment.EnrollmentGrades,
-            courses.Coursename,
-            courses.Courseid
+            studentenrollment."Studentid",
+            studentenrollment."EnrollmentSemester",
+            studentenrollment."EnrollmentGrades",
+            courses."Coursename",
+            courses."Courseid"
         FROM 
             studentenrollment
         JOIN 
-            courses ON studentenrollment.Courseid = courses.Courseid
+            courses ON studentenrollment."Courseid" = courses."Courseid"
         WHERE 
-            studentenrollment.Studentid = :studentid and studentenrollment.EnrollmentSemester = :current_semester
+            studentenrollment."Studentid" = :studentid and studentenrollment."EnrollmentSemester" = :current_semester
         """
 
     results = db.execute(text(raw_query), {"studentid": studentid, "current_semester": current_semester})
@@ -105,16 +105,16 @@ def get_enrollments(studentid: int, db: database_dependency) -> List[StudentEnro
     """
     raw_query = """
     SELECT 
-        studentenrollment.Studentid,
-        studentenrollment.EnrollmentSemester,
-        courses.Coursename,
-        courses.Courseid
+        studentenrollment."Studentid",
+        studentenrollment."EnrollmentSemester",
+        courses."Coursename",
+        courses."Courseid"
     FROM 
         studentenrollment
     JOIN 
-        courses ON studentenrollment.Courseid = courses.Courseid
+        courses ON studentenrollment."Courseid" = courses."Courseid"
     WHERE
-        studentenrollment.Studentid = :studentid
+        studentenrollment."Studentid" = :studentid
     """
 
     results = db.execute(text(raw_query), {"studentid": studentid})
@@ -142,35 +142,46 @@ def get_course_details(db: database_dependency, studentid: int) -> List[StudentC
 
     raw_query = text("""
         SELECT
-            c.*,
-            se.EnrollmentSemester,
-            cf.Coursepublished,
-            cf.Coursedescription
+            c."Courseid",
+            c."Coursename",
+            se."EnrollmentSemester",
+            cf."Coursepublished",
+            cf."Coursedescription"
         FROM
             courses c
         JOIN
-            studentenrollment se ON c.Courseid = se.Courseid
-        JOIN
-            coursefaculty cf ON c.Courseid = cf.Coursecourseid
+            studentenrollment se ON c."Courseid" = se."Courseid"
+        LEFT JOIN
+            coursefaculty cf ON c."Courseid" = cf."Coursecourseid"
         WHERE
-            cf.Coursepublished = TRUE AND se.Studentid = :student_id;
+            se."Studentid" = :student_id;
         """)
 
     published_courses = db.execute(raw_query, {"student_id": studentid}).fetchall()
 
-    print(published_courses)
     if len(published_courses) == 0:
         return []
 
     published_courses_list = []
+    
+    # Use a set to prevent duplicates if course has multiple faculty/entries
+    added_course_ids = set()
 
     for course in published_courses:
+        if course.Courseid in added_course_ids:
+            continue
+            
+        # Use existing description or fallback to course name
+        description = course.Coursedescription if course.Coursedescription else course.Coursename
+            
         published_courses_list.append(StudentCourseDetails(
             Courseid=course.Courseid,
             Coursename=course.Coursename,
-            Coursedescription=course.Coursedescription,
+            Coursedescription=description,
             Coursesemester=course.EnrollmentSemester
         ))
+        
+        added_course_ids.add(course.Courseid)
 
     return published_courses_list
 
@@ -188,27 +199,27 @@ def get_published_assignments(db: database_dependency, studentid: int, current_s
 
     raw_query = """
         SELECT
-            c.Coursename,
-            a.Courseid,
-            a.Assignmentid,
-            a.Assignmentname,
-            a.Assignmentdescription,
-            cf.Coursepublished,
-            se.Studentid
+            c."Coursename",
+            a."Courseid",
+            a."Assignmentid",
+            a."Assignmentname",
+            a."Assignmentdescription",
+            cf."Coursepublished",
+            se."Studentid"
         FROM
             courses c
         JOIN
-            assignments a ON c.Courseid = a.Courseid
+            assignments a ON c."Courseid" = a."Courseid"
         JOIN
-            studentenrollment se ON c.Courseid = se.Courseid
+            studentenrollment se ON c."Courseid" = se."Courseid"
         JOIN 
-            coursefaculty cf on c.Courseid = cf.Coursecourseid
+            coursefaculty cf on c."Courseid" = cf."Coursecourseid"
         WHERE
-            cf.Coursepublished = TRUE
+            cf."Coursepublished" = TRUE
         AND
-            se.Studentid = :studentid
+            se."Studentid" = :studentid
         AND
-            se.EnrollmentSemester = :current_semester;
+            se."EnrollmentSemester" = :current_semester;
         """
 
     print(studentid, current_semester)
@@ -242,27 +253,27 @@ def get_published_quizzes(db: database_dependency, studentid: int, current_semes
 
     raw_query = """ 
     SELECT
-        c.Coursename,
-        q.Courseid,
-        q.Quizid,
-        q.Quizname,
-        q.Quizdescription,
-        cf.Coursepublished,
-        se.Studentid
+        c."Coursename",
+        q."Courseid",
+        q."Quizid",
+        q."Quizname",
+        q."Quizdescription",
+        cf."Coursepublished",
+        se."Studentid"
     FROM
         courses c
     JOIN
-        quizzes q ON c.Courseid = q.Courseid
+        quizzes q ON c."Courseid" = q."Courseid"
     JOIN
-        studentenrollment se ON c.Courseid = se.Courseid
+        studentenrollment se ON c."Courseid" = se."Courseid"
     JOIN
-        coursefaculty cf on c.Courseid = cf.Coursecourseid
+        coursefaculty cf on c."Courseid" = cf."Coursecourseid"
     WHERE
-        cf.Coursepublished = TRUE
+        cf."Coursepublished" = TRUE
     AND
-        se.Studentid = :studentid
+        se."Studentid" = :studentid
     AND
-       se.EnrollmentSemester = :current_semester;
+       se."EnrollmentSemester" = :current_semester;
     """
 
     results = db.execute(text(raw_query), {"studentid": studentid, "current_semester": current_semester})
@@ -295,27 +306,27 @@ def get_published_announcement(db: database_dependency, studentid: int, current_
 
     raw_query = """ 
         SELECT
-            c.Coursename,
-            an.Courseid,
-            an.Announcementid,
-            an.Announcementname,
-            an.Announcementdescription,
-            cf.Coursepublished,
-            se.Studentid
+            c."Coursename",
+            an."Courseid",
+            an."Announcementid",
+            an."Announcementname",
+            an."Announcementdescription",
+            cf."Coursepublished",
+            se."Studentid"
         FROM
             courses c
         JOIN
-            announcements an ON c.Courseid = an.Courseid
+            announcements an ON c."Courseid" = an."Courseid"
         JOIN
-            studentenrollment se ON c.Courseid = se.Courseid
+            studentenrollment se ON c."Courseid" = se."Courseid"
         JOIN
-            coursefaculty cf on c.Courseid = cf.Coursecourseid
+            coursefaculty cf on c."Courseid" = cf."Coursecourseid"
         WHERE
-            cf.Coursepublished = TRUE
+            cf."Coursepublished" = TRUE
         AND
-            se.Studentid = :studentid
+            se."Studentid" = :studentid
         AND
-           se.EnrollmentSemester = :current_semester;
+           se."EnrollmentSemester" = :current_semester;
         """
 
     results = db.execute(text(raw_query), {"studentid": studentid, "current_semester": current_semester})

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useParams } from "react-router-dom";
-
 import FacultySidebar from "../../components/facultysidebar";
 import Header from "../../components/header";
+import Sidebar from "../../components/sidebar";
+import { MainContentWrapper } from "@/components/MainContentWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -120,7 +121,7 @@ function AddAssignment() {
         <Header />
         <FacultySidebar />
         
-        <main className="pt-16 md:pl-64 transition-all duration-200">
+        <MainContentWrapper className="pt-16 transition-all duration-200">
           <div className="container mx-auto p-6 md:p-8 max-w-4xl">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Assignments</h1>
@@ -199,7 +200,7 @@ function AddAssignment() {
               )}
             </Accordion>
           </div>
-        </main>
+        </MainContentWrapper>
       </div>
     </>
   );

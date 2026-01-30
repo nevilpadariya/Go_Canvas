@@ -44,6 +44,10 @@ from alphagocanvas.database.models import (
     ConversationTable,
     ConversationParticipantTable,
     MessageTable,
+    QuizQuestionTable,
+    QuizQuestionOptionTable,
+    QuizAttemptTable,
+    QuizAnswerTable,
 )
 
 

@@ -5,6 +5,7 @@ import axios from "axios";
 
 import FacultySidebar from "../../components/facultysidebar";
 import Header from "../../components/header";
+import { MainContentWrapper } from "@/components/MainContentWrapper";
 import StudentTable from "../../components/facultystudenttable";
 
 function CourseStudentList() {
@@ -51,7 +52,7 @@ function CourseStudentList() {
         <Header />
         <FacultySidebar />
         
-        <main className="pt-16 md:pl-64 transition-all duration-200">
+        <MainContentWrapper className="pt-16 transition-all duration-200">
           <div className="container mx-auto p-6 md:p-8 max-w-7xl">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Students</h1>
@@ -60,7 +61,7 @@ function CourseStudentList() {
             
             <StudentTable students={students} />
           </div>
-        </main>
+        </MainContentWrapper>
       </div>
     </>
   );

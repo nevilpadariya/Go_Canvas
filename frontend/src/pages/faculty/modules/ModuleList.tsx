@@ -79,14 +79,14 @@ const ModuleList: React.FC<ModuleListProps> = ({ courseId, isEditable = true }) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Dialog states
+
   const [moduleDialogOpen, setModuleDialogOpen] = useState(false);
   const [itemDialogOpen, setItemDialogOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [editingItem, setEditingItem] = useState<ModuleItem | null>(null);
   const [currentModuleId, setCurrentModuleId] = useState<number | null>(null);
   
-  // Form states
+
   const [moduleName, setModuleName] = useState('');
   const [moduleDescription, setModuleDescription] = useState('');
   const [modulePublished, setModulePublished] = useState(false);
@@ -105,7 +105,7 @@ const ModuleList: React.FC<ModuleListProps> = ({ courseId, isEditable = true }) 
       });
       setModules(response.data.Modules || []);
     } catch (err: any) {
-      // Don't show error if it's just no modules found (404 for empty list sometimes)
+
       if (err.response?.status !== 404) {
         setError(err.response?.data?.detail || 'Failed to load modules');
       }
@@ -132,7 +132,7 @@ const ModuleList: React.FC<ModuleListProps> = ({ courseId, isEditable = true }) 
     }
   };
 
-  // Module CRUD handlers
+
   const handleOpenModuleDialog = (module?: Module) => {
     if (module) {
       setEditingModule(module);
@@ -208,7 +208,7 @@ const ModuleList: React.FC<ModuleListProps> = ({ courseId, isEditable = true }) 
     }
   };
 
-  // Item CRUD handlers
+
   const handleOpenItemDialog = (moduleId: number, item?: ModuleItem) => {
     setCurrentModuleId(moduleId);
     if (item) {
@@ -376,7 +376,7 @@ const ModuleList: React.FC<ModuleListProps> = ({ courseId, isEditable = true }) 
         </Accordion>
       )}
 
-      {/* Module Dialog */}
+
       <Dialog open={moduleDialogOpen} onOpenChange={setModuleDialogOpen}>
         <DialogContent className='sm:max-w-[500px]'>
           <DialogHeader>
@@ -411,7 +411,7 @@ const ModuleList: React.FC<ModuleListProps> = ({ courseId, isEditable = true }) 
         </DialogContent>
       </Dialog>
 
-      {/* Item Dialog */}
+
       <Dialog open={itemDialogOpen} onOpenChange={setItemDialogOpen}>
         <DialogContent className='sm:max-w-[500px]'>
           <DialogHeader>

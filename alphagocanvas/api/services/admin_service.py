@@ -287,20 +287,20 @@ def get_students_with_details(db: database_dependency) -> List[StudentCourseDeta
     """
     raw_query = text("""
         SELECT
-            s.Studentid,
-            s.Studentfirstname,
-            s.Studentlastname,
-            s.Studentcontactnumber,
-            c.Courseid,
-            c.Coursename,
-            se.EnrollmentSemester,
-            se.EnrollmentGrades
+            s."Studentid",
+            s."Studentfirstname",
+            s."Studentlastname",
+            s."Studentcontactnumber",
+            c."Courseid",
+            c."Coursename",
+            se."EnrollmentSemester",
+            se."EnrollmentGrades"
         FROM
             student s
         JOIN
-            studentenrollment se ON s.Studentid = se.Studentid
+            studentenrollment se ON s."Studentid" = se."Studentid"
         JOIN
-            courses c ON c.Courseid = se.Courseid;
+            courses c ON c."Courseid" = se."Courseid";
     """)
 
     results = db.execute(raw_query).fetchall()
@@ -354,5 +354,6 @@ def assign_course_to_student(db: database_dependency, params: AssignCourseReques
     
     db.add(new_enrollment)
     db.commit()
+    db.refresh(new_enrollment)  # Ensure the record is properly persisted
     
-    return {"message": "Successfully assigned course to student"}
+    return {"message": "Successfully assigned course to student", "enrollment_id": new_enrollment.Enrollmentid}

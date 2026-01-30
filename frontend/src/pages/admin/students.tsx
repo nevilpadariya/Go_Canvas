@@ -4,6 +4,7 @@ import axios from "axios";
 
 import AdminSidebar from "../../components/adminsidebar";
 import Header from "../../components/header";
+import { MainContentWrapper } from "@/components/MainContentWrapper";
 import {
     Table,
     TableBody,
@@ -51,16 +52,17 @@ interface Course {
   Coursesemester: string;
 }
 
-// Helper to determine current semester
 const getCurrentSemester = () => {
   const date = new Date();
-  const month = date.getMonth(); // 0-11
+  const month = date.getMonth();
   const year = date.getFullYear().toString().slice(-2);
   
-  if (month <= 4) return `Spring${year}`;      // Jan-May
-  if (month <= 6) return `Summer${year}`;      // Jun-Jul
-  return `Fall${year}`;                        // Aug-Dec
+  if (month <= 4) return `Spring${year}`;
+  if (month <= 6) return `Summer${year}`;
+  return `Fall${year}`;
 };
+
+import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 
 function StudentList() {
   const token = localStorage.getItem("token");
@@ -68,10 +70,14 @@ function StudentList() {
   const [users, setUsers] = useState<User[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
 
-  // Assignment Form State
+
   const [assignStudentId, setAssignStudentId] = useState<string>("");
   const [assignCourseId, setAssignCourseId] = useState<string>("");
   const [assignSemester, setAssignSemester] = useState<string>(getCurrentSemester());
+  
+
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStudentDetails = async () => {
@@ -117,7 +123,7 @@ function StudentList() {
             }
           );
           if (response.status === 200) {
-            // Mapping from CoursesForAdmin model which only has Courseid, Coursename
+
             const coursesData = response.data.map((course: {
               Courseid: number;
               Coursename: string;
@@ -125,7 +131,7 @@ function StudentList() {
               return {
                  Courseid: course.Courseid,
                  Coursename: course.Coursename,
-                 // Faculty and Coursesemester are not available in view_courses
+
                  Faculty: "", 
                  Coursesemester: ""
               };
@@ -146,13 +152,18 @@ function StudentList() {
   }, [token]);
 
   const handleAssignCourse = async () => {
+
+    setSuccessMessage(null);
+    setErrorMessage(null);
+
     if (!assignStudentId || !assignCourseId || !assignSemester) {
-        alert("Please select student, course and semester");
+        setErrorMessage("Please select student, course and semester");
+        setTimeout(() => setErrorMessage(null), 3000);
         return;
     }
     
     try {
-        await axios.post(
+        const response = await axios.post(
             `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/assign_course_student`,
             {
                 student_id: parseInt(assignStudentId),
@@ -161,25 +172,43 @@ function StudentList() {
             },
             { headers: { Authorization: `Bearer ${token}` } }
         );
-        alert("Course assigned successfully!");
+        
+
+        const studentName = users.find(u => u.Userid.toString() === assignStudentId);
+        const courseName = courses.find(c => c.Courseid?.toString() === assignCourseId);
+        
+        setSuccessMessage(`✅ Successfully assigned ${courseName?.Coursename} to ${studentName?.Userfirstname} ${studentName?.Userlastname} for ${assignSemester}`);
+        
+
+        setTimeout(() => setSuccessMessage(null), 5000);
+        
+
         setAssignStudentId("");
         setAssignCourseId("");
-        setAssignSemester("");
+        setAssignSemester(getCurrentSemester());
         
-        // Refresh student details
-        const response = await axios.get(
-            `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/students_details`,
-            {
-                headers: { Authorization: `Bearer ${token}` },
-            }
-        );
-        if (response.status === 200) {
-            setStudentDetails(response.data);
-        }
 
-    } catch (error) {
+        setTimeout(async () => {
+            try {
+                const response = await axios.get(
+                    `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/students_details`,
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+                if (response.status === 200) {
+                    setStudentDetails(response.data);
+                }
+            } catch (err) {
+                console.error("Error refreshing student details:", err);
+            }
+        }, 500); 
+
+    } catch (error: any) {
         console.error("Error assigning course:", error);
-        alert("Failed to assign course. Student might already be enrolled.");
+        const errorMsg = error.response?.data?.detail || "Failed to assign course. Student might already be enrolled.";
+        setErrorMessage(errorMsg);
+        setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
@@ -203,7 +232,7 @@ function StudentList() {
         <Header />
         <AdminSidebar />
         
-        <main className="pt-16 md:pl-64 transition-all duration-200">
+        <MainContentWrapper className="pt-16 transition-all duration-200">
           <div className="container mx-auto p-6 md:p-8 max-w-7xl">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Student Management</h1>
@@ -216,52 +245,65 @@ function StudentList() {
                         <CardTitle>Assign Course to Student</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex flex-col gap-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Select Student</label>
-                                <Select value={assignStudentId} onValueChange={setAssignStudentId}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a student" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {users.filter(u => u.Userrole === 'Student').map(student => (
-                                            <SelectItem key={student.Userid} value={student.Userid.toString()}>
-                                                {student.Userfirstname} {student.Userlastname} ({student.Userid})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Select Course</label>
-                                <Select value={assignCourseId} onValueChange={setAssignCourseId}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a course" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {courses.map(course => (
-                                            <SelectItem key={course.Courseid} value={course.Courseid?.toString() || ""}>
-                                                {course.Coursename}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                            <div className="space-y-4">
+                                {successMessage && (
+                                    <Alert variant="success" className="animate-in fade-in slide-in-from-top-2">
+                                        <AlertTitle>Success</AlertTitle>
+                                        <AlertDescription>{successMessage}</AlertDescription>
+                                    </Alert>
+                                )}
+                                {errorMessage && (
+                                    <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2">
+                                        <AlertTitle>Error</AlertTitle>
+                                        <AlertDescription>{errorMessage}</AlertDescription>
+                                    </Alert>
+                                )}
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Semester</label>
-                                <Input 
-                                    placeholder="e.g. Fall 2024"
-                                    value={assignSemester}
-                                    onChange={(e) => setAssignSemester(e.target.value)}
-                                />
-                            </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Select Student</label>
+                                    <Select value={assignStudentId} onValueChange={setAssignStudentId}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a student" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {users.filter(u => u.Userrole === 'Student').map(student => (
+                                                <SelectItem key={student.Userid} value={student.Userid.toString()}>
+                                                    {student.Userfirstname} {student.Userlastname} ({student.Userid})
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Select Course</label>
+                                    <Select value={assignCourseId} onValueChange={setAssignCourseId}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a course" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {courses.map(course => (
+                                                <SelectItem key={course.Courseid} value={course.Courseid?.toString() || ""}>
+                                                    {course.Coursename}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-                            <Button onClick={handleAssignCourse}>Assign Course</Button>
-                        </div>
-                    </CardContent>
-                </Card>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Semester</label>
+                                    <Input 
+                                        placeholder="e.g. Fall 2024"
+                                        value={assignSemester}
+                                        onChange={(e) => setAssignSemester(e.target.value)}
+                                    />
+                                </div>
+
+                                <Button onClick={handleAssignCourse}>Assign Course</Button>
+                            </div>
+                        </CardContent>
+                    </Card>
                 
                 <Card className="col-span-4">
                     <CardHeader className="flex flex-row items-center justify-between">
@@ -321,7 +363,7 @@ function StudentList() {
                 </Card>
             </div>
           </div>
-        </main>
+        </MainContentWrapper>
       </div>
     </>
   );

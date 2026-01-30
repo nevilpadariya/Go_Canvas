@@ -15,21 +15,40 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 
+const getCurrentSemester = () => {
+  const date = new Date();
+  const month = date.getMonth();
+  const year = date.getFullYear().toString().slice(-2);
+  
+  if (month <= 4) return `Spring${year}`;
+  if (month <= 6) return `Summer${year}`;
+  return `Fall${year}`;
+};
+
+import { MainContentWrapper } from "@/components/MainContentWrapper";
+
 function DashboardPage() {
   const [previousSemesterData, setPreviousSemesterData] = useState([]);
   const [currentSemesterData, setCurrentSemesterData] = useState([]);
   let { courseid } = useParams();
 
-  const fetchCurrentSemesterData = async () => {
+  const currentSemester = getCurrentSemester();
+
+  const fetchSemesterData = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        // Demo data for unauthenticated visitors
-        setCurrentSemesterData([
+        const demoCurrent = [
           { Courseid: 101, Coursename: "Intro to Go-Canvas", Coursedescription: "Explore features", Coursesemester: "DEMO" },
           { Courseid: 102, Coursename: "Student Portal", Coursedescription: "Grades, Assignments", Coursesemester: "DEMO" },
           { Courseid: 103, Coursename: "Faculty Tools", Coursedescription: "Quizzes, Announcements", Coursesemester: "DEMO" },
-        ] as any);
+        ] as any;
+        setCurrentSemesterData(demoCurrent);
+        
+        const demoPrevious = [
+            { Courseid: 201, Coursename: "Archived Demo Course", Coursedescription: "Past features", Coursesemester: "DEMO-ARCHIVE" },
+        ] as any;
+        setPreviousSemesterData(demoPrevious);
         return;
       }
 
@@ -43,52 +62,31 @@ function DashboardPage() {
       );
 
       if (response.status === 200) {
-        setCurrentSemesterData(response.data);
-      } else {
-        throw new Error("Failed to fetch current semester data");
-      }
-    } catch (error) {
-      console.error("Error fetching current semester data:", error);
-    }
-  };
+        const allCourses = response.data;
+        
 
-  const fetchPreviousSemesterData = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        // Minimal demo previous data
-        setPreviousSemesterData([
-          { Courseid: 201, Coursename: "Archived Demo Course", Coursedescription: "Past features", EnrollmentSemester: "DEMO-ARCHIVE" },
-        ] as any);
-        return;
-      }
-
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/student/previous_enrollment`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.status === 200) {
-        const filteredData = response.data.filter(
-          (enrollment: { EnrollmentSemester: string; }) => enrollment.EnrollmentSemester !== "SPRING24"
+        const currentSemNormalized = currentSemester.toUpperCase();
+        
+        const current = allCourses.filter((c: any) => 
+            (c.Coursesemester || c.EnrollmentSemester || "").toUpperCase() === currentSemNormalized
         );
-        setPreviousSemesterData(filteredData);
+        
+        const previous = allCourses.filter((c: any) => 
+            (c.Coursesemester || c.EnrollmentSemester || "").toUpperCase() !== currentSemNormalized
+        );
+
+        setCurrentSemesterData(current);
+        setPreviousSemesterData(previous);
       } else {
-        throw new Error("Failed to fetch previous semester data");
+        throw new Error("Failed to fetch course data");
       }
     } catch (error) {
-      console.error("Error fetching previous semester data:", error);
+      console.error("Error fetching semester data:", error);
     }
   };
 
   useEffect(() => {
-    fetchCurrentSemesterData();
-    fetchPreviousSemesterData();
+    fetchSemesterData();
   }, []);
 
   return (
@@ -98,7 +96,6 @@ function DashboardPage() {
       </Helmet>
       
       <div className="min-h-screen bg-background text-foreground">
-        {/* Overlay for sidebar */}
         <div
           className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 sidebar-overlay hidden"
           onClick={() => document.body.classList.remove("sidebar-open")}
@@ -107,7 +104,7 @@ function DashboardPage() {
         <Header />
         <Sidebar />
         
-        <main className="pt-16 md:pl-64 transition-all duration-200">
+        <MainContentWrapper className="pt-16 md:pl-64 transition-all duration-200">
           <div className="container mx-auto p-6 md:p-8 max-w-7xl">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
@@ -169,7 +166,7 @@ function DashboardPage() {
               </Accordion>
             </div>
           </div>
-        </main>
+        </MainContentWrapper>
       </div>
     </>
   );

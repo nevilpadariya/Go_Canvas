@@ -5,6 +5,7 @@ import axios from "axios";
 
 import Header from "../../components/header";
 import FacultySidebar from "../../components/facultysidebar";
+import { MainContentWrapper } from "@/components/MainContentWrapper";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -76,7 +77,7 @@ function AssignGrades() {
         }
       );
       if (response.status === 200) {
-        console.log("Data saved successfully:", response.data);
+
         setSelectedStudent("");
         setSelectedGrade("");
         window.alert("Grade Successfully Assigned");
@@ -103,7 +104,7 @@ function AssignGrades() {
         <Header />
         <FacultySidebar />
         
-        <main className="pt-16 md:pl-64 transition-all duration-200">
+        <MainContentWrapper className="pt-16 transition-all duration-200">
           <div className="container mx-auto p-6 md:p-8 max-w-4xl">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Assign Grades</h1>
@@ -164,7 +165,7 @@ function AssignGrades() {
               </CardContent>
             </Card>
           </div>
-        </main>
+        </MainContentWrapper>
       </div>
     </>
   );

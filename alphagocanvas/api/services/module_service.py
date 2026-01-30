@@ -20,7 +20,7 @@ def create_module(db: Session, request: ModuleCreateRequest) -> ModuleResponse:
     
     # Get the max position for ordering
     max_pos_query = text("""
-        SELECT COALESCE(MAX(Moduleposition), -1) as maxpos FROM modules WHERE Courseid = :courseid
+        SELECT COALESCE(MAX("Moduleposition"), -1) as maxpos FROM modules WHERE "Courseid" = :courseid
     """)
     result = db.execute(max_pos_query, {"courseid": request.Courseid}).fetchone()
     next_position = (result.maxpos if result else -1) + 1
@@ -76,7 +76,7 @@ def get_modules_by_course(db: Session, course_id: int, include_unpublished: bool
     """Get all modules for a course"""
     
     # Get course name
-    course_query = text("SELECT Coursename FROM courses WHERE Courseid = :courseid")
+    course_query = text('SELECT "Coursename" FROM courses WHERE "Courseid" = :courseid')
     course = db.execute(course_query, {"courseid": course_id}).fetchone()
     course_name = course.Coursename if course else None
     
@@ -218,7 +218,7 @@ def get_item_reference_info(db: Session, item_type: str, reference_id: Optional[
         return None
     
     if item_type == 'assignment':
-        query = text("SELECT Assignmentid, Assignmentname, Assignmentdescription FROM assignments WHERE Assignmentid = :id")
+        query = text('SELECT "Assignmentid", "Assignmentname", "Assignmentdescription" FROM assignments WHERE "Assignmentid" = :id')
         result = db.execute(query, {"id": reference_id}).fetchone()
         if result:
             return {
@@ -228,7 +228,7 @@ def get_item_reference_info(db: Session, item_type: str, reference_id: Optional[
             }
     
     elif item_type == 'quiz':
-        query = text("SELECT quizid, quizname, quizdescription FROM quizzes WHERE quizid = :id")
+        query = text('SELECT "Quizid", "Quizname", "Quizdescription" FROM quizzes WHERE "Quizid" = :id')
         result = db.execute(query, {"id": reference_id}).fetchone()
         if result:
             return {
@@ -238,7 +238,7 @@ def get_item_reference_info(db: Session, item_type: str, reference_id: Optional[
             }
     
     elif item_type == 'file':
-        query = text("SELECT Fileid, Fileoriginalname, Fileurl, Filemimetype FROM files WHERE Fileid = :id")
+        query = text('SELECT "Fileid", "Fileoriginalname", "Fileurl", "Filemimetype" FROM files WHERE "Fileid" = :id')
         result = db.execute(query, {"id": reference_id}).fetchone()
         if result:
             return {
@@ -260,7 +260,7 @@ def create_module_item(db: Session, module_id: int, request: ModuleItemCreateReq
     
     # Get max position
     max_pos_query = text("""
-        SELECT COALESCE(MAX(Itemposition), -1) as maxpos FROM module_items WHERE Moduleid = :moduleid
+        SELECT COALESCE(MAX("Itemposition"), -1) as maxpos FROM module_items WHERE "Moduleid" = :moduleid
     """)
     result = db.execute(max_pos_query, {"moduleid": module_id}).fetchone()
     next_position = (result.maxpos if result else -1) + 1

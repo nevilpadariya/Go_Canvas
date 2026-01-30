@@ -12,6 +12,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { MainContentWrapper } from "@/components/MainContentWrapper";
 
 interface Course {
   Courseid: string;
@@ -21,6 +22,16 @@ interface Course {
   Coursepublished: boolean; 
 }
 
+const getCurrentSemester = () => {
+  const date = new Date();
+  const month = date.getMonth();
+  const year = date.getFullYear().toString().slice(-2);
+  
+  if (month <= 4) return `Spring${year}`;
+  if (month <= 6) return `Summer${year}`;
+  return `Fall${year}`;
+};
+
 function FacultyDashboard() {
   const [previousSemesterData, setPreviousSemesterData] = useState<Course[]>([]);
   const [currentSemesterData, setCurrentSemesterData] = useState<Course[]>([]);
@@ -29,6 +40,8 @@ function FacultyDashboard() {
   const fetchCourses = async () => {
     try {
       const token = localStorage.getItem("token");
+      const currentSemester = getCurrentSemester();
+      
       const response = await axios.get<Course[]>(
         `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/courses_taught`,
         {
@@ -39,11 +52,14 @@ function FacultyDashboard() {
       );
 
       if (response.status === 200) {
+
+        const currentSemNormalized = currentSemester.toUpperCase();
+        
         const currentSemesterCourses = response.data.filter(
-          (course) => course.Coursesemester === "SPRING24"
+          (course) => (course.Coursesemester || "").toUpperCase() === currentSemNormalized
         );
         const previousSemesterCourses = response.data.filter(
-          (course) => course.Coursesemester !== "SPRING24" && course.Coursesemester < "SPRING24"
+          (course) => (course.Coursesemester || "").toUpperCase() !== currentSemNormalized
         );
 
         setCurrentSemesterData(currentSemesterCourses);
@@ -75,7 +91,7 @@ function FacultyDashboard() {
         <Header />
         <Sidebar />
         
-        <main className="pt-16 md:pl-64 transition-all duration-200">
+        <MainContentWrapper className="pt-16 transition-all duration-200">
           <div className="container mx-auto p-6 md:p-8 max-w-7xl">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
@@ -111,7 +127,7 @@ function FacultyDashboard() {
                             coursename={course.Coursename}
                             coursedescription={course.Coursedescription}
                             coursesemester={course.Coursesemester}
-                            buttondisabled={!course.Coursepublished}
+                            buttondisabled={true}
                           />
                         </div>
                       ))}
@@ -121,7 +137,7 @@ function FacultyDashboard() {
               </Accordion>
             </div>
           </div>
-        </main>
+        </MainContentWrapper>
       </div>
     </>
   );

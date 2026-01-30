@@ -41,9 +41,86 @@
 
 * Backend -> Python, FastAPI
 * Database -> PostgreSQL
-* Frontend -> React
+* Frontend -> React, TypeScript, Tailwind CSS, Radix UI
 * Wireframes -> Figma
 * Deployment -> DigitalOcean (Backend & Database) & Vercel (Frontend)
+
+## ✨ Key Features
+
+### For Students
+- ✅ **Assignment Submission** - Submit text answers and file uploads
+- ✅ **Quiz System** - Take quizzes with instant auto-grading for MC/TF questions
+- ✅ **Grades Dashboard** - View GPA, course grades, and assignment breakdown
+- ✅ **Course Management** - Browse enrolled courses and materials
+- ✅ **Progress Tracking** - Monitor submission status and quiz performance
+
+### For Faculty
+- ✅ **Assignment Creation** - Create assignments with descriptions
+- ✅ **Quiz Builder** - Design quizzes via API with multiple question types
+- ✅ **Auto-Grading** - Automatic grading for objective questions
+- ✅ **Manual Grading** - Grade essay and short answer questions
+- ✅ **Speedgrader** - Efficiently grade student submissions
+
+### For Admins
+- ✅ **User Management** - Manage students, faculty, and courses
+- ✅ **Course Assignment** - Assign students and faculty to courses
+- ✅ **System Monitoring** - Track overall platform usage
+
+## 📚 Documentation
+
+- **[API Testing Guide](./API_TESTING_GUIDE.md)** - Complete API reference and testing workflows
+- **[Quick Start Guide](./.gemini/antigravity/brain/0a6b5719-80f3-45c6-8b7d-ce8863cdf8b6/quick_start_guide.md)** - Setup and run the application
+- **[Implementation Walkthrough](./.gemini/antigravity/brain/0a6b5719-80f3-45c6-8b7d-ce8863cdf8b6/walkthrough.md)** - Detailed feature documentation
+- **[Task Tracker](./.gemini/antigravity/brain/0a6b5719-80f3-45c6-8b7d-ce8863cdf8b6/task.md)** - Development progress tracking
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.8+
+- Node.js 16+
+- PostgreSQL database
+
+### Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd Go_Canvas
+   ```
+
+2. **Backend Setup**
+   ```bash
+   pip install -r requirements.txt
+   cp .env.example .env
+   # Edit .env with your database credentials
+   python scripts/init_database.py
+   ```
+
+3. **Frontend Setup**
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+4. **Run the application**
+   ```bash
+   # Terminal 1 - Backend
+   uvicorn main:app --reload
+   
+   # Terminal 2 - Frontend
+   cd frontend && npm run dev
+   ```
+
+5. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - API Docs: http://localhost:8000/docs
+
+### Seed Sample Data
+```bash
+# Create sample quiz for testing
+python seed_sample_quiz.py
+```
 
 ## Deployment Instructions
 

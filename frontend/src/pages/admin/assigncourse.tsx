@@ -4,6 +4,7 @@ import axios from "axios";
 
 import Header from "../../components/header";
 import AdminSidebar from "../../components/adminsidebar";
+import { MainContentWrapper } from "@/components/MainContentWrapper";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -94,7 +95,7 @@ function AssignCourse() {
     }
 
     try {
-      // Check if the course is already assigned to the faculty for the selected semester
+
       const alreadyAssigned = await checkIfCourseAlreadyAssigned(parseInt(selectedCourse), parseInt(selectedFaculty), selectedSemester);
       
       if (alreadyAssigned) {
@@ -116,7 +117,7 @@ function AssignCourse() {
         }
       );
       if (response.status === 200) {
-        console.log("Data saved successfully:", response.data);
+
         setSelectedFaculty("");
         setSelectedCourse("");
         setSelectedSemester("");
@@ -165,7 +166,7 @@ function AssignCourse() {
         <Header />
         <AdminSidebar />
         
-        <main className="pt-16 md:pl-64 transition-all duration-200">
+        <MainContentWrapper className="pt-16 transition-all duration-200">
           <div className="container mx-auto p-6 md:p-8 max-w-4xl">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Assign Course</h1>
@@ -245,7 +246,7 @@ function AssignCourse() {
               </CardContent>
             </Card>
           </div>
-        </main>
+        </MainContentWrapper>
       </div>
     </>
   );

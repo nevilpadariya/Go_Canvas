@@ -39,7 +39,7 @@ def create_event(
     
     course_name = None
     if event.Courseid:
-        query = text("SELECT Coursename FROM courses WHERE Courseid = :id")
+        query = text('SELECT "Coursename" FROM courses WHERE "Courseid" = :id')
         result = db.execute(query, {"id": event.Courseid}).fetchone()
         course_name = result.Coursename if result else None
     
@@ -87,7 +87,7 @@ def get_events_for_user(
     for evt in events:
         course_name = None
         if evt.Courseid:
-            cq = text("SELECT Coursename FROM courses WHERE Courseid = :id")
+            cq = text('SELECT "Coursename" FROM courses WHERE "Courseid" = :id')
             result = db.execute(cq, {"id": evt.Courseid}).fetchone()
             course_name = result.Coursename if result else None
         
@@ -154,7 +154,7 @@ def update_event(
     
     course_name = None
     if event.Courseid:
-        query = text("SELECT Coursename FROM courses WHERE Courseid = :id")
+        query = text('SELECT "Coursename" FROM courses WHERE "Courseid" = :id')
         result = db.execute(query, {"id": event.Courseid}).fetchone()
         course_name = result.Coursename if result else None
     
@@ -205,8 +205,8 @@ def sync_assignments_to_calendar(db: Session, user_id: int, course_ids: List[int
     for course_id in course_ids:
         # Sync assignments
         assignments_query = text("""
-            SELECT Assignmentid, Assignmentname, Duedate 
-            FROM assignments WHERE Courseid = :courseid AND Duedate IS NOT NULL
+            SELECT "Assignmentid", "Assignmentname", "Duedate" 
+            FROM assignments WHERE "Courseid" = :courseid AND "Duedate" IS NOT NULL
         """)
         assignments = db.execute(assignments_query, {"courseid": course_id}).fetchall()
         

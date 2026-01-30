@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Helmet } from "react-helmet";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import Sidebar from "../../components/sidebar";
 import Header from "../../components/header";
@@ -20,6 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MainContentWrapper } from "@/components/MainContentWrapper";
 import { Card } from "@/components/ui/card";
 
 interface Assignment {
@@ -67,6 +69,7 @@ function Course() {
   const [coursedescription, setCoursedescription] = React.useState("");
 
   const { courseid } = useParams();
+  const navigate = useNavigate();
 
   const [assignments, setAssignments] = React.useState<Assignment[]>([]);
   const [quizzes, setQuizzes] = React.useState<Quiz[]>([]);
@@ -226,7 +229,7 @@ function Course() {
         <Header />
         <Sidebar />
         
-        <main className="pt-16 md:pl-64 transition-all duration-200">
+        <MainContentWrapper className="pt-16 transition-all duration-200">
           <div className="container mx-auto p-6 md:p-8 max-w-7xl">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Course Details</h1>
@@ -247,7 +250,7 @@ function Course() {
               <div className="space-y-4">
                 <Accordion type="single" collapsible className="w-full space-y-4">
                   
-                  {/* Announcements */}
+
                   <AccordionItem value="announcements" className="border rounded-lg bg-card text-card-foreground">
                     <AccordionTrigger className="px-4 hover:no-underline">Announcements</AccordionTrigger>
                     <AccordionContent className="px-4 pb-4">
@@ -280,7 +283,7 @@ function Course() {
                     </AccordionContent>
                   </AccordionItem>
 
-                  {/* Quizzes */}
+
                   <AccordionItem value="quizzes" className="border rounded-lg bg-card text-card-foreground">
                     <AccordionTrigger className="px-4 hover:no-underline">Quizzes</AccordionTrigger>
                     <AccordionContent className="px-4 pb-4">
@@ -301,7 +304,11 @@ function Course() {
                               </TableRow>
                             ) : (
                               quizzes.map((quiz) => (
-                                <TableRow key={quiz["Quizid"]}>
+                                <TableRow 
+                                  key={quiz["Quizid"]}
+                                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                  onClick={() => navigate(`/student/quiz/${quiz["Quizid"]}`)}
+                                >
                                   <TableCell className="font-medium">{quiz["Quizname"]}</TableCell>
                                   <TableCell>{quiz["Quizdescription"]}</TableCell>
                                 </TableRow>
@@ -313,7 +320,7 @@ function Course() {
                     </AccordionContent>
                   </AccordionItem>
 
-                  {/* Assignments */}
+
                   <AccordionItem value="assignments" className="border rounded-lg bg-card text-card-foreground">
                     <AccordionTrigger className="px-4 hover:no-underline">Assignments</AccordionTrigger>
                     <AccordionContent className="px-4 pb-4">
@@ -334,7 +341,11 @@ function Course() {
                               </TableRow>
                             ) : (
                               assignments.map((assignment) => (
-                                <TableRow key={assignment["Assignmentid"]}>
+                                <TableRow 
+                                  key={assignment["Assignmentid"]}
+                                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                  onClick={() => navigate(`/student/assignment/${assignment["Assignmentid"]}`)}
+                                >
                                   <TableCell className="font-medium">{assignment["Assignmentname"]}</TableCell>
                                   <TableCell>{assignment["Assignmentdescription"]}</TableCell>
                                 </TableRow>
@@ -385,7 +396,7 @@ function Course() {
               </div>
             </div>
           </div>
-        </main>
+        </MainContentWrapper>
       </div>
     </>
   );

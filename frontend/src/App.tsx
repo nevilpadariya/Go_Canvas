@@ -1,11 +1,16 @@
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { SidebarProvider } from "@/context/SidebarContext";
 import LandingPage from "./pages/landing";
 import LoginPage from "./pages/login";
 import SignupPage from "./pages/signup";
 import DashboardPage from "./pages/student/dashboard";
-import AccountPage from "./pages/student//account";
-import AdminDashboardPage from "./pages/admin//admindashboard";
+import AccountPage from "./pages/student/account";
+import StudentAssignments from "./pages/student/assignments";
+import AssignmentDetail from "./pages/student/assignment-detail";
+import TakeQuiz from "./pages/student/take-quiz";
+import StudentGrades from "./pages/student/grades";
+import AdminDashboardPage from "./pages/admin/admindashboard";
 import FacultyDashnboard from "./pages/faculty/facultydashboard";
 import AddAssignment from "./pages/faculty/facultyassignment";
 import AddGrades from "./pages/faculty/facultygrades";
@@ -23,7 +28,8 @@ import UnauthorizedAccess from "./pages/access";
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      <SidebarProvider>
+        <Routes>
         <Route
           path="dashboard"
           element={
@@ -53,6 +59,38 @@ function App() {
           element={
             <ProtectedRoute role="student">
               <Course />
+            </ProtectedRoute>
+          }
+        ></Route>
+        <Route
+          path="/student/assignments"
+          element={
+            <ProtectedRoute role="student">
+              <StudentAssignments />
+            </ProtectedRoute>
+          }
+        ></Route>
+        <Route
+          path="/student/assignment/:assignmentId"
+          element={
+            <ProtectedRoute role="student">
+              <AssignmentDetail />
+            </ProtectedRoute>
+          }
+        ></Route>
+        <Route
+          path="/student/quiz/:quizId"
+          element={
+            <ProtectedRoute role="student">
+              <TakeQuiz />
+            </ProtectedRoute>
+          }
+        ></Route>
+        <Route
+          path="/student/grades"
+          element={
+            <ProtectedRoute role="student">
+              <StudentGrades />
             </ProtectedRoute>
           }
         ></Route>
@@ -142,6 +180,7 @@ function App() {
         <Route path="student_list" element={<ProtectedRoute role="admin"><StudentList /></ProtectedRoute>}></Route>
         <Route path="error" element={<UnauthorizedAccess />}></Route>
       </Routes>
+      </SidebarProvider>
     </BrowserRouter>
   );
 }
