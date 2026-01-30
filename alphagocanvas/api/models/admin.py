@@ -55,3 +55,34 @@ class AdminCoursesForAdminResponse(BaseModel):
 # "/view_faculties"
 class AdminFacultyForAdminResponse(BaseModel):
     data: List[FacultyForAdmin]
+
+
+class UserResponse(BaseModel):
+    Userid: int
+    Useremail: str
+    Userrole: str
+    Userfirstname: str
+    Userlastname: str
+
+
+class UpdateRoleRequest(BaseModel):
+    role: str
+
+
+class AssignCourseRequest(BaseModel):
+    student_id: int
+    course_id: int
+    semester: str
+
+
+class StudentCourseDetail(BaseModel):
+    Studentid: int
+    Studentfirstname: str
+    Studentlastname: str
+    Studentcontactnumber: str
+    Courseid: int
+    Coursename: str
+    Coursesemester: str
+    EnrollmentGrades: str | None = None
+    Status: str  # 'Completed', 'Failed', 'Current'
+

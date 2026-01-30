@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { BookX } from "lucide-react";
 
 import Header from "../../components/header";
 import Sidebar from "../../components/sidebar";
@@ -12,6 +13,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Card, CardContent } from "@/components/ui/card";
 
 function DashboardPage() {
   const [previousSemesterData, setPreviousSemesterData] = useState([]);
@@ -112,18 +114,36 @@ function DashboardPage() {
               <p className="text-muted-foreground mt-1">Welcome to Go-Canvas</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {currentSemesterData.map((course, index) => (
-                <div key={index}>
-                  <DashboardCard
-                    courseid={course["Courseid"]}
-                    coursename={course["Coursename"]}
-                    coursedescription={course["Coursedescription"]}
-                    coursesemester={course["Coursesemester"]}
-                    buttondisabled={false}
-                  />
+            <div className="mb-8">
+              {currentSemesterData.length === 0 ? (
+                <Card className="flex flex-col items-center justify-center p-8 text-center bg-muted/50 border-dashed">
+                  <CardContent className="flex flex-col items-center gap-4 pt-6">
+                    <div className="p-4 rounded-full bg-background border shadow-sm">
+                      <BookX className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-lg">No Courses Assigned Yet</h3>
+                      <p className="text-muted-foreground max-w-sm mx-auto">
+                        You have not been assigned any courses yet. Please contact your department to register for courses.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {currentSemesterData.map((course, index) => (
+                    <div key={index}>
+                      <DashboardCard
+                        courseid={course["Courseid"]}
+                        coursename={course["Coursename"]}
+                        coursedescription={course["Coursedescription"]}
+                        coursesemester={course["Coursesemester"]}
+                        buttondisabled={false}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
 
             <div className="mt-8">

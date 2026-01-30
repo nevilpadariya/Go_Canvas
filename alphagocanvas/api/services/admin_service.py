@@ -4,10 +4,10 @@ from fastapi import HTTPException
 from sqlalchemy import text
 
 from alphagocanvas.api.models.admin import AdminCoursesByFaculty, StudentInformationCourses, CoursesForAdmin, \
-    FacultyForAdmin
+    FacultyForAdmin, UserResponse, StudentCourseDetail, AssignCourseRequest
 from alphagocanvas.api.models.course import CourseFacultySemesterRequest, CourseFacultySemesterResponse
 from alphagocanvas.database import database_dependency
-from alphagocanvas.database.models import CourseFacultyTable, CourseTable, FacultyTable
+from alphagocanvas.database.models import CourseFacultyTable, CourseTable, FacultyTable, UserTable, StudentTable
 
 
 def get_courses_by_faculty(db: database_dependency, adminid: int) -> List[AdminCoursesByFaculty]:
@@ -43,7 +43,7 @@ def get_courses_by_faculty(db: database_dependency, adminid: int) -> List[AdminC
 
     # check if courses are not null, if yes, then raise error
     if len(courses) == 0:
-        raise HTTPException(status_code=404, detail="Data not found")
+        return []
     for course in courses:
         courses_list.append(AdminCoursesByFaculty(Courseid=course.Coursecourseid,
                                                   Facultyid=course.Coursefacultyid,
@@ -119,7 +119,7 @@ def get_students(db: database_dependency) -> List[StudentInformationCourses]:
     students = db.execute(raw_query).fetchall()
 
     if len(students) == 0:
-        raise HTTPException(status_code=404, detail="Data not found for the students")
+        return []
 
     student_list = []
 
@@ -180,3 +180,179 @@ def get_faculties(db: database_dependency) -> List[FacultyForAdmin]:
                                             Facultyname=faculty_name))
 
     return faculty_list
+
+
+def get_all_users(db: database_dependency) -> List[UserResponse]:
+    """
+    Fetch all users with their details (role, name, etc.)
+    """
+    raw_query = text("""
+        SELECT 
+            u."Userid", 
+            u."Useremail", 
+            u."Userrole",
+            COALESCE(s."Studentfirstname", f."Facultyfirstname", '') as firstname,
+            COALESCE(s."Studentlastname", f."Facultylastname", '') as lastname
+        FROM 
+            usertable u
+        LEFT JOIN 
+            student s ON u."Userid" = s."Studentid"
+        LEFT JOIN 
+            faculty f ON u."Userid" = f."Facultyid"
+        ORDER BY u."Userid" DESC;
+    """)
+    
+    users = db.execute(raw_query).fetchall()
+    
+    user_list = []
+    for user in users:
+        user_list.append(UserResponse(
+            Userid=user.Userid,
+            Useremail=user.Useremail,
+            Userrole=user.Userrole,
+            Userfirstname=user.firstname,
+            Userlastname=user.lastname
+        ))
+        
+    return user_list
+
+
+def update_user_role(db: database_dependency, user_id: int, new_role: str):
+    """
+    Update a user's role and migrate their data to the correct table
+    """
+    # 1. Get current user info to access names if needed
+    user = db.query(UserTable).filter(UserTable.Userid == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    old_role = user.Userrole
+    
+    if old_role == new_role:
+        return {"message": f"User is already {new_role}"}
+    
+    try:
+        # 2. Handle Data Migration
+        firstname = "Unknown"
+        lastname = "User"
+        
+        # Get names from existing role table
+        if old_role == "Student":
+            student = db.query(StudentTable).filter(StudentTable.Studentid == user_id).first()
+            if student:
+                firstname = student.Studentfirstname
+                lastname = student.Studentlastname
+                # Remove from student table
+                db.delete(student)
+        elif old_role == "Faculty":
+            faculty = db.query(FacultyTable).filter(FacultyTable.Facultyid == user_id).first()
+            if faculty:
+                firstname = faculty.Facultyfirstname
+                lastname = faculty.Facultylastname
+                # Remove from faculty table
+                db.delete(faculty)
+        
+        # Add to new role table
+        if new_role == "Faculty":
+            new_faculty = FacultyTable(
+                Facultyid=user_id,
+                Facultyfirstname=firstname,
+                Facultylastname=lastname
+            )
+            db.add(new_faculty)
+        elif new_role == "Student":
+            new_student = StudentTable(
+                Studentid=user_id,
+                Studentfirstname=firstname,
+                Studentlastname=lastname,
+                Studentcontactnumber="",
+                Studentnotification=True
+            )
+            db.add(new_student)
+            
+        # 3. Update UserTable
+        user.Userrole = new_role
+        
+        db.commit()
+        return {"message": f"Successfully updated user role to {new_role}"}
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to update role: {str(e)}")
+
+
+def get_students_with_details(db: database_dependency) -> List[StudentCourseDetail]:
+    """
+    Fetch students with their course history and calculcated status
+    """
+    raw_query = text("""
+        SELECT
+            s.Studentid,
+            s.Studentfirstname,
+            s.Studentlastname,
+            s.Studentcontactnumber,
+            c.Courseid,
+            c.Coursename,
+            se.EnrollmentSemester,
+            se.EnrollmentGrades
+        FROM
+            student s
+        JOIN
+            studentenrollment se ON s.Studentid = se.Studentid
+        JOIN
+            courses c ON c.Courseid = se.Courseid;
+    """)
+
+    results = db.execute(raw_query).fetchall()
+    student_list = []
+
+    for row in results:
+        # Determine status based on grades
+        status = "Current"
+        if row.EnrollmentGrades:
+            grade = row.EnrollmentGrades.upper()
+            if grade in ['A', 'B', 'P']: # Assuming P is passing
+                status = "Completed"
+            elif grade in ['F', 'D']:
+                status = "Failed"
+            # Else remains "Current" (e.g. if grade is empty or N/A)
+        
+        student_list.append(StudentCourseDetail(
+            Studentid=row.Studentid,
+            Studentfirstname=row.Studentfirstname,
+            Studentlastname=row.Studentlastname,
+            Studentcontactnumber=row.Studentcontactnumber if row.Studentcontactnumber else "",
+            Courseid=row.Courseid,
+            Coursename=row.Coursename,
+            Coursesemester=row.EnrollmentSemester,
+            EnrollmentGrades=row.EnrollmentGrades,
+            Status=status
+        ))
+
+    return student_list
+
+
+def assign_course_to_student(db: database_dependency, params: AssignCourseRequest):
+    from alphagocanvas.database.models import StudentEnrollmentTable
+    
+    # Check if already enrolled
+    existing = db.query(StudentEnrollmentTable).filter(
+        StudentEnrollmentTable.Studentid == params.student_id,
+        StudentEnrollmentTable.Courseid == params.course_id
+    ).first()
+    
+    if existing:
+        raise HTTPException(status_code=409, detail="Student already enrolled in this course")
+        
+    new_enrollment = StudentEnrollmentTable(
+        Studentid=params.student_id,
+        Courseid=params.course_id,
+        EnrollmentSemester=params.semester,
+        EnrollmentGrades=None, 
+        Facultyid=None # Optionally could assign faculty lookup logic here if needed, but per request just assigning course
+    )
+    
+    db.add(new_enrollment)
+    db.commit()
+    
+    return {"message": "Successfully assigned course to student"}

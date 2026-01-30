@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 
 from alphagocanvas.api.models.admin import AdminCoursesByFaculty, StudentInformationCourses, CoursesForAdmin, \
-    FacultyForAdmin
+    FacultyForAdmin, UserResponse, UpdateRoleRequest, StudentCourseDetail, AssignCourseRequest
 from alphagocanvas.api.models.course import CourseFacultySemesterRequest, CourseFacultySemesterResponse
 from alphagocanvas.api.services.admin_service import get_courses_by_faculty, assign_course_to_faculty, get_students, \
-    get_courses, get_faculties
+    get_courses, get_faculties, get_all_users, update_user_role, get_students_with_details, assign_course_to_student
 from alphagocanvas.api.utils.auth import is_current_user_admin, decode_token
 from alphagocanvas.database import database_dependency
 
@@ -86,3 +86,54 @@ async def get_courses_for_admin(db: database_dependency, token: Annotated[str, D
     faculties = get_faculties(db)
 
     return faculties
+
+
+@router.get("/users",
+            dependencies=[Depends(is_current_user_admin)],
+            response_model=List[UserResponse])
+async def get_users_list(db: database_dependency, token: Annotated[str, Depends(oauth2_scheme)]):
+    decoded_token = decode_token(token=token)
+
+    if decoded_token["userrole"] != "Admin":
+        raise HTTPException(status_code=403, detail="Unauthorised method for user")
+
+    users = get_all_users(db)
+    return users
+
+
+@router.put("/users/{user_id}/role",
+            dependencies=[Depends(is_current_user_admin)])
+async def update_role(user_id: int, 
+                      request: UpdateRoleRequest,
+                      db: database_dependency, 
+                      token: Annotated[str, Depends(oauth2_scheme)]):
+    decoded_token = decode_token(token=token)
+
+    if decoded_token["userrole"] != "Admin":
+        raise HTTPException(status_code=403, detail="Unauthorised method for user")
+
+    result = update_user_role(db, user_id, request.role)
+    return result
+
+
+@router.get("/students_details",
+            dependencies=[Depends(is_current_user_admin)],
+            response_model=List[StudentCourseDetail])
+async def get_students_details(db: database_dependency, token: Annotated[str, Depends(oauth2_scheme)]):
+    decoded_token = decode_token(token=token)
+    if decoded_token["userrole"] != "Admin":
+         raise HTTPException(status_code=403, detail="Unauthorised method for user")
+    
+    return get_students_with_details(db)
+
+
+@router.post("/assign_course_student",
+             dependencies=[Depends(is_current_user_admin)])
+async def assign_course_student(request: AssignCourseRequest,
+                                db: database_dependency,
+                                token: Annotated[str, Depends(oauth2_scheme)]):
+    decoded_token = decode_token(token=token)
+    if decoded_token["userrole"] != "Admin":
+         raise HTTPException(status_code=403, detail="Unauthorised method for user")
+         
+    return assign_course_to_student(db, request)

@@ -124,7 +124,7 @@ def get_enrollments(studentid: int, db: database_dependency) -> List[StudentEnro
     enrollments_list = []
 
     if len(enrollments) == 0:
-        raise HTTPException(status_code=404, detail="Data not found")
+        return []
 
     for enrollment in enrollments:
         enrollments_list.append(StudentEnrollment(Studentid=enrollment.Studentid,
@@ -160,7 +160,7 @@ def get_course_details(db: database_dependency, studentid: int) -> List[StudentC
 
     print(published_courses)
     if len(published_courses) == 0:
-        raise HTTPException(status_code=404, detail="Data not found")
+        return []
 
     published_courses_list = []
 
