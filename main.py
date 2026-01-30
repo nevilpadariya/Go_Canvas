@@ -48,7 +48,7 @@ if not os.path.exists(UPLOAD_DIR):
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # Get allowed origins from environment variable or use defaults
-cors_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000,https://go-canvas-frontend.vercel.app")
+cors_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000,https://gocanvas.vercel.app")
 origins = cors_origins_str.split(",")
 
 # For development, you might want to add localhost

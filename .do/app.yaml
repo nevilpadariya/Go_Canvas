@@ -62,7 +62,7 @@ spec:
         # CORS Configuration - Update with your Vercel frontend URL
         - key: CORS_ORIGINS
           scope: RUN_TIME
-          value: "http://localhost:3000,https://go-canvas-frontend.vercel.app"
+          value: "http://localhost:3000,https://gocanvas.vercel.app"
         
         # Production flag
         - key: ENVIRONMENT
