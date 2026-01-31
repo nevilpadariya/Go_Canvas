@@ -131,6 +131,7 @@ def get_user(username: str, db: database_dependency):
     :param db: database_dependency
     :return: retrieved user from the database
     """
+    print(f"🔍 Database query for user: {username}")
     # Check if username is an email (contains '@')
     if '@' in username:
         user = db.query(UserTable).filter(UserTable.Useremail == username).first()
@@ -143,4 +144,5 @@ def get_user(username: str, db: database_dependency):
             # Not a valid ID format
             return None
     
+    print(f"✅ Database query complete for user: {username}")
     return user
