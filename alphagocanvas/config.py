@@ -11,3 +11,6 @@ ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
 # Database URL
 URL_DATABASE = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/gocanvas")
+
+# Google OAuth
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")

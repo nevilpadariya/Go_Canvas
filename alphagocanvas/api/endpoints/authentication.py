@@ -2,12 +2,18 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from jose import jwt
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
 
 from alphagocanvas.api.models.token import TokenData, Token
 from alphagocanvas.api.models.signup import SignupRequest, SignupResponse
-from alphagocanvas.api.services.authentication_service import get_user, create_user
+from alphagocanvas.api.models.google_auth import GoogleAuthRequest
+from alphagocanvas.api.services.authentication_service import get_user, create_user, generate_id
 from alphagocanvas.api.utils import create_token
 from alphagocanvas.database import database_dependency
+from alphagocanvas.database.models import UserTable, StudentTable, FacultyTable
+from alphagocanvas.config import GOOGLE_CLIENT_ID
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
@@ -66,7 +72,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: 
         print(f"User found: {user.Userrole}, {user.Userid}, {user.Useremail}")
     # user = db.query(UserTable).filter(UserTable.Useremail == email).first()
     # user does not exists:
-    #    """ return -> Invalid Credentials -> User does not exist or false username or password"""
+    #    "" return -> Invalid Credentials -> User does not exist or false username or password"""
     # return Error -> Invalid credentials -> User does not exist
 
     if not user:
@@ -107,3 +113,93 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: 
         token_encoded = Token(access_token=encoded_token, token_type="Bearer")
 
         return token_encoded
+
+
+@router.post("/auth/google", response_model=Token)
+async def google_auth(auth_data: GoogleAuthRequest, db: database_dependency):
+    """
+    Authenticate user with Google OAuth token
+    
+    :param auth_data: Google authentication request containing the credential token
+    :param db: database_dependency object
+    :return: encoded JWT token for the user
+    """
+    try:
+        # Verify the Google ID token
+        idinfo = id_token.verify_oauth2_token(
+            auth_data.credential,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID
+        )
+        
+        # Extract user information from Google token
+        email = idinfo.get("email")
+        first_name = idinfo.get("given_name", "")
+        last_name = idinfo.get("family_name", "")
+        
+        if not email:
+            raise HTTPException(status_code=400, detail="Email not provided by Google")
+        
+        # Check if user already exists
+        user = db.query(UserTable).filter(UserTable.Useremail == email).first()
+        
+        if user:
+            # User exists, create token
+            token = TokenData(
+                useremail=user.Useremail,
+                userpassword=user.Userpassword,
+                userrole=user.Userrole,
+                userid=user.Userid
+            )
+            encoded_token = create_token(token)
+            return Token(access_token=encoded_token, token_type="Bearer")
+        
+        # User doesn't exist - create new user (default to Student role)
+        # This is a simplified approach - you might want to ask user to choose their role
+        assigned_id = generate_id(db, "Student")
+        
+        # Generate a random password for Google users (they'll use Google to login)
+        import secrets
+        random_password = secrets.token_urlsafe(32)
+        
+        # Create user in UserTable
+        new_user = UserTable(
+            Userid=assigned_id,
+            Useremail=email,
+            Userpassword=random_password,
+            Userrole="Student"
+        )
+        db.add(new_user)
+        
+        # Create student record
+        new_student = StudentTable(
+            Studentid=assigned_id,
+            Studentfirstname=first_name,
+            Studentlastname=last_name,
+            Studentcontactnumber="",
+            Studentnotification=True
+        )
+        db.add(new_student)
+        
+        # Commit the transaction
+        db.commit()
+        db.refresh(new_user)
+        
+        # Create token for new user
+        token = TokenData(
+            useremail=new_user.Useremail,
+            userpassword=new_user.Userpassword,
+            userrole=new_user.Userrole,
+            userid=new_user.Userid
+        )
+        encoded_token = create_token(token)
+        return Token(access_token=encoded_token, token_type="Bearer")
+        
+    except ValueError as e:
+        # Invalid token
+        raise HTTPException(status_code=401, detail=f"Invalid Google token: {str(e)}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Google authentication failed: {str(e)}")
