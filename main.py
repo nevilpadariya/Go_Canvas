@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
+import logging
 from dotenv import load_dotenv
 
 from alphagocanvas.api.endpoints.admin import router as admin_router
@@ -17,6 +18,8 @@ from alphagocanvas.api.endpoints.speedgrader import router as speedgrader_router
 from alphagocanvas.api.endpoints.quiz import router as quiz_router
 from alphagocanvas.api.endpoints.gradebook import router as gradebook_router
 from alphagocanvas.api.endpoints.pages import router as pages_router
+from alphagocanvas.database.connection import ENGINE
+from alphagocanvas.database.models import Base
 
 # Load environment variables
 load_dotenv()
@@ -26,6 +29,8 @@ app = FastAPI(
     description="Learning Management System API",
     version="1.0.0"
 )
+
+logger = logging.getLogger("gocanvas")
 
 # Include all routers
 app.include_router(auth_router)
@@ -69,6 +74,17 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+AUTO_INIT_DB = os.getenv("AUTO_INIT_DB", "false").lower() in {"1", "true", "yes", "y"}
+
+if AUTO_INIT_DB:
+    @app.on_event("startup")
+    def _auto_init_db() -> None:
+        try:
+            Base.metadata.create_all(bind=ENGINE)
+            logger.info("AUTO_INIT_DB enabled: database tables ensured.")
+        except Exception:
+            logger.exception("AUTO_INIT_DB failed: could not create tables.")
+
 
 @app.get("/")
 async def root():
@@ -79,4 +95,3 @@ if __name__ == '__main__':
     import uvicorn
     port = int(os.getenv("PORT", "8000"))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
-
