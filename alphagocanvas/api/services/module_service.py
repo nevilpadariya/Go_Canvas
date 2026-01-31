@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from typing import List, Optional
 
@@ -186,16 +187,18 @@ def reorder_modules(db: Session, course_id: int, module_ids: List[int]) -> List[
 # ============== MODULE ITEM OPERATIONS ==============
 
 def get_module_items(db: Session, module_id: int) -> List[ModuleItemResponse]:
-    """Get all items for a module"""
+    """Get all items for a module. Sets Locked=True if Unlockat is in the future."""
     items = db.query(ModuleItemTable).filter(
         ModuleItemTable.Moduleid == module_id
     ).order_by(ModuleItemTable.Itemposition).all()
     
     item_responses = []
+    now_iso = datetime.now().isoformat()
     for item in items:
-        # Get reference info if applicable
         reference_info = get_item_reference_info(db, item.Itemtype, item.Referenceid)
-        
+        unlockat = getattr(item, "Unlockat", None)
+        prereq_raw = getattr(item, "Prerequisiteitemids", None)
+        locked = bool(unlockat and now_iso < unlockat)
         item_responses.append(ModuleItemResponse(
             Itemid=item.Itemid,
             Itemname=item.Itemname,
@@ -206,6 +209,9 @@ def get_module_items(db: Session, module_id: int) -> List[ModuleItemResponse]:
             Moduleid=item.Moduleid,
             Referenceid=item.Referenceid,
             Createdat=item.Createdat,
+            Unlockat=unlockat,
+            Prerequisiteitemids=prereq_raw,
+            Locked=locked,
             Referenceinfo=reference_info
         ))
     
@@ -265,6 +271,7 @@ def create_module_item(db: Session, module_id: int, request: ModuleItemCreateReq
     result = db.execute(max_pos_query, {"moduleid": module_id}).fetchone()
     next_position = (result.maxpos if result else -1) + 1
     
+    prereq_json = json.dumps(request.Prerequisiteitemids) if getattr(request, "Prerequisiteitemids", None) else None
     item = ModuleItemTable(
         Itemname=request.Itemname,
         Itemtype=request.Itemtype,
@@ -273,6 +280,8 @@ def create_module_item(db: Session, module_id: int, request: ModuleItemCreateReq
         Itemurl=request.Itemurl,
         Moduleid=module_id,
         Referenceid=request.Referenceid,
+        Unlockat=getattr(request, "Unlockat", None),
+        Prerequisiteitemids=prereq_json,
         Createdat=datetime.now().isoformat()
     )
     
@@ -282,6 +291,10 @@ def create_module_item(db: Session, module_id: int, request: ModuleItemCreateReq
     
     reference_info = get_item_reference_info(db, item.Itemtype, item.Referenceid)
     
+    unlockat = getattr(item, "Unlockat", None)
+    prereq_raw = getattr(item, "Prerequisiteitemids", None)
+    now_iso = datetime.now().isoformat()
+    locked = bool(unlockat and now_iso < unlockat)
     return ModuleItemResponse(
         Itemid=item.Itemid,
         Itemname=item.Itemname,
@@ -292,6 +305,9 @@ def create_module_item(db: Session, module_id: int, request: ModuleItemCreateReq
         Moduleid=item.Moduleid,
         Referenceid=item.Referenceid,
         Createdat=item.Createdat,
+        Unlockat=unlockat,
+        Prerequisiteitemids=prereq_raw,
+        Locked=locked,
         Referenceinfo=reference_info
     )
 
@@ -315,12 +331,19 @@ def update_module_item(db: Session, item_id: int, request: ModuleItemUpdateReque
         item.Itemurl = request.Itemurl
     if request.Referenceid is not None:
         item.Referenceid = request.Referenceid
+    if getattr(request, "Unlockat", None) is not None:
+        item.Unlockat = request.Unlockat
+    if getattr(request, "Prerequisiteitemids", None) is not None:
+        item.Prerequisiteitemids = json.dumps(request.Prerequisiteitemids)
     
     db.commit()
     db.refresh(item)
     
     reference_info = get_item_reference_info(db, item.Itemtype, item.Referenceid)
-    
+    unlockat = getattr(item, "Unlockat", None)
+    prereq_raw = getattr(item, "Prerequisiteitemids", None)
+    now_iso = datetime.now().isoformat()
+    locked = bool(unlockat and now_iso < unlockat)
     return ModuleItemResponse(
         Itemid=item.Itemid,
         Itemname=item.Itemname,
@@ -331,6 +354,9 @@ def update_module_item(db: Session, item_id: int, request: ModuleItemUpdateReque
         Moduleid=item.Moduleid,
         Referenceid=item.Referenceid,
         Createdat=item.Createdat,
+        Unlockat=unlockat,
+        Prerequisiteitemids=prereq_raw,
+        Locked=locked,
         Referenceinfo=reference_info
     )
 

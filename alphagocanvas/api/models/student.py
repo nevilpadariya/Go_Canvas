@@ -65,6 +65,7 @@ class StudentInformationDetails(BaseModel):
     Studentid: int
     Studentname: str
     Studentcontactnumber: str
+    Studentemail: str = ""
     Coursename: str
     Coursesemester: str
     Coursegrade: str

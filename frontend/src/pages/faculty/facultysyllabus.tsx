@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useParams } from "react-router-dom";
-import FacultySidebar from "../../components/facultysidebar";
-import Header from "../../components/header";
-import { MainContentWrapper } from "@/components/MainContentWrapper";
+import { FacultyPageLayout } from "@/components/FacultyPageLayout";
+import { getApi, putApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,9 +17,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 function AddSyllabus() {
-  const { courseid } = useParams();
-  const courseId = courseid || "";
-  
+  const { courseid: courseidParam } = useParams();
+  const courseId = courseidParam || localStorage.getItem("courseid") || "";
+
   const [showForm, setShowForm] = useState(false);
   const [syllabusName, setSyllabusName] = useState("");
   const [syllabusDescription, setSyllabusDescription] = useState("");
@@ -28,63 +27,37 @@ function AddSyllabus() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!courseId || courseId === "undefined") {
+      setError("Select a course from the dashboard first.");
+      return;
+    }
     const fetchSyllabus = async () => {
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/view_content_by_courseid?courseid=${courseId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
+        const data = await getApi<{ Courseid: number; Coursesemester: string; Coursedescription: string }[]>(
+          `/faculty/view_content_by_courseid?courseid=${courseId}`
         );
-        if (response.ok) {
-          const data = await response.json();
-          setSavedSyllabus(data);
-        } else {
-          console.error("Failed to fetch syllabus");
-        }
-      } catch (error) {
-        console.error("Error fetching syllabus:", error);
+        setSavedSyllabus(data);
+        setError("");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to fetch syllabus. Check backend and login.");
       }
     };
-
     fetchSyllabus();
   }, [courseId]);
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/update-syllabus/`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            Courseid: courseId, 
-            Coursesemester: "SPRING24",
-            Coursedescription: syllabusDescription,
-          }),
-        }
+      const newSyllabus = await putApi<{ Courseid: number; Coursesemester: string; Coursedescription: string }>(
+        "/faculty/update-syllabus/",
+        { Courseid: courseId, Coursesemester: "SPRING24", Coursedescription: syllabusDescription }
       );
-      if (response.ok) {
-        const newSyllabus = await response.json();
-        setSavedSyllabus([...savedSyllabus, newSyllabus]);
-        setSyllabusName("");
-        setSyllabusDescription("");
-        setShowForm(false);
-        setError("");
-      } else {
-        const errorMessage = await response.text();
-        setError(errorMessage || "Failed to add syllabus");
-      }
-    } catch (error) {
-      console.error("Error adding syllabus:", error);
-      setError("Failed to add syllabus");
+      setSavedSyllabus((prev) => [...prev, newSyllabus]);
+      setSyllabusName("");
+      setSyllabusDescription("");
+      setShowForm(false);
+      setError("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to add syllabus");
     }
   };
 
@@ -111,18 +84,8 @@ function AddSyllabus() {
       <Helmet>
         <title>Syllabus | Go-Canvas</title>
       </Helmet>
-      
-      <div className="min-h-screen bg-background text-foreground">
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
-          onClick={() => document.body.classList.remove("sidebar-open")}
-        ></div>
-        
-        <Header />
-        <FacultySidebar />
-        
-        <MainContentWrapper className="pt-16 transition-all duration-200">
-          <div className="container mx-auto p-6 md:p-8 max-w-4xl">
+      <FacultyPageLayout>
+          <div className="w-full max-w-4xl p-6 md:p-8">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Syllabus</h1>
               <p className="text-muted-foreground mt-1">Manage Course Syllabus</p>
@@ -200,8 +163,7 @@ function AddSyllabus() {
               )}
             </Accordion>
           </div>
-        </MainContentWrapper>
-      </div>
+      </FacultyPageLayout>
     </>
   );
 }

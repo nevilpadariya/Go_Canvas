@@ -16,20 +16,6 @@ connect_args = {
 if "sslmode=require" in URL_DATABASE or "supabase.co" in URL_DATABASE or "ondigitalocean.com" in URL_DATABASE:
     connect_args["sslmode"] = "require"
 
-# Log connection attempt (safely)
-db_host = "Unknown"
-try:
-    if "@" in URL_DATABASE:
-        db_host = URL_DATABASE.split("@")[1].split("/")[0].split(":")[0]
-    elif "localhost" in URL_DATABASE:
-        db_host = "localhost"
-except:
-    pass
-
-print(f"🔄 Database connection attempt to: {db_host}")
-if db_host == "localhost" and os.getenv("DATABASE_URL") is None:
-    print("⚠️ WARNING: No DATABASE_URL found in environment, falling back to localhost")
-
 # Support both postgres:// and postgresql:// schemes
 # Some tools use postgres:// but SQLAlchemy requires postgresql://
 database_url = URL_DATABASE

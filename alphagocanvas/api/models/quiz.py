@@ -19,9 +19,10 @@ class QuizQuestionOptionResponse(QuizQuestionOption):
 
 class QuizQuestion(BaseModel):
     Questiontext: str
-    Questiontype: str  # 'multiple_choice', 'true_false', 'short_answer', 'essay'
+    Questiontype: str  # 'multiple_choice', 'true_false', 'short_answer', 'essay', 'fill_in_blank'
     Questionpoints: int = 1
     Questionorder: int = 0
+    Correctanswer: Optional[str] = None  # For short_answer, fill_in_blank
     options: Optional[List[QuizQuestionOption]] = []
 
     class Config:
@@ -48,6 +49,10 @@ class CreateQuizWithQuestions(BaseModel):
     Quizdescription: str
     Courseid: int
     questions: List[QuizQuestion]
+    Timelimitminutes: Optional[int] = None
+    Allowedattempts: Optional[int] = None
+    Opensat: Optional[str] = None  # ISO datetime
+    Closesat: Optional[str] = None  # ISO datetime
 
 
 class QuizDetailResponse(BaseModel):
@@ -56,6 +61,10 @@ class QuizDetailResponse(BaseModel):
     quizdescription: str
     Courseid: int
     questions: List[QuizQuestionResponse] = []
+    Timelimitminutes: Optional[int] = None
+    Allowedattempts: Optional[int] = None
+    Opensat: Optional[str] = None
+    Closesat: Optional[str] = None
 
     class Config:
         from_attributes = True

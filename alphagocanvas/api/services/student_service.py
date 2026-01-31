@@ -221,8 +221,6 @@ def get_published_assignments(db: database_dependency, studentid: int, current_s
         AND
             se."EnrollmentSemester" = :current_semester;
         """
-
-    print(studentid, current_semester)
     results = db.execute(text(raw_query), {"studentid": studentid, "current_semester": current_semester})
     assignments = results.fetchall()
 

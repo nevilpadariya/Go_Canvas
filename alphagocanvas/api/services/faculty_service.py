@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import HTTPException
 from sqlalchemy import text
@@ -10,18 +10,18 @@ from alphagocanvas.api.models.faculty import CoursesByFaculty, AddSyllabusReques
     AnnouncementResponse, FacultyCourseDetails
 from alphagocanvas.api.models.student import StudentInformationDetails, CourseStudentGrade
 from alphagocanvas.database import database_dependency
-from alphagocanvas.database.models import CourseFacultyTable, StudentEnrollmentTable, QuizTable, AssignmentTable, \
-    AnnouncementTable
+from alphagocanvas.database.models import (
+    CourseFacultyTable,
+    StudentEnrollmentTable,
+    QuizTable,
+    AssignmentTable,
+    AnnouncementTable,
+    SubmissionTable,
+    StudentTable,
+)
 
 
 def get_courses_by_faculty(db: database_dependency, facultyid: int) -> List[CoursesByFaculty]:
-    """
-
-    :param db: database dependency object, which will retrieve the object
-
-    :return: List[AdminCoursesByFaculty] (List of Json objects)
-    """
-
     raw_query = text(
         """
     SELECT 
@@ -38,9 +38,6 @@ def get_courses_by_faculty(db: database_dependency, facultyid: int) -> List[Cour
 
     courses = db.execute(raw_query, {"facultyid": facultyid}).fetchall()
     courses_list = []
-
-    print(courses)
-    # check if courses are not null, if yes, then raise error
     if len(courses) == 0:
         raise HTTPException(status_code=404, detail="Data not found")
     for course in courses:
@@ -59,14 +56,6 @@ def get_courses_by_faculty(db: database_dependency, facultyid: int) -> List[Cour
 
 
 def update_syllabus_description(db: database_dependency, facultyid: int, params: AddSyllabusRequest):
-    """
-    Update syllabus description for a specific course.
-
-    :param db: database connection
-    :param facultyid: faculty id for course identification
-    :param params: AddSyllabusRequest object containing course information and new syllabus description
-    :return: response message
-    """
     existing_record = db.query(CourseFacultyTable).filter(
         CourseFacultyTable.Coursefacultyid == facultyid,
         CourseFacultyTable.Coursecourseid == params.Courseid,
@@ -82,19 +71,19 @@ def update_syllabus_description(db: database_dependency, facultyid: int, params:
     return AddSyllabusResponse(Success="Syllabus description for the given course has been updated successfully")
 
 
-def view_students_for_each_course(db: database_dependency, courseid: int) -> List[StudentInformationDetails]:
-    """
-
-    :param db: database connection for retrieving objects from database
-    :param courseid: courseid of the course
-    :return: List[StudentInformationCourses]
-    """
+def view_students_for_each_course(db: database_dependency, courseid: int, facultyid: int | None = None) -> List[StudentInformationDetails]:
+    where_clause = 'se."Courseid" = :courseid'
+    params: dict = {"courseid": courseid}
+    if facultyid is not None:
+        where_clause += ' AND se."Facultyid" = :facultyid'
+        params["facultyid"] = facultyid
     raw_query = text(
-        """
+        f"""
         SELECT 
             se."Studentid",
             CONCAT(s."Studentfirstname", ' ', s."Studentlastname") AS "Studentname",
             s."Studentcontactnumber",
+            COALESCE(u."Useremail", '') AS "Studentemail",
             c."Coursename",
             se."EnrollmentSemester",
             se."EnrollmentGrades"
@@ -102,14 +91,16 @@ def view_students_for_each_course(db: database_dependency, courseid: int) -> Lis
             studentenrollment se
         JOIN 
             student s ON se."Studentid" = s."Studentid"
+        LEFT JOIN 
+            usertable u ON u."Userid" = s."Studentid"
         JOIN 
             courses c ON se."Courseid" = c."Courseid"
         WHERE 
-            se."Courseid" = :courseid;
+            {where_clause};
         """
     )
 
-    students = db.execute(raw_query, {"courseid": courseid}).fetchall()
+    students = db.execute(raw_query, params).fetchall()
 
     if not students:
         raise HTTPException(status_code=404, detail="No students are enrolled in that course")
@@ -118,21 +109,16 @@ def view_students_for_each_course(db: database_dependency, courseid: int) -> Lis
     for student in students:
         students_list.append(StudentInformationDetails(Studentid=student.Studentid,
                                                        Studentname=student.Studentname,
-                                                       Studentcontactnumber=student.Studentcontactnumber,
+                                                       Studentcontactnumber=student.Studentcontactnumber or "",
+                                                       Studentemail=getattr(student, "Studentemail", "") or "",
                                                        Coursename=student.Coursename,
                                                        Coursesemester=student.EnrollmentSemester,
-                                                       Coursegrade=student.EnrollmentGrades))
+                                                       Coursegrade=student.EnrollmentGrades or ""))
 
     return students_list
 
 
 def view_students_for_each_course_service(db: database_dependency, courseid: int) -> List[CourseStudentGrade]:
-    """
-
-    :param db: database connection for retrieving students
-    :param courseid: courseid for filtering all students for grade
-    :return:
-    """
     raw_query = text(
         """
         SELECT
@@ -158,12 +144,6 @@ def view_students_for_each_course_service(db: database_dependency, courseid: int
         raise HTTPException(status_code=404, detail="No grades found for that courses")
 
     students_grade_list = []
-    """
-    Studentid: int
-    EnrollmentGrades: str
-
-    EnrollmentSemester: str
-    Coursename: str"""
     for student in students:
         students_grade_list.append(CourseStudentGrade(Studentid=student.Studentid,
                                                       EnrollmentGrades=student.EnrollmentGrades,
@@ -176,14 +156,6 @@ def view_students_for_each_course_service(db: database_dependency, courseid: int
 
 def update_grade_students(facultyid: int, params: StudentGradeFaculty, db: database_dependency) \
         -> StudentGradeFacultyResponse:
-    """
-
-    :param facultyid: faculty id of the faculty for which courses they are teaching
-    :param params: StudentGradeFaculty
-    :param db: database dependency objects
-    :return:
-    """
-
     existing_record = db.query(StudentEnrollmentTable).filter(
         StudentEnrollmentTable.Studentid == params.Studentid,
         StudentEnrollmentTable.Courseid == params.Courseid,
@@ -194,8 +166,8 @@ def update_grade_students(facultyid: int, params: StudentGradeFaculty, db: datab
         raise HTTPException(status_code=404, detail="Student is not founded with that course in given semester")
 
     if existing_record.Facultyid != facultyid:
-        raise HTTPException(status_code=401,
-                            detail="This student can not be graded by you, since it is not enrolled in your course")
+        raise HTTPException(status_code=403,
+                            detail="This student cannot be graded by you; they are not enrolled in your course.")
 
     if existing_record and existing_record.Facultyid == facultyid:
         existing_record.EnrollmentGrades = params.Grade
@@ -206,13 +178,6 @@ def update_grade_students(facultyid: int, params: StudentGradeFaculty, db: datab
 
 def add_quiz_to_course(params: QuizRequestFacultyRequest, facultyid: int,
                        db: database_dependency) -> QuizRequestFacultyResponse:
-    """
-
-    :param params: QuizRequestFaculty object
-    :param facultyid: facultyid for filtering courses based on facultyid
-    :param db: database dependency objects
-    :return:
-    """
     existing_record = db.query(CourseFacultyTable).filter(
         CourseFacultyTable.Coursefacultyid == facultyid,
         CourseFacultyTable.Coursecourseid == params.Courseid,
@@ -222,12 +187,6 @@ def add_quiz_to_course(params: QuizRequestFacultyRequest, facultyid: int,
     if not existing_record:
         raise HTTPException(status_code=404,
                             detail="Quiz can not be added to this course by you, check Semester, Course")
-
-    """
-    quizname = Column(String)
-    quizdescription = Column(Text)
-    Courseid = Column(Integer, ForeignKey('courses.Courseid'))"""
-
     if existing_record:
         new_record = QuizTable(
             quizname=params.Quizname,
@@ -244,13 +203,6 @@ def add_quiz_to_course(params: QuizRequestFacultyRequest, facultyid: int,
 def add_assignment_to_course(params: AssignmentRequestFacultyRequest,
                              facultyid: int,
                              db: database_dependency) -> AssignmentRequestFacultyResponse:
-    """
-
-    :param params: AssignmentRequestFaculty object
-    :param facultyid: facultyid for filtering courses based on facultyid
-    :param db: database dependency objects
-    :return:
-    """
     existing_record = db.query(CourseFacultyTable).filter(
         CourseFacultyTable.Coursefacultyid == facultyid,
         CourseFacultyTable.Coursecourseid == params.Courseid,
@@ -265,7 +217,12 @@ def add_assignment_to_course(params: AssignmentRequestFacultyRequest,
         new_record = AssignmentTable(
             Assignmentname=params.Assignmentname,
             Assignmentdescription=params.Assignmentdescription,
-            Courseid=params.Courseid
+            Courseid=params.Courseid,
+            Duedate=getattr(params, "Duedate", None),
+            Points=params.Points if getattr(params, "Points", None) is not None else 100,
+            Submissiontype=getattr(params, "Submissiontype", None) or "text_and_file",
+            Latepolicy_percent_per_day=getattr(params, "Latepolicy_percent_per_day", None),
+            Latepolicy_grace_minutes=getattr(params, "Latepolicy_grace_minutes", None),
         )
         db.add(new_record)
         db.commit()
@@ -277,13 +234,6 @@ def add_assignment_to_course(params: AssignmentRequestFacultyRequest,
 def add_announcement_to_course(params: AnnouncementRequestFacultyRequest,
                                facultyid: int,
                                db: database_dependency) -> AnnouncementRequestFacultyResponse:
-    """
-
-    :param params: AssignmentRequestFaculty object
-    :param facultyid: facultyid for filtering courses based on facultyid
-    :param db: database dependency objects
-    :return:
-    """
     existing_record = db.query(CourseFacultyTable).filter(
         CourseFacultyTable.Coursefacultyid == facultyid,
         CourseFacultyTable.Coursecourseid == params.Courseid,
@@ -294,15 +244,6 @@ def add_announcement_to_course(params: AnnouncementRequestFacultyRequest,
         raise HTTPException(status_code=404,
                             detail="Assignment can not be added to this course by you, check Semester, Course")
 
-    """
-    AnnouncementTable
-
-    Announcementid = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    Announcementname = Column(String)
-    Announcementdescription = Column(String)
-    Courseid = Column(String)
-
-    """
     if existing_record:
         new_record = AnnouncementTable(
             Announcementname=params.Announcementname,
@@ -318,29 +259,46 @@ def add_announcement_to_course(params: AnnouncementRequestFacultyRequest,
 
 
 def get_assignments_by_courseid(db: database_dependency, courseid: int) -> List[AssignmentResponse]:
-    """
-    Fetch assignments for a specific course based on courseid.
-
-    :param db: SQLAlchemy Session object
-    :param courseid: Course ID
-    :return: List of assignments
-    """
     raw_query = """
-        SELECT a."Assignmentid", a."Assignmentname", a."Assignmentdescription", a."Courseid"
+        SELECT a."Assignmentid", a."Assignmentname", a."Assignmentdescription", a."Courseid",
+               a."Duedate", a."Points", a."Submissiontype", a."Latepolicy_percent_per_day", a."Latepolicy_grace_minutes"
         FROM assignments a
         WHERE a."Courseid" = :courseid;
     """
+    try:
+        results = db.execute(text(raw_query), {"courseid": courseid})
+    except Exception:
+        raw_query = """
+            SELECT a."Assignmentid", a."Assignmentname", a."Assignmentdescription", a."Courseid"
+            FROM assignments a
+            WHERE a."Courseid" = :courseid;
+        """
+        results = db.execute(text(raw_query), {"courseid": courseid})
+        assignments = results.fetchall()
+        assignments_list = [
+            AssignmentResponse(
+                Assignmentid=a.Assignmentid,
+                Assignmentname=a.Assignmentname,
+                Assignmentdescription=a.Assignmentdescription or "",
+                Courseid=a.Courseid,
+            )
+            for a in assignments
+        ]
+        return assignments_list
 
-    results = db.execute(text(raw_query), {"courseid": courseid})
     assignments = results.fetchall()
-
     assignments_list = []
     for assignment in assignments:
         assignment_response = AssignmentResponse(
             Assignmentid=assignment.Assignmentid,
             Assignmentname=assignment.Assignmentname,
-            Assignmentdescription=assignment.AssignmentDescription,
-            Courseid=assignment.Courseid
+            Assignmentdescription=assignment.Assignmentdescription or "",
+            Courseid=assignment.Courseid,
+            Duedate=getattr(assignment, "Duedate", None),
+            Points=getattr(assignment, "Points", 100),
+            Submissiontype=getattr(assignment, "Submissiontype", "text_and_file"),
+            Latepolicy_percent_per_day=getattr(assignment, "Latepolicy_percent_per_day", None),
+            Latepolicy_grace_minutes=getattr(assignment, "Latepolicy_grace_minutes", None),
         )
         assignments_list.append(assignment_response)
 
@@ -356,7 +314,7 @@ def get_quizzes_by_courseid(db: database_dependency, courseid: int) -> List[Quiz
     :return: List of quizzes
     """
     raw_query = """
-        SELECT q."Quizid", q."Quizname", q."Quizdescription", q."Courseid"
+        SELECT q.quizid, q.quizname, q.quizdescription, q."Courseid"
         FROM quizzes q
         WHERE q."Courseid" = :courseid;
     """
@@ -367,9 +325,9 @@ def get_quizzes_by_courseid(db: database_dependency, courseid: int) -> List[Quiz
     quizzes_list = []
     for quiz in quizzes:
         quiz_response = QuizResponse(
-            Quizid=quiz.Quizid,
-            Quizname=quiz.Quizname,
-            Quizdescription=quiz.QuizDescription,
+            Quizid=quiz.quizid,
+            Quizname=quiz.quizname,
+            Quizdescription=quiz.quizdescription,
             Courseid=quiz.Courseid
         )
         quizzes_list.append(quiz_response)
@@ -434,3 +392,35 @@ def get_course_faculty_details(db: database_dependency, courseid: int) -> List[F
         ))
 
     return published_courses_list
+
+
+def get_messageable_students(
+    db: database_dependency,
+    courseid: int,
+    criteria: str,
+    assignment_id: Optional[int] = None,
+) -> List[dict]:
+    """
+    Return students in course filtered by criteria for "Message Students Who".
+    criteria: 'not_submitted' (requires assignment_id), 'all'
+    Returns list of {Studentid, Studentname}.
+    """
+    students_in_course = view_students_for_each_course(db, courseid)
+    if criteria == "all":
+        return [
+            {"Studentid": s.Studentid, "Studentname": s.Studentname}
+            for s in students_in_course
+        ]
+    if criteria == "not_submitted" and assignment_id is not None:
+        submitted_ids = {
+            (row.Studentid if hasattr(row, "Studentid") else row[0])
+            for row in db.query(SubmissionTable.Studentid).filter(
+                SubmissionTable.Assignmentid == assignment_id
+            ).distinct().all()
+        }
+        return [
+            {"Studentid": s.Studentid, "Studentname": s.Studentname}
+            for s in students_in_course
+            if s.Studentid not in submitted_ids
+        ]
+    return []

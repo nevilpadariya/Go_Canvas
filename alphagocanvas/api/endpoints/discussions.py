@@ -15,11 +15,12 @@ from fastapi.security import OAuth2PasswordBearer
 from alphagocanvas.api.models.discussion import (
     DiscussionCreateRequest, DiscussionUpdateRequest, DiscussionResponse,
     DiscussionDetailResponse, DiscussionReplyCreateRequest, DiscussionReplyUpdateRequest,
-    DiscussionReplyResponse, DiscussionListResponse, DiscussionDeleteResponse, ReplyDeleteResponse
+    DiscussionReplyResponse, DiscussionListResponse, DiscussionDeleteResponse, ReplyDeleteResponse,
+    DiscussionGradeRequest, DiscussionGradeResponse,
 )
 from alphagocanvas.api.services.discussion_service import (
     create_discussion, get_discussion, get_discussions_by_course, update_discussion,
-    delete_discussion, create_reply, update_reply, delete_reply
+    delete_discussion, set_discussion_grade, create_reply, update_reply, delete_reply
 )
 from alphagocanvas.api.utils.auth import decode_token, get_user_name
 from alphagocanvas.database import database_dependency
@@ -86,6 +87,20 @@ async def update_discussion_endpoint(
     user_role = decoded_token.get("userrole")
     
     return update_discussion(db, discussionid, request, user_id, user_role)
+
+
+@router.put("/{discussionid}/grade", response_model=DiscussionGradeResponse)
+async def grade_discussion_endpoint(
+    discussionid: int,
+    request: DiscussionGradeRequest,
+    db: database_dependency,
+    token: str = Depends(oauth2_scheme)
+):
+    """Set grade for a student on a graded discussion (faculty only)"""
+    decoded_token = decode_token(token=token)
+    if decoded_token.get("userrole") != "Faculty":
+        raise HTTPException(status_code=403, detail="Only faculty can grade discussions")
+    return set_discussion_grade(db, discussionid, request, decoded_token["userrole"])
 
 
 @router.delete("/{discussionid}", response_model=DiscussionDeleteResponse)

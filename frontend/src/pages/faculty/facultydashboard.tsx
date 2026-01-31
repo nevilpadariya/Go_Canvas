@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
-import axios from "axios";
-import { useParams } from "react-router-dom";
-
-import Header from "../../components/header";
-import Sidebar from "../../components/sidebar";
+import { FacultyPageLayout } from "@/components/FacultyPageLayout";
+import { getApi } from "@/lib/api";
 import DashboardCardFaculty from "../../components/facultydashboardcard";
 import {
   Accordion,
@@ -12,7 +9,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { MainContentWrapper } from "@/components/MainContentWrapper";
 
 interface Course {
   Courseid: string;
@@ -35,40 +31,21 @@ const getCurrentSemester = () => {
 function FacultyDashboard() {
   const [previousSemesterData, setPreviousSemesterData] = useState<Course[]>([]);
   const [currentSemesterData, setCurrentSemesterData] = useState<Course[]>([]);
-  const { courseid } = useParams();
-
   const fetchCourses = async () => {
     try {
-      const token = localStorage.getItem("token");
       const currentSemester = getCurrentSemester();
-      
-      const response = await axios.get<Course[]>(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/courses_taught`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const data = await getApi<Course[]>("/faculty/courses_taught");
+      const currentSemNormalized = currentSemester.toUpperCase();
+      const currentSemesterCourses = data.filter(
+        (course) => (course.Coursesemester || "").toUpperCase() === currentSemNormalized
       );
-
-      if (response.status === 200) {
-
-        const currentSemNormalized = currentSemester.toUpperCase();
-        
-        const currentSemesterCourses = response.data.filter(
-          (course) => (course.Coursesemester || "").toUpperCase() === currentSemNormalized
-        );
-        const previousSemesterCourses = response.data.filter(
-          (course) => (course.Coursesemester || "").toUpperCase() !== currentSemNormalized
-        );
-
-        setCurrentSemesterData(currentSemesterCourses);
-        setPreviousSemesterData(previousSemesterCourses);
-      } else {
-        throw new Error("Failed to fetch courses");
-      }
-    } catch (error) {
-      console.error("Error fetching courses:", error);
+      const previousSemesterCourses = data.filter(
+        (course) => (course.Coursesemester || "").toUpperCase() !== currentSemNormalized
+      );
+      setCurrentSemesterData(currentSemesterCourses);
+      setPreviousSemesterData(previousSemesterCourses);
+    } catch {
+      // leave state as-is on error
     }
   };
 
@@ -81,18 +58,8 @@ function FacultyDashboard() {
       <Helmet>
         <title>Dashboard | Go-Canvas</title>
       </Helmet>
-      
-      <div className="min-h-screen bg-background text-foreground">
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
-          onClick={() => document.body.classList.remove("sidebar-open")}
-        ></div>
-        
-        <Header />
-        <Sidebar />
-        
-        <MainContentWrapper className="pt-16 transition-all duration-200">
-          <div className="container mx-auto p-6 md:p-8 max-w-7xl">
+      <FacultyPageLayout>
+          <div className="w-full max-w-7xl p-6 md:p-8">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
               <p className="text-muted-foreground mt-1">Faculty Portal</p>
@@ -107,7 +74,7 @@ function FacultyDashboard() {
                     coursename={course.Coursename}
                     coursedescription={course.Coursedescription}
                     coursesemester={course.Coursesemester}
-                    buttondisabled={!course.Coursepublished}
+                    buttondisabled={false}
                   />
                 </div>
               ))}
@@ -137,8 +104,7 @@ function FacultyDashboard() {
               </Accordion>
             </div>
           </div>
-        </MainContentWrapper>
-      </div>
+      </FacultyPageLayout>
     </>
   );
 }

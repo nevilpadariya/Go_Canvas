@@ -11,6 +11,7 @@ class DiscussionCreateRequest(BaseModel):
     Courseid: int
     Discussionpinned: Optional[bool] = False
     Discussionpublished: Optional[bool] = True
+    Points: Optional[int] = None  # If set, discussion is graded
 
 
 class DiscussionUpdateRequest(BaseModel):
@@ -20,6 +21,7 @@ class DiscussionUpdateRequest(BaseModel):
     Discussionpinned: Optional[bool] = None
     Discussionlocked: Optional[bool] = None
     Discussionpublished: Optional[bool] = None
+    Points: Optional[int] = None
 
 
 class DiscussionReplyCreateRequest(BaseModel):
@@ -60,8 +62,23 @@ class DiscussionResponse(BaseModel):
     Authorrole: str
     Authorname: Optional[str]
     Replycount: int
+    Points: Optional[int] = None
     Createdat: Optional[str]
     Updatedat: Optional[str]
+
+
+class DiscussionGradeRequest(BaseModel):
+    """Set grade for a student on a graded discussion"""
+    Studentid: int
+    Score: str  # Points or letter
+
+
+class DiscussionGradeResponse(BaseModel):
+    """Response after setting discussion grade"""
+    Success: str
+    Discussionid: int
+    Studentid: int
+    Score: str
 
 
 class DiscussionDetailResponse(DiscussionResponse):

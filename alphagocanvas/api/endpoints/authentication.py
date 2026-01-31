@@ -62,29 +62,14 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: 
     username = form_data.username  # Can be email or Student_id/Faculty_id
     password = form_data.password
 
-    print(f"Login attempt with username: {username}")
-
     role = None
     authenticated = False
 
-    user = get_user(username, db)  # Updated to accept email or ID
-    if user:
-        print(f"User found: {user.Userrole}, {user.Userid}, {user.Useremail}")
-    # user = db.query(UserTable).filter(UserTable.Useremail == email).first()
-    # user does not exists:
-    #    "" return -> Invalid Credentials -> User does not exist or false username or password"""
-    # return Error -> Invalid credentials -> User does not exist
-
+    user = get_user(username, db)
     if not user:
         raise HTTPException(status_code=401, detail="User not found, or Invalid Credentials")
-
-    # check the authenticity (accept email or ID for login)
     if password == user.Userpassword:
-        print(authenticated)
         authenticated = True
-
-    # REPLACE THE CODE HERE ONCE USER DATA IS GENERATED
-
     if not authenticated:
         raise HTTPException(status_code=401, detail="Incorrect useremail or password")
     # check user role if it is admin:

@@ -15,6 +15,8 @@ from alphagocanvas.api.endpoints.calendar import router as calendar_router
 from alphagocanvas.api.endpoints.messages import router as messages_router
 from alphagocanvas.api.endpoints.speedgrader import router as speedgrader_router
 from alphagocanvas.api.endpoints.quiz import router as quiz_router
+from alphagocanvas.api.endpoints.gradebook import router as gradebook_router
+from alphagocanvas.api.endpoints.pages import router as pages_router
 
 # Load environment variables
 load_dotenv()
@@ -39,6 +41,8 @@ app.include_router(calendar_router)
 app.include_router(messages_router)
 app.include_router(speedgrader_router)
 app.include_router(quiz_router)
+app.include_router(gradebook_router)
+app.include_router(pages_router)
 
 
 # Create uploads directory if it doesn't exist

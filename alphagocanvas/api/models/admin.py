@@ -69,10 +69,15 @@ class UpdateRoleRequest(BaseModel):
     role: str
 
 
+class CreateCourseRequest(BaseModel):
+    Coursename: str
+
+
 class AssignCourseRequest(BaseModel):
     student_id: int
     course_id: int
     semester: str
+    faculty_id: int | None = None
 
 
 class StudentCourseDetail(BaseModel):

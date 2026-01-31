@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -9,10 +9,21 @@ from alphagocanvas.api.models.faculty import CoursesByFaculty, AddSyllabusReques
     AnnouncementRequestFacultyRequest, AssignmentResponse, QuizResponse, AnnouncementResponse, AddSyllabusResponse, \
     FacultyCourseDetails
 from alphagocanvas.api.models.student import StudentInformationDetails, CourseStudentGrade
-from alphagocanvas.api.services.faculty_service import get_courses_by_faculty, \
-    view_students_for_each_course, view_students_for_each_course_service, update_grade_students, add_quiz_to_course, \
-    add_assignment_to_course, add_announcement_to_course, get_assignments_by_courseid, get_quizzes_by_courseid, \
-    get_announcements_by_courseid, update_syllabus_description, get_course_faculty_details
+from alphagocanvas.api.services.faculty_service import (
+    get_courses_by_faculty,
+    view_students_for_each_course,
+    view_students_for_each_course_service,
+    update_grade_students,
+    add_quiz_to_course,
+    add_assignment_to_course,
+    add_announcement_to_course,
+    get_assignments_by_courseid,
+    get_quizzes_by_courseid,
+    get_announcements_by_courseid,
+    update_syllabus_description,
+    get_course_faculty_details,
+    get_messageable_students,
+)
 from alphagocanvas.api.utils.auth import decode_token, is_current_user_faculty
 from alphagocanvas.database import database_dependency
 
@@ -58,8 +69,8 @@ async def view_students(courseid: int,
     if decoded_token["userrole"] != "Faculty":
         raise HTTPException(status_code=401, detail="Unauthorized method")
 
-    # Function responsible for retrieving the data
-    students = view_students_for_each_course(db, courseid)
+    facultyid = decoded_token.get("userid")
+    students = view_students_for_each_course(db, courseid, facultyid=facultyid)
 
     return students
 
@@ -196,3 +207,22 @@ async def view_content_by_courseid(courseid: int, db: database_dependency, token
     data = get_course_faculty_details(db, courseid=courseid)
 
     return data
+
+
+@router.get("/messageable_students", dependencies=[Depends(is_current_user_faculty)])
+async def messageable_students(
+    courseid: int,
+    criteria: str = "all",
+    assignment_id: Optional[int] = None,
+    db: database_dependency = None,
+    token: str = Depends(oauth2_scheme),
+):
+    """
+    Message Students Who: get students in course filtered by criteria.
+    criteria: 'all' | 'not_submitted' (requires assignment_id).
+    Returns list of {Studentid, Studentname} for starting a conversation.
+    """
+    decoded_token = decode_token(token=token)
+    if decoded_token["userrole"] != "Faculty":
+        raise HTTPException(status_code=403, detail="Faculty only")
+    return get_messageable_students(db, courseid=courseid, criteria=criteria, assignment_id=assignment_id)

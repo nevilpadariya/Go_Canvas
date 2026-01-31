@@ -14,6 +14,7 @@ import AdminDashboardPage from "./pages/admin/admindashboard";
 import FacultyDashnboard from "./pages/faculty/facultydashboard";
 import AddAssignment from "./pages/faculty/facultyassignment";
 import AddGrades from "./pages/faculty/facultygrades";
+import FacultyGradebook from "./pages/faculty/facultygradebook";
 import AddQuiz from "./pages/faculty/facultyquiz";
 import AddAnnouncement from "./pages/faculty/faculyannouncement";
 import AssignCourse from "./pages/admin/assigncourse";
@@ -155,6 +156,14 @@ function App() {
           element={
             <ProtectedRoute role="faculty">
               <AddQuiz />
+            </ProtectedRoute>
+          }
+        ></Route>
+        <Route
+          path="faculty_gradebook/:courseid"
+          element={
+            <ProtectedRoute role="faculty">
+              <FacultyGradebook />
             </ProtectedRoute>
           }
         ></Route>

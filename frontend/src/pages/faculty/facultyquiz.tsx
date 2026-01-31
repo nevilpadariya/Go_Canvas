@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useParams } from "react-router-dom";
-
-import FacultySidebar from "../../components/facultysidebar";
-import Header from "../../components/header";
-import { MainContentWrapper } from "@/components/MainContentWrapper";
+import { FacultyPageLayout } from "@/components/FacultyPageLayout";
+import { getApi, postApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,8 +23,8 @@ interface QuizData {
 }
 
 function AddQuiz() {
-  const { courseid } = useParams();
-  const courseId = courseid || ""; 
+  const { courseid: courseidParam } = useParams();
+  const courseId = courseidParam || localStorage.getItem("courseid") || "";
   const [showForm, setShowForm] = useState(false);
   const [quizName, setQuizName] = useState("");
   const [quizDescription, setQuizDescription] = useState("");
@@ -34,66 +32,39 @@ function AddQuiz() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!courseId || courseId === "undefined") {
+      setError("Select a course from the dashboard first.");
+      return;
+    }
     const fetchQuizzes = async () => {
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/view_quiz_by_courseid?courseid=${courseId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setSavedQuizzes(data);
-        } else {
-          setError("Failed to fetch quizzes");
-        }
-      } catch (error) {
-        console.error("Error fetching quizzes:", error);
-        setError("Failed to fetch quizzes");
+        const data = await getApi<QuizData[]>(`/faculty/view_quiz_by_courseid?courseid=${courseId}`);
+        setSavedQuizzes(data);
+        setError("");
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Failed to fetch quizzes. Check backend and login.";
+        setError(msg);
       }
     };
-
     fetchQuizzes();
   }, [courseId]);
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/add_quiz`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            Courseid: courseId,
-            Quizname: quizName,
-            Quizdescription: quizDescription,
-            Semester: "SPRING24",
-          }),
-        }
-      );
-      if (response.ok) {
-        const newQuiz = await response.json();
-        setSavedQuizzes([...savedQuizzes, newQuiz]);
-        setQuizName("");
-        setQuizDescription("");
-        setShowForm(false);
-        setError("");
-        alert("Quiz added successfully");
-      } else {
-        const errorMessage = await response.text();
-        setError(errorMessage || "Failed to add quiz");
-      }
-    } catch (error) {
-      console.error("Error adding quiz:", error);
-      setError("Failed to add quiz");
+      const newQuiz = await postApi<QuizData>("/faculty/add_quiz", {
+        Courseid: courseId,
+        Quizname: quizName,
+        Quizdescription: quizDescription,
+        Semester: "SPRING24",
+      });
+      setSavedQuizzes((prev) => [...prev, newQuiz]);
+      setQuizName("");
+      setQuizDescription("");
+      setShowForm(false);
+      setError("");
+      alert("Quiz added successfully");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to add quiz");
     }
   };
 
@@ -111,18 +82,8 @@ function AddQuiz() {
       <Helmet>
         <title>Quizzes | Go-Canvas</title>
       </Helmet>
-      
-      <div className="min-h-screen bg-background text-foreground">
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
-          onClick={() => document.body.classList.remove("sidebar-open")}
-        ></div>
-        
-        <Header />
-        <FacultySidebar />
-        
-        <MainContentWrapper className="pt-16 transition-all duration-200">
-          <div className="container mx-auto p-6 md:p-8 max-w-4xl">
+      <FacultyPageLayout>
+          <div className="w-full max-w-4xl p-6 md:p-8">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Quizzes</h1>
               <p className="text-muted-foreground mt-1">Manage Course Quizzes</p>
@@ -200,8 +161,7 @@ function AddQuiz() {
               )}
             </Accordion>
           </div>
-        </MainContentWrapper>
-      </div>
+      </FacultyPageLayout>
     </>
   );
 }

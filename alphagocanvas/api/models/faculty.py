@@ -52,6 +52,11 @@ class AssignmentRequestFacultyRequest(BaseModel):
     Assignmentname: str
     Assignmentdescription: str
     Semester: str
+    Duedate: str | None = None  # ISO datetime
+    Points: int | None = 100
+    Submissiontype: str | None = "text_and_file"  # 'text', 'file', 'text_and_file'
+    Latepolicy_percent_per_day: int | None = None  # e.g. 5 for 5% per day
+    Latepolicy_grace_minutes: int | None = None  # grace period in minutes
 
 
 class AssignmentRequestFacultyResponse(BaseModel):
@@ -74,6 +79,11 @@ class AssignmentResponse(BaseModel):
     Assignmentname: str
     Assignmentdescription: str
     Courseid: int
+    Duedate: str | None = None
+    Points: int | None = 100
+    Submissiontype: str | None = "text_and_file"
+    Latepolicy_percent_per_day: int | None = None
+    Latepolicy_grace_minutes: int | None = None
 
 
 class QuizResponse(BaseModel):

@@ -14,6 +14,7 @@ interface Student {
   Coursename: string;
   Coursesemester: string;
   Studentcontactnumber: string;
+  Studentemail: string;
   Studentid: string;
   Studentname: string;
   Coursegrade: string;
@@ -21,16 +22,16 @@ interface Student {
 
 interface Row {
   studentfirstname: string;
-  studentcontactnumber: string;
+  studentemail: string;
   coursesemester: string;
   coursegrade: string;
 }
 
 function createRow(student: Student): Row {
-  const { Studentname, Studentcontactnumber, Coursesemester, Coursegrade } = student;
+  const { Studentname, Studentemail, Coursesemester, Coursegrade } = student;
   return {
     studentfirstname: Studentname,
-    studentcontactnumber: Studentcontactnumber,
+    studentemail: Studentemail || "",
     coursesemester: Coursesemester,
     coursegrade: Coursegrade,
   };
@@ -52,7 +53,7 @@ const FacultyStudentTable: React.FC<{ students: Student[] }> = ({ students }) =>
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead className="text-right">Contact</TableHead>
+            <TableHead className="text-right">Email</TableHead>
             <TableHead className="text-right">Semester</TableHead>
             <TableHead className="text-right">Grades</TableHead>
           </TableRow>
@@ -68,7 +69,7 @@ const FacultyStudentTable: React.FC<{ students: Student[] }> = ({ students }) =>
             rows.map((row: Row, index: number) => (
               <TableRow key={index}>
                 <TableCell className="font-medium">{row.studentfirstname}</TableCell>
-                <TableCell className="text-right">{row.studentcontactnumber}</TableCell>
+                <TableCell className="text-right">{row.studentemail || "—"}</TableCell>
                 <TableCell className="text-right">{row.coursesemester}</TableCell>
                 <TableCell className="text-right">
                   <Badge variant={row.coursegrade ? "default" : "secondary"}>

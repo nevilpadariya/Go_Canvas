@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
-import { useParams } from "react-router-dom";
-import axios from "axios";
-
-import Header from "../../components/header";
-import FacultySidebar from "../../components/facultysidebar";
-import { MainContentWrapper } from "@/components/MainContentWrapper";
+import { useParams, useNavigate } from "react-router-dom";
+import { FacultyPageLayout } from "@/components/FacultyPageLayout";
+import { getApi, postApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -18,74 +15,72 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Student {
   Studentid: number;
   Studentname: string;
+  Coursesemester: string;
 }
 
 function AssignGrades() {
+  const navigate = useNavigate();
   const [studentList, setStudentList] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>("");
   const [selectedGrade, setSelectedGrade] = useState<string>("");
-  const token = localStorage.getItem("token");
-  const { courseid } = useParams();
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const { courseid: courseidParam } = useParams();
+  const courseid = courseidParam || localStorage.getItem("courseid") || "";
+  const isSessionExpired = error?.toLowerCase().includes("session expired") ?? false;
 
   const fetchStudents = async () => {
+    if (!courseid || courseid === "undefined") {
+      setError("Select a course from the dashboard first.");
+      return;
+    }
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/view_students?courseid=${courseid}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.status === 200) {
-        setStudentList(response.data);
-      } else {
-        console.error("Failed to fetch students:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error fetching students:", error);
+      const data = await getApi<Student[]>(`/faculty/view_students?courseid=${courseid}`);
+      setStudentList(data);
+      setError("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to fetch students. Check backend and login.");
     }
   };
 
   useEffect(() => {
     fetchStudents();
-  }, [token, courseid]);
+  }, [courseid]);
 
   const handleSave = async () => {
     if (!selectedStudent || !selectedGrade) {
-      alert("Please select both a student and a grade.");
+      setError("Please select both a student and a grade.");
+      setSuccessMessage("");
       return;
     }
-
+    const student = studentList.find((s) => s.Studentid.toString() === selectedStudent);
+    const semester = student?.Coursesemester || "SPRING24";
+    const courseIdNum = courseid ? parseInt(String(courseid), 10) : 0;
+    if (!courseIdNum) {
+      setError("Invalid course. Select a course from the dashboard first.");
+      setSuccessMessage("");
+      return;
+    }
+    setError("");
+    setSuccessMessage("");
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/assign_grades`,
-        {
-          Studentid: parseInt(selectedStudent),
-          Courseid: courseid,
-          Semester: "SPRING24",
-          Grade: selectedGrade,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      if (response.status === 200) {
-
-        setSelectedStudent("");
-        setSelectedGrade("");
-        window.alert("Grade Successfully Assigned");
-      } else {
-        console.error("Error saving data:", response.data);
-      }
-    } catch (error) {
-      console.error("Error saving data:", error);
+      await postApi("/faculty/assign_grades", {
+        Studentid: parseInt(selectedStudent, 10),
+        Courseid: courseIdNum,
+        Semester: semester,
+        Grade: selectedGrade,
+      });
+      setSelectedStudent("");
+      setSelectedGrade("");
+      setSuccessMessage("Grade assigned successfully.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to assign grade.");
+      setSuccessMessage("");
     }
   };
 
@@ -94,21 +89,39 @@ function AssignGrades() {
       <Helmet>
         <title>Assignments Grades | Go-Canvas</title>
       </Helmet>
-      
-      <div className="min-h-screen bg-background text-foreground">
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
-          onClick={() => document.body.classList.remove("sidebar-open")}
-        ></div>
-        
-        <Header />
-        <FacultySidebar />
-        
-        <MainContentWrapper className="pt-16 transition-all duration-200">
-          <div className="container mx-auto p-6 md:p-8 max-w-4xl">
+      <FacultyPageLayout>
+          <div className="w-full max-w-4xl p-6 md:p-8">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Assign Grades</h1>
               <p className="text-muted-foreground mt-1">Assignments Grade Management</p>
+              {error && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>
+                    {error}
+                    {isSessionExpired && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-3 border-destructive text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          localStorage.removeItem("token");
+                          localStorage.removeItem("role");
+                          navigate("/login");
+                        }}
+                      >
+                        Log in again
+                      </Button>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
+              {successMessage && (
+                <Alert variant="success" className="mt-4">
+                  <AlertTitle>Success</AlertTitle>
+                  <AlertDescription>{successMessage}</AlertDescription>
+                </Alert>
+              )}
             </div>
             
             <Card>
@@ -165,8 +178,7 @@ function AssignGrades() {
               </CardContent>
             </Card>
           </div>
-        </MainContentWrapper>
-      </div>
+      </FacultyPageLayout>
     </>
   );
 }

@@ -29,6 +29,8 @@ class ModuleItemCreateRequest(BaseModel):
     Itemcontent: Optional[str] = None  # For 'page' type
     Itemurl: Optional[str] = None  # For 'link' type
     Referenceid: Optional[int] = None  # For assignment/quiz/file references
+    Unlockat: Optional[str] = None  # ISO datetime; null = unlocked
+    Prerequisiteitemids: Optional[List[int]] = None  # Itemids that must be completed first
 
 
 class ModuleItemUpdateRequest(BaseModel):
@@ -39,6 +41,8 @@ class ModuleItemUpdateRequest(BaseModel):
     Itemcontent: Optional[str] = None
     Itemurl: Optional[str] = None
     Referenceid: Optional[int] = None
+    Unlockat: Optional[str] = None
+    Prerequisiteitemids: Optional[List[int]] = None
 
 
 class ModuleItemResponse(BaseModel):
@@ -52,7 +56,9 @@ class ModuleItemResponse(BaseModel):
     Moduleid: int
     Referenceid: Optional[int]
     Createdat: Optional[str]
-    # Additional info for referenced items
+    Unlockat: Optional[str] = None
+    Prerequisiteitemids: Optional[str] = None  # JSON array string
+    Locked: bool = False  # True if not yet unlocked (by date or prerequisites)
     Referenceinfo: Optional[dict] = None
 
 

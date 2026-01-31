@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import List, Optional
+
+from fastapi import HTTPException
 from alphagocanvas.database.models import (
     QuizTable,
     QuizQuestionTable,
@@ -27,7 +29,11 @@ def create_quiz_with_questions(quiz_data: CreateQuizWithQuestions, db: Session):
     new_quiz = QuizTable(
         quizname=quiz_data.Quizname,
         quizdescription=quiz_data.Quizdescription,
-        Courseid=quiz_data.Courseid
+        Courseid=quiz_data.Courseid,
+        Timelimitminutes=getattr(quiz_data, "Timelimitminutes", None),
+        Allowedattempts=getattr(quiz_data, "Allowedattempts", None),
+        Opensat=getattr(quiz_data, "Opensat", None),
+        Closesat=getattr(quiz_data, "Closesat", None),
     )
     db.add(new_quiz)
     db.flush()  # Get quiz ID
@@ -40,6 +46,7 @@ def create_quiz_with_questions(quiz_data: CreateQuizWithQuestions, db: Session):
             Questiontype=question_data.Questiontype,
             Questionpoints=question_data.Questionpoints,
             Questionorder=question_data.Questionorder,
+            Correctanswer=getattr(question_data, "Correctanswer", None),
             Createdat=datetime.now().isoformat()
         )
         db.add(new_question)
@@ -107,13 +114,51 @@ def get_quiz_with_questions(quiz_id: int, db: Session, include_answers: bool = F
         "quizname": quiz.quizname,
         "quizdescription": quiz.quizdescription,
         "Courseid": quiz.Courseid,
-        "questions": quiz_questions
+        "questions": quiz_questions,
+        "Timelimitminutes": getattr(quiz, "Timelimitminutes", None),
+        "Allowedattempts": getattr(quiz, "Allowedattempts", None),
+        "Opensat": getattr(quiz, "Opensat", None),
+        "Closesat": getattr(quiz, "Closesat", None),
     }
 
 
+def _normalize_answer(s: Optional[str]) -> str:
+    if not s:
+        return ""
+    return s.strip().lower()
+
+
 def submit_quiz_attempt(student_id: int, attempt_data: QuizAttemptSubmit, db: Session):
-    """Submit a quiz attempt with answers"""
-    
+    """Submit a quiz attempt with answers. Enforces Opensat/Closesat and Allowedattempts."""
+    quiz = db.query(QuizTable).filter(QuizTable.quizid == attempt_data.Quizid).first()
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+
+    now_iso = datetime.now().isoformat()
+    opensat = getattr(quiz, "Opensat", None)
+    closesat = getattr(quiz, "Closesat", None)
+    if opensat:
+        try:
+            if now_iso < opensat:
+                raise HTTPException(status_code=400, detail="Quiz is not yet open")
+        except (TypeError, ValueError):
+            pass
+    if closesat:
+        try:
+            if now_iso > closesat:
+                raise HTTPException(status_code=400, detail="Quiz has closed")
+        except (TypeError, ValueError):
+            pass
+
+    allowed = getattr(quiz, "Allowedattempts", None)
+    if allowed is not None:
+        count = db.query(QuizAttemptTable).filter(
+            QuizAttemptTable.Quizid == attempt_data.Quizid,
+            QuizAttemptTable.Studentid == student_id,
+        ).count()
+        if count >= allowed:
+            raise HTTPException(status_code=400, detail=f"Maximum attempts ({allowed}) reached")
+
     # Create attempt
     new_attempt = QuizAttemptTable(
         Quizid=attempt_data.Quizid,
@@ -149,6 +194,16 @@ def submit_quiz_attempt(student_id: int, attempt_data: QuizAttemptSubmit, db: Se
             ).first()
             
             if selected_option and selected_option.Iscorrect:
+                is_correct = True
+                points_earned = question.Questionpoints
+                total_score += points_earned
+            else:
+                is_correct = False
+                points_earned = 0
+        elif question.Questiontype in ['short_answer', 'fill_in_blank'] and getattr(question, 'Correctanswer', None):
+            correct = _normalize_answer(question.Correctanswer)
+            given = _normalize_answer(answer_data.Answertext)
+            if correct and given and correct == given:
                 is_correct = True
                 points_earned = question.Questionpoints
                 total_score += points_earned

@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useParams } from "react-router-dom";
-
-import FacultySidebar from "../../components/facultysidebar";
-import Header from "../../components/header";
-import { MainContentWrapper } from "@/components/MainContentWrapper";
+import { FacultyPageLayout } from "@/components/FacultyPageLayout";
+import { getApi, postApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,10 +22,15 @@ interface AnnouncementData {
   Semester: string;
 }
 
+interface ApiAnnouncement {
+  Announcementid: number;
+  Announcementname: string;
+  Announcementdescription: string;
+}
+
 function AddAnnouncement() {
-  const { courseid } = useParams();
-  const courseId = courseid || ""; 
-  const token = localStorage.getItem("token");
+  const { courseid: courseidParam } = useParams();
+  const courseId = courseidParam || localStorage.getItem("courseid") || "";
 
   const [showForm, setShowForm] = useState(false);
   const [announcementName, setAnnouncementName] = useState("");
@@ -36,78 +39,47 @@ function AddAnnouncement() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!courseId || courseId === "undefined") {
+      setError("Select a course from the dashboard first.");
+      return;
+    }
     const fetchAnnouncements = async () => {
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/view_announcement_by_courseid?courseid=${courseId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (response.ok) {
-          const data = await response.json();
-          const mappedData = data.map((item: { Announcementid: any; Announcementname: any; Announcementdescription: any; }) => ({
-            id: item.Announcementid,
-            announcementName: item.Announcementname,
-            announcementDescription: item.Announcementdescription,
-            Semester: "SPRING24",
-          }));
-          setSavedAnnouncements(mappedData);
-        } else {
-          setError("Failed to fetch announcements");
-        }
-      } catch (error) {
-        console.error("Error fetching announcements:", error);
-        setError("Failed to fetch announcements");
+        const data = await getApi<ApiAnnouncement[]>(`/faculty/view_announcement_by_courseid?courseid=${courseId}`);
+        const mappedData = data.map((item) => ({
+          id: item.Announcementid,
+          announcementName: item.Announcementname,
+          announcementDescription: item.Announcementdescription,
+          Semester: "SPRING24",
+        }));
+        setSavedAnnouncements(mappedData);
+        setError("");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to fetch announcements. Check backend and login.");
       }
     };
-  
     fetchAnnouncements();
-  }, [courseId, token]);
+  }, [courseId]);
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/faculty/add_announcements`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            Courseid: courseId,
-            Announcementname: announcementName,
-            Announcementdescription: announcementDescription,
-            Semester: "SPRING24",
-          }),
-        }
-      );
-      if (response.ok) {
-        const newAnnouncement = await response.json();
-        setSavedAnnouncements(prevAnnouncements => [...prevAnnouncements, {
-            id: newAnnouncement.Announcementid,
-            announcementName: announcementName,
-            announcementDescription: announcementDescription, 
-            Semester: "SPRING24"
-        }]);
-        
-        setAnnouncementName("");
-        setAnnouncementDescription("");
-        setShowForm(false);
-        setError("");
-        alert("Your Announcement Added Successfully");
-      } else {
-        const errorMessage = await response.text();
-        setError(errorMessage || "Failed to add announcement");
-      }
-    } catch (error) {
-      console.error("Error adding announcement:", error);
-      setError("Failed to add announcement");
+      const newAnnouncement = await postApi<{ Announcementid: number }>("/faculty/add_announcements", {
+        Courseid: courseId,
+        Announcementname: announcementName,
+        Announcementdescription: announcementDescription,
+        Semester: "SPRING24",
+      });
+      setSavedAnnouncements((prev) => [
+        ...prev,
+        { id: newAnnouncement.Announcementid, announcementName, announcementDescription, Semester: "SPRING24" },
+      ]);
+      setAnnouncementName("");
+      setAnnouncementDescription("");
+      setShowForm(false);
+      setError("");
+      alert("Your Announcement Added Successfully");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to add announcement");
     }
   };
 
@@ -125,18 +97,8 @@ function AddAnnouncement() {
       <Helmet>
         <title>Announcements | Go-Canvas</title>
       </Helmet>
-      
-      <div className="min-h-screen bg-background text-foreground">
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 hidden sidebar-overlay"
-          onClick={() => document.body.classList.remove("sidebar-open")}
-        ></div>
-        
-        <Header />
-        <FacultySidebar />
-        
-        <MainContentWrapper className="pt-16 transition-all duration-200">
-          <div className="container mx-auto p-6 md:p-8 max-w-4xl">
+      <FacultyPageLayout>
+          <div className="w-full max-w-4xl p-6 md:p-8">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Announcements</h1>
               <p className="text-muted-foreground mt-1">Manage Course Announcements</p>
@@ -214,8 +176,7 @@ function AddAnnouncement() {
               )}
             </Accordion>
           </div>
-        </MainContentWrapper>
-      </div>
+      </FacultyPageLayout>
     </>
   );
 }

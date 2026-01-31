@@ -4,10 +4,22 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 
 from alphagocanvas.api.models.admin import AdminCoursesByFaculty, StudentInformationCourses, CoursesForAdmin, \
-    FacultyForAdmin, UserResponse, UpdateRoleRequest, StudentCourseDetail, AssignCourseRequest
-from alphagocanvas.api.models.course import CourseFacultySemesterRequest, CourseFacultySemesterResponse
-from alphagocanvas.api.services.admin_service import get_courses_by_faculty, assign_course_to_faculty, get_students, \
-    get_courses, get_faculties, get_all_users, update_user_role, get_students_with_details, assign_course_to_student
+    FacultyForAdmin, UserResponse, UpdateRoleRequest, StudentCourseDetail, AssignCourseRequest, CreateCourseRequest
+from alphagocanvas.api.models.course import CourseFacultySemesterRequest, CourseFacultySemesterResponse, CopyCourseRequest
+from alphagocanvas.api.services.admin_service import (
+    get_courses_by_faculty,
+    assign_course_to_faculty,
+    get_students,
+    get_courses,
+    create_course,
+    get_faculties,
+    get_all_users,
+    update_user_role,
+    get_students_with_details,
+    assign_course_to_student,
+    get_admin_analytics,
+    copy_course_structure,
+)
 from alphagocanvas.api.utils.auth import is_current_user_admin, decode_token
 from alphagocanvas.database import database_dependency
 
@@ -74,6 +86,19 @@ async def get_courses_for_admin(db: database_dependency, token: Annotated[str, D
     return courses
 
 
+@router.post("/courses", dependencies=[Depends(is_current_user_admin)])
+async def create_course_endpoint(
+    request: CreateCourseRequest,
+    db: database_dependency,
+    token: Annotated[str, Depends(oauth2_scheme)],
+):
+    """Create a new course. Returns Courseid and Coursename."""
+    decoded_token = decode_token(token=token)
+    if decoded_token["userrole"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    return create_course(db, request)
+
+
 @router.get("/view_faculties",
             dependencies=[Depends(is_current_user_admin)],
             response_model=List[FacultyForAdmin])
@@ -137,3 +162,25 @@ async def assign_course_student(request: AssignCourseRequest,
          raise HTTPException(status_code=403, detail="Unauthorised method for user")
          
     return assign_course_to_student(db, request)
+
+
+@router.get("/analytics", dependencies=[Depends(is_current_user_admin)])
+async def admin_analytics(db: database_dependency, token: Annotated[str, Depends(oauth2_scheme)]):
+    """Dashboard stats: total users, courses, submissions in last 7/30 days."""
+    decoded_token = decode_token(token=token)
+    if decoded_token["userrole"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    return get_admin_analytics(db)
+
+
+@router.post("/copy_course", dependencies=[Depends(is_current_user_admin)])
+async def copy_course(
+    request: CopyCourseRequest,
+    db: database_dependency,
+    token: Annotated[str, Depends(oauth2_scheme)],
+):
+    """Copy course structure (assignments, quizzes, modules) to another course. No submissions."""
+    decoded_token = decode_token(token=token)
+    if decoded_token["userrole"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    return copy_course_structure(db, request.source_course_id, request.target_course_id)

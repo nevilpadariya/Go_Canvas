@@ -70,6 +70,11 @@ class AssignmentTable(Base):
     Assignmentname = Column(String)
     Assignmentdescription = Column(Text)
     Courseid = Column(Integer, ForeignKey('courses.Courseid'))
+    Duedate = Column(String(50))  # ISO datetime
+    Points = Column(Integer, default=100)
+    Submissiontype = Column(String(50), default='text_and_file')  # 'text', 'file', 'text_and_file'
+    Latepolicy_percent_per_day = Column(Integer)  # e.g. 5 for 5% per day; null = no deduction
+    Latepolicy_grace_minutes = Column(Integer)  # grace period in minutes; null = 0
 
 
 class QuizTable(Base):
@@ -78,6 +83,10 @@ class QuizTable(Base):
     quizname = Column(String)
     quizdescription = Column(Text)
     Courseid = Column(Integer, ForeignKey('courses.Courseid'))
+    Timelimitminutes = Column(Integer)  # null = no time limit
+    Allowedattempts = Column(Integer)  # null = unlimited
+    Opensat = Column(String(50))  # ISO datetime; null = open
+    Closesat = Column(String(50))  # ISO datetime; null = no close
 
 
 class CourseFacultyTable(Base):
@@ -142,6 +151,38 @@ class SubmissionCommentTable(Base):
     Createdat = Column(String(50))  # ISO timestamp
 
 
+class RubricTable(Base):
+    """Table for assignment rubrics"""
+    __tablename__ = 'rubrics'
+    Rubricid = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    Assignmentid = Column(Integer, ForeignKey('assignments.Assignmentid'))
+    Rubricname = Column(String(255))
+    Courseid = Column(Integer, ForeignKey('courses.Courseid'))
+    Createdat = Column(String(50))
+
+
+class RubricCriterionTable(Base):
+    """Table for rubric criteria (rows in a rubric)"""
+    __tablename__ = 'rubric_criteria'
+    Criterionid = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    Rubricid = Column(Integer, ForeignKey('rubrics.Rubricid'), nullable=False)
+    Description = Column(Text, nullable=False)
+    Points = Column(Integer, default=0)
+    Criterionorder = Column(Integer, default=0)
+
+
+class PageTable(Base):
+    """Table for rich course pages (Canvas-style Pages)"""
+    __tablename__ = 'pages'
+    Pageid = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    Courseid = Column(Integer, ForeignKey('courses.Courseid'), nullable=False)
+    Pagetitle = Column(String(255), nullable=False)
+    Pagebody = Column(Text)  # Rich content (markdown or HTML)
+    Pageslug = Column(String(255))  # URL slug
+    Createdat = Column(String(50))
+    Updatedat = Column(String(50))
+
+
 class ModuleTable(Base):
     """Table for course modules"""
     __tablename__ = 'modules'
@@ -165,6 +206,8 @@ class ModuleItemTable(Base):
     Itemurl = Column(String(500))  # For 'link' type or external resources
     Moduleid = Column(Integer, ForeignKey('modules.Moduleid'), nullable=False)
     Referenceid = Column(Integer)  # References assignment/quiz/file ID if applicable
+    Unlockat = Column(String(50))  # ISO datetime; null = unlocked
+    Prerequisiteitemids = Column(Text)  # JSON array of Itemids; null = none
     Createdat = Column(String(50))  # ISO timestamp
 
 
@@ -182,8 +225,19 @@ class DiscussionTable(Base):
     Authorrole = Column(String(50), nullable=False)  # 'faculty', 'student'
     Authorname = Column(String(255))
     Replycount = Column(Integer, default=0)
+    Points = Column(Integer)  # Optional; if set, discussion is graded and appears in gradebook
     Createdat = Column(String(50))  # ISO timestamp
     Updatedat = Column(String(50))  # ISO timestamp
+
+
+class DiscussionGradeTable(Base):
+    """Table for grades on graded discussions (student participation/score)"""
+    __tablename__ = 'discussion_grades'
+    Gradeid = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    Discussionid = Column(Integer, ForeignKey('discussions.Discussionid'), nullable=False)
+    Studentid = Column(Integer, ForeignKey('student.Studentid'), nullable=False)
+    Score = Column(String(20))  # Points or letter
+    Gradedat = Column(String(50))  # ISO timestamp
 
 
 class DiscussionReplyTable(Base):
@@ -254,15 +308,26 @@ class MessageTable(Base):
 
 # ============== QUIZ SYSTEM MODELS ==============
 
+class QuestionBankTable(Base):
+    """Table for reusable question banks (course-scoped)"""
+    __tablename__ = 'question_banks'
+    Bankid = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    Bankname = Column(String(255), nullable=False)
+    Courseid = Column(Integer, ForeignKey('courses.Courseid'), nullable=False)
+    Createdat = Column(String(50))
+
+
 class QuizQuestionTable(Base):
     """Table for quiz questions"""
     __tablename__ = 'quiz_questions'
     Questionid = Column(Integer, primary_key=True, index=True, autoincrement=True)
     Quizid = Column(Integer, ForeignKey('quizzes.quizid'), nullable=False)
     Questiontext = Column(Text, nullable=False)
-    Questiontype = Column(String(50), nullable=False)  # 'multiple_choice', 'true_false', 'short_answer', 'essay'
+    Questiontype = Column(String(50), nullable=False)  # 'multiple_choice', 'true_false', 'short_answer', 'essay', 'fill_in_blank'
     Questionpoints = Column(Integer, default=1)
     Questionorder = Column(Integer, default=0)
+    Correctanswer = Column(Text)  # For short_answer, fill_in_blank (exact or accepted answer)
+    Questionbankid = Column(Integer, ForeignKey('question_banks.Bankid'))  # Optional link to bank
     Createdat = Column(String(50))
 
 

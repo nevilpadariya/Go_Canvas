@@ -9,3 +9,8 @@ class CourseFacultySemesterRequest(BaseModel):
 
 class CourseFacultySemesterResponse(BaseModel):
     Success: str
+
+
+class CopyCourseRequest(BaseModel):
+    source_course_id: int
+    target_course_id: int

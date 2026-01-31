@@ -8,9 +8,10 @@ from sqlalchemy.orm import Session
 from alphagocanvas.api.models.discussion import (
     DiscussionCreateRequest, DiscussionUpdateRequest, DiscussionResponse,
     DiscussionDetailResponse, DiscussionReplyCreateRequest, DiscussionReplyUpdateRequest,
-    DiscussionReplyResponse, DiscussionListResponse, DiscussionDeleteResponse, ReplyDeleteResponse
+    DiscussionReplyResponse, DiscussionListResponse, DiscussionDeleteResponse, ReplyDeleteResponse,
+    DiscussionGradeRequest, DiscussionGradeResponse,
 )
-from alphagocanvas.database.models import DiscussionTable, DiscussionReplyTable
+from alphagocanvas.database.models import DiscussionTable, DiscussionReplyTable, DiscussionGradeTable
 
 
 # ============== DISCUSSION OPERATIONS ==============
@@ -35,6 +36,7 @@ def create_discussion(
         Authorrole=author_role,
         Authorname=author_name,
         Replycount=0,
+        Points=getattr(request, "Points", None),
         Createdat=datetime.now().isoformat(),
         Updatedat=datetime.now().isoformat()
     )
@@ -55,6 +57,7 @@ def create_discussion(
         Authorrole=discussion.Authorrole,
         Authorname=discussion.Authorname,
         Replycount=discussion.Replycount or 0,
+        Points=getattr(discussion, "Points", None),
         Createdat=discussion.Createdat,
         Updatedat=discussion.Updatedat
     )
@@ -84,6 +87,7 @@ def get_discussion(db: Session, discussion_id: int) -> DiscussionDetailResponse:
         Authorrole=discussion.Authorrole,
         Authorname=discussion.Authorname,
         Replycount=discussion.Replycount or 0,
+        Points=getattr(discussion, "Points", None),
         Createdat=discussion.Createdat,
         Updatedat=discussion.Updatedat,
         Replies=replies
@@ -133,6 +137,7 @@ def get_discussions_by_course(
             Authorrole=disc.Authorrole,
             Authorname=disc.Authorname,
             Replycount=disc.Replycount or 0,
+            Points=getattr(disc, "Points", None),
             Createdat=disc.Createdat,
             Updatedat=disc.Updatedat
         ))
@@ -174,6 +179,8 @@ def update_discussion(
         discussion.Discussionlocked = request.Discussionlocked
     if request.Discussionpublished is not None:
         discussion.Discussionpublished = request.Discussionpublished
+    if getattr(request, "Points", None) is not None:
+        discussion.Points = request.Points
     
     discussion.Updatedat = datetime.now().isoformat()
     
@@ -192,8 +199,50 @@ def update_discussion(
         Authorrole=discussion.Authorrole,
         Authorname=discussion.Authorname,
         Replycount=discussion.Replycount or 0,
+        Points=getattr(discussion, "Points", None),
         Createdat=discussion.Createdat,
         Updatedat=discussion.Updatedat
+    )
+
+
+def set_discussion_grade(
+    db: Session,
+    discussion_id: int,
+    request: DiscussionGradeRequest,
+    user_role: str,
+) -> DiscussionGradeResponse:
+    """Set or update grade for a student on a graded discussion. Faculty only."""
+    if user_role != "Faculty":
+        raise HTTPException(status_code=403, detail="Only faculty can grade discussions")
+    discussion = db.query(DiscussionTable).filter(
+        DiscussionTable.Discussionid == discussion_id
+    ).first()
+    if not discussion:
+        raise HTTPException(status_code=404, detail="Discussion not found")
+    if not getattr(discussion, "Points", None):
+        raise HTTPException(status_code=400, detail="Discussion is not graded (no points)")
+    existing = db.query(DiscussionGradeTable).filter(
+        DiscussionGradeTable.Discussionid == discussion_id,
+        DiscussionGradeTable.Studentid == request.Studentid,
+    ).first()
+    if existing:
+        existing.Score = request.Score
+        existing.Gradedat = datetime.now().isoformat()
+        db.commit()
+    else:
+        grade = DiscussionGradeTable(
+            Discussionid=discussion_id,
+            Studentid=request.Studentid,
+            Score=request.Score,
+            Gradedat=datetime.now().isoformat(),
+        )
+        db.add(grade)
+        db.commit()
+    return DiscussionGradeResponse(
+        Success="Discussion grade set",
+        Discussionid=discussion_id,
+        Studentid=request.Studentid,
+        Score=request.Score,
     )
 
 
@@ -210,6 +259,10 @@ def delete_discussion(db: Session, discussion_id: int, user_id: int, user_role: 
     if discussion.Authorid != user_id and user_role != "Faculty":
         raise HTTPException(status_code=403, detail="Not authorized to delete this discussion")
     
+    # Delete discussion grades first
+    db.query(DiscussionGradeTable).filter(
+        DiscussionGradeTable.Discussionid == discussion_id
+    ).delete()
     # Delete all replies first
     db.query(DiscussionReplyTable).filter(
         DiscussionReplyTable.Discussionid == discussion_id

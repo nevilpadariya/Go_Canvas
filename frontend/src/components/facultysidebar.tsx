@@ -7,12 +7,14 @@ import {
   ClipboardList, 
   HelpCircle, 
   GraduationCap, 
+  Table2,
   Users 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function FacultySidebar() {
-  const { courseid } = useParams();
+  const { courseid: courseidParam } = useParams();
+  const courseid = courseidParam || localStorage.getItem("courseid") || "";
 
   const closeSidebar = () => {
     document.body.classList.remove("sidebar-open");
@@ -20,12 +22,13 @@ function FacultySidebar() {
 
   const navItems = [
     { path: "/faculty_dashboard/", icon: Home, label: "Home" },
-    { path: `/faculty_syllabus/${courseid}`, icon: FileText, label: "Syllabus" },
-    { path: `/faculty_announcement/${courseid}`, icon: Megaphone, label: "Announcements" },
-    { path: `/faculty_assignment/${courseid}`, icon: ClipboardList, label: "Assignments" },
-    { path: `/faculty_quiz/${courseid}`, icon: HelpCircle, label: "Quizzes" },
-    { path: `/faculty_grades/${courseid}`, icon: GraduationCap, label: "Grades" },
-    { path: `/students/${courseid}`, icon: Users, label: "Students" },
+    { path: courseid ? `/faculty_syllabus/${courseid}` : "/faculty_dashboard/", icon: FileText, label: "Syllabus" },
+    { path: courseid ? `/faculty_announcement/${courseid}` : "/faculty_dashboard/", icon: Megaphone, label: "Announcements" },
+    { path: courseid ? `/faculty_assignment/${courseid}` : "/faculty_dashboard/", icon: ClipboardList, label: "Assignments" },
+    { path: courseid ? `/faculty_quiz/${courseid}` : "/faculty_dashboard/", icon: HelpCircle, label: "Quizzes" },
+    { path: courseid ? `/faculty_gradebook/${courseid}` : "/faculty_dashboard/", icon: Table2, label: "Gradebook" },
+    { path: courseid ? `/faculty_grades/${courseid}` : "/faculty_dashboard/", icon: GraduationCap, label: "Grades" },
+    { path: courseid ? `/students/${courseid}` : "/faculty_dashboard/", icon: Users, label: "Students" },
   ];
 
   return (

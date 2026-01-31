@@ -4,10 +4,23 @@ from fastapi import HTTPException
 from sqlalchemy import text
 
 from alphagocanvas.api.models.admin import AdminCoursesByFaculty, StudentInformationCourses, CoursesForAdmin, \
-    FacultyForAdmin, UserResponse, StudentCourseDetail, AssignCourseRequest
+    FacultyForAdmin, UserResponse, StudentCourseDetail, AssignCourseRequest, CreateCourseRequest
 from alphagocanvas.api.models.course import CourseFacultySemesterRequest, CourseFacultySemesterResponse
 from alphagocanvas.database import database_dependency
-from alphagocanvas.database.models import CourseFacultyTable, CourseTable, FacultyTable, UserTable, StudentTable
+from alphagocanvas.database.models import (
+    CourseFacultyTable,
+    CourseTable,
+    FacultyTable,
+    UserTable,
+    StudentTable,
+    AssignmentTable,
+    QuizTable,
+    QuizQuestionTable,
+    QuizQuestionOptionTable,
+    ModuleTable,
+    ModuleItemTable,
+    SubmissionTable,
+)
 
 
 def get_courses_by_faculty(db: database_dependency, adminid: int) -> List[AdminCoursesByFaculty]:
@@ -160,6 +173,18 @@ def get_courses(db: database_dependency) -> List[CoursesForAdmin]:
                                            Coursename=course.Coursename))
 
     return course_list
+
+
+def create_course(db: database_dependency, params: CreateCourseRequest) -> dict:
+    """Create a new course; Courseid = MAX(Courseid)+1."""
+    from sqlalchemy import func
+    max_id = db.query(func.coalesce(func.max(CourseTable.Courseid), 0)).scalar()
+    new_id = max_id + 1
+    course = CourseTable(Courseid=new_id, Coursename=params.Coursename)
+    db.add(course)
+    db.commit()
+    db.refresh(course)
+    return {"Courseid": course.Courseid, "Coursename": course.Coursename}
 
 
 def get_faculties(db: database_dependency) -> List[FacultyForAdmin]:
@@ -334,26 +359,162 @@ def get_students_with_details(db: database_dependency) -> List[StudentCourseDeta
 
 def assign_course_to_student(db: database_dependency, params: AssignCourseRequest):
     from alphagocanvas.database.models import StudentEnrollmentTable
-    
-    # Check if already enrolled
+
     existing = db.query(StudentEnrollmentTable).filter(
         StudentEnrollmentTable.Studentid == params.student_id,
         StudentEnrollmentTable.Courseid == params.course_id
     ).first()
-    
+
     if existing:
         raise HTTPException(status_code=409, detail="Student already enrolled in this course")
-        
+
+    faculty_id = None
+    if params.faculty_id is not None:
+        cf = db.query(CourseFacultyTable).filter(
+            CourseFacultyTable.Coursecourseid == params.course_id,
+            CourseFacultyTable.Coursefacultyid == params.faculty_id,
+        ).first()
+        if not cf:
+            raise HTTPException(
+                status_code=400,
+                detail="Faculty is not assigned to this course; assign course to faculty first or omit faculty_id",
+            )
+        faculty_id = params.faculty_id
+
     new_enrollment = StudentEnrollmentTable(
         Studentid=params.student_id,
         Courseid=params.course_id,
         EnrollmentSemester=params.semester,
-        EnrollmentGrades=None, 
-        Facultyid=None # Optionally could assign faculty lookup logic here if needed, but per request just assigning course
+        EnrollmentGrades=None,
+        Facultyid=faculty_id,
     )
-    
+
     db.add(new_enrollment)
     db.commit()
-    db.refresh(new_enrollment)  # Ensure the record is properly persisted
-    
+    db.refresh(new_enrollment)
+
     return {"message": "Successfully assigned course to student", "enrollment_id": new_enrollment.Enrollmentid}
+
+
+def get_admin_analytics(db: database_dependency) -> dict:
+    """Dashboard stats: active users, courses, submissions in last 7/30 days."""
+    from datetime import datetime, timedelta
+    from sqlalchemy import func
+    now = datetime.utcnow()
+    seven_days = (now - timedelta(days=7)).isoformat()
+    thirty_days = (now - timedelta(days=30)).isoformat()
+    total_users = db.query(UserTable).count()
+    total_courses = db.query(CourseTable).count()
+    total_students = db.query(StudentTable).count()
+    total_faculty = db.query(FacultyTable).count()
+    # Submissions in last 7/30 days (Submitteddate is ISO string)
+    try:
+        subs_7 = db.query(SubmissionTable).filter(SubmissionTable.Submitteddate >= seven_days).count()
+        subs_30 = db.query(SubmissionTable).filter(SubmissionTable.Submitteddate >= thirty_days).count()
+    except Exception:
+        subs_7 = subs_30 = 0
+    return {
+        "total_users": total_users,
+        "total_courses": total_courses,
+        "total_students": total_students,
+        "total_faculty": total_faculty,
+        "submissions_last_7_days": subs_7,
+        "submissions_last_30_days": subs_30,
+    }
+
+
+def copy_course_structure(db: database_dependency, source_course_id: int, target_course_id: int) -> dict:
+    """Copy course structure: assignments, quizzes, modules, module items. No submissions or attempt data."""
+    source = db.query(CourseTable).filter(CourseTable.Courseid == source_course_id).first()
+    target = db.query(CourseTable).filter(CourseTable.Courseid == target_course_id).first()
+    if not source or not target:
+        raise HTTPException(status_code=404, detail="Course not found")
+    assignment_id_map = {}
+    for a in db.query(AssignmentTable).filter(AssignmentTable.Courseid == source_course_id).all():
+        new_a = AssignmentTable(
+            Assignmentname=a.Assignmentname,
+            Assignmentdescription=a.Assignmentdescription,
+            Courseid=target_course_id,
+            Duedate=getattr(a, "Duedate", None),
+            Points=getattr(a, "Points", 100),
+            Submissiontype=getattr(a, "Submissiontype", "text_and_file"),
+            Latepolicy_percent_per_day=getattr(a, "Latepolicy_percent_per_day", None),
+            Latepolicy_grace_minutes=getattr(a, "Latepolicy_grace_minutes", None),
+        )
+        db.add(new_a)
+        db.flush()
+        assignment_id_map[a.Assignmentid] = new_a.Assignmentid
+    quiz_id_map = {}
+    for q in db.query(QuizTable).filter(QuizTable.Courseid == source_course_id).all():
+        new_q = QuizTable(
+            quizname=q.quizname,
+            quizdescription=q.quizdescription,
+            Courseid=target_course_id,
+            Timelimitminutes=getattr(q, "Timelimitminutes", None),
+            Allowedattempts=getattr(q, "Allowedattempts", None),
+            Opensat=getattr(q, "Opensat", None),
+            Closesat=getattr(q, "Closesat", None),
+        )
+        db.add(new_q)
+        db.flush()
+        quiz_id_map[q.quizid] = new_q.quizid
+        # Copy quiz questions and options for this quiz
+        for qu in db.query(QuizQuestionTable).filter(QuizQuestionTable.Quizid == q.quizid).order_by(QuizQuestionTable.Questionorder):
+            new_qu = QuizQuestionTable(
+                Quizid=new_q.quizid,
+                Questiontext=qu.Questiontext,
+                Questiontype=qu.Questiontype,
+                Questionpoints=qu.Questionpoints or 1,
+                Questionorder=qu.Questionorder or 0,
+                Correctanswer=getattr(qu, "Correctanswer", None),
+                Questionbankid=getattr(qu, "Questionbankid", None),
+                Createdat=getattr(qu, "Createdat", None),
+            )
+            db.add(new_qu)
+            db.flush()
+            for opt in db.query(QuizQuestionOptionTable).filter(QuizQuestionOptionTable.Questionid == qu.Questionid).order_by(QuizQuestionOptionTable.Optionorder):
+                new_opt = QuizQuestionOptionTable(
+                    Questionid=new_qu.Questionid,
+                    Optiontext=opt.Optiontext,
+                    Iscorrect=opt.Iscorrect,
+                    Optionorder=opt.Optionorder or 0,
+                )
+                db.add(new_opt)
+    module_id_map = {}
+    for m in db.query(ModuleTable).filter(ModuleTable.Courseid == source_course_id).order_by(ModuleTable.Moduleposition).all():
+        new_m = ModuleTable(
+            Modulename=m.Modulename,
+            Moduledescription=m.Moduledescription,
+            Moduleposition=m.Moduleposition or 0,
+            Modulepublished=False,
+            Courseid=target_course_id,
+            Createdat=getattr(m, "Createdat", None),
+        )
+        db.add(new_m)
+        db.flush()
+        module_id_map[m.Moduleid] = new_m.Moduleid
+    source_module_ids = list(module_id_map.keys())
+    for item in db.query(ModuleItemTable).filter(ModuleItemTable.Moduleid.in_(source_module_ids)).order_by(ModuleItemTable.Itemposition):
+        old_mid = item.Moduleid
+        if old_mid not in module_id_map:
+            continue
+        new_ref = item.Referenceid
+        if item.Itemtype == "assignment" and item.Referenceid and item.Referenceid in assignment_id_map:
+            new_ref = assignment_id_map[item.Referenceid]
+        elif item.Itemtype == "quiz" and item.Referenceid and item.Referenceid in quiz_id_map:
+            new_ref = quiz_id_map[item.Referenceid]
+        new_item = ModuleItemTable(
+            Itemname=item.Itemname,
+            Itemtype=item.Itemtype,
+            Itemposition=item.Itemposition or 0,
+            Itemcontent=item.Itemcontent,
+            Itemurl=item.Itemurl,
+            Moduleid=module_id_map[old_mid],
+            Referenceid=new_ref,
+            Unlockat=getattr(item, "Unlockat", None),
+            Prerequisiteitemids=getattr(item, "Prerequisiteitemids", None),
+            Createdat=getattr(item, "Createdat", None),
+        )
+        db.add(new_item)
+    db.commit()
+    return {"message": "Course structure copied", "target_course_id": target_course_id}
