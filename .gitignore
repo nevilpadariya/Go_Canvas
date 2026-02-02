@@ -22,6 +22,7 @@ eggs/
 .eggs/
 lib/
 !frontend/src/lib/
+!apps/web/src/lib/
 lib64/
 parts/
 sdist/
