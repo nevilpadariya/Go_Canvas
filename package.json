@@ -4,5 +4,9 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.56.0",
+    "lightningcss-linux-x64-gnu": "^1.30.2"
+  }
 }

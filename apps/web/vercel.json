@@ -1,6 +1,6 @@
 {
   "framework": "vite",
-  "installCommand": "cd ../.. && npm ci",
+  "installCommand": "cd ../.. && rm -rf node_modules && npm ci",
   "buildCommand": "npm run build",
   "outputDirectory": "build",
   "rewrites": [
