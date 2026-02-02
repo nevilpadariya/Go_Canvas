@@ -8,7 +8,6 @@ from alphagocanvas.api.models.admin import AdminCoursesByFaculty, StudentInforma
 from alphagocanvas.api.models.course import CourseFacultySemesterRequest, CourseFacultySemesterResponse
 from alphagocanvas.database import database_dependency
 from alphagocanvas.database.models import (
-    CourseFacultyTable,
     CourseTable,
     FacultyTable,
     UserTable,
@@ -20,6 +19,17 @@ from alphagocanvas.database.models import (
     ModuleTable,
     ModuleItemTable,
     SubmissionTable,
+    StudentEnrollmentTable,
+    GradeTable,
+    QuizAttemptTable,
+    DiscussionGradeTable,
+    CourseFacultyTable,
+    CalendarEventTable,
+    ConversationParticipantTable,
+    MessageTable,
+    SubmissionCommentTable,
+    DiscussionReplyTable,
+    DiscussionTable,
 )
 
 
@@ -35,20 +45,20 @@ def get_courses_by_faculty(db: database_dependency, adminid: int) -> List[AdminC
     raw_query = text(
         """
         SELECT
-            cs.Coursecourseid,
-            cs.Coursefacultyid,
-            c.Coursename,
-            cs.Coursedescription,
-            f.Facultyfirstname,
-            f.Facultylastname,
-            cs.Coursesemester,
-            cs.Coursepublished
+            cs."Coursecourseid",
+            cs."Coursefacultyid",
+            c."Coursename",
+            cs."Coursedescription",
+            f."Facultyfirstname",
+            f."Facultylastname",
+            cs."Coursesemester",
+            cs."Coursepublished"
         FROM
             coursefaculty cs
         JOIN
-            faculty f ON cs.Coursefacultyid = f.Facultyid
+            faculty f ON cs."Coursefacultyid" = f."Facultyid"
         JOIN
-            courses c ON cs.Coursecourseid = c.Courseid;
+            courses c ON cs."Coursecourseid" = c."Courseid";
         """)
 
     courses = db.execute(raw_query).fetchall()
@@ -114,19 +124,19 @@ def get_students(db: database_dependency) -> List[StudentInformationCourses]:
 
     raw_query = text("""
         SELECT
-            se.Studentid,
-            s.Studentfirstname,
-            s.Studentlastname,
-            s.Studentcontactnumber,
-            c.Courseid,
-            c.Coursename,
-            se.EnrollmentSemester
+            se."Studentid",
+            s."Studentfirstname",
+            s."Studentlastname",
+            s."Studentcontactnumber",
+            c."Courseid",
+            c."Coursename",
+            se."EnrollmentSemester"
         FROM
             studentenrollment se
         JOIN
-            courses c ON c.Courseid = se.Courseid
+            courses c ON c."Courseid" = se."Courseid"
         JOIN
-            student s ON s.Studentid = se.Studentid;
+            student s ON s."Studentid" = se."Studentid";
         """)
 
     students = db.execute(raw_query).fetchall()
@@ -216,6 +226,8 @@ def get_all_users(db: database_dependency) -> List[UserResponse]:
             u."Userid", 
             u."Useremail", 
             u."Userrole",
+            u."Createdat",
+            u."Isactive",
             COALESCE(s."Studentfirstname", f."Facultyfirstname", '') as firstname,
             COALESCE(s."Studentlastname", f."Facultylastname", '') as lastname
         FROM 
@@ -236,7 +248,9 @@ def get_all_users(db: database_dependency) -> List[UserResponse]:
             Useremail=user.Useremail,
             Userrole=user.Userrole,
             Userfirstname=user.firstname,
-            Userlastname=user.lastname
+            Userlastname=user.lastname,
+            Createdat=user.Createdat,
+            Isactive=user.Isactive
         ))
         
     return user_list
@@ -267,6 +281,14 @@ def update_user_role(db: database_dependency, user_id: int, new_role: str):
             if student:
                 firstname = student.Studentfirstname
                 lastname = student.Studentlastname
+                
+                # Remove dependent student records to valid FK constraints
+                db.query(StudentEnrollmentTable).filter(StudentEnrollmentTable.Studentid == user_id).delete()
+                db.query(GradeTable).filter(GradeTable.Studentid == user_id).delete()
+                db.query(SubmissionTable).filter(SubmissionTable.Studentid == user_id).delete()
+                db.query(QuizAttemptTable).filter(QuizAttemptTable.Studentid == user_id).delete()
+                db.query(DiscussionGradeTable).filter(DiscussionGradeTable.Studentid == user_id).delete()
+
                 # Remove from student table
                 db.delete(student)
         elif old_role == "Faculty":
@@ -274,6 +296,15 @@ def update_user_role(db: database_dependency, user_id: int, new_role: str):
             if faculty:
                 firstname = faculty.Facultyfirstname
                 lastname = faculty.Facultylastname
+                
+                # Remove dependent faculty records
+                db.query(CourseFacultyTable).filter(CourseFacultyTable.Coursefacultyid == user_id).delete()
+                
+                # Nullify faculty in enrollments
+                enrollments = db.query(StudentEnrollmentTable).filter(StudentEnrollmentTable.Facultyid == user_id).all()
+                for enrollment in enrollments:
+                    enrollment.Facultyid = None
+                    
                 # Remove from faculty table
                 db.delete(faculty)
         
@@ -304,6 +335,85 @@ def update_user_role(db: database_dependency, user_id: int, new_role: str):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to update role: {str(e)}")
+
+
+def delete_user(db: database_dependency, user_id: int):
+    """
+    Soft delete a user (set Isactive=False) - kept for backward compatibility if needed, 
+    but effectively same as deactivate_user
+    """
+    user = db.query(UserTable).filter(UserTable.Userid == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    user.Isactive = False
+    db.commit()
+    return {"message": "User deactivated successfully"}
+
+
+def activate_user(db: database_dependency, user_id: int):
+    """
+    Reactivate a user (set Isactive=True)
+    """
+    user = db.query(UserTable).filter(UserTable.Userid == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    user.Isactive = True
+    db.commit()
+    return {"message": "User activated successfully"}
+
+
+def hard_delete_user(db: database_dependency, user_id: int):
+    """
+    Hard delete a user (remove from database)
+    CAUTION: Must delete all related data to avoid Foreign Key constraints
+    """
+    user = db.query(UserTable).filter(UserTable.Userid == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # 1. Delete Generic User Data (Calendar, Messages, Comments)
+    # These tables use generic Userid/Authorid/Senderid
+    db.query(CalendarEventTable).filter(CalendarEventTable.Userid == user_id).delete()
+    db.query(ConversationParticipantTable).filter(ConversationParticipantTable.Userid == user_id).delete()
+    db.query(MessageTable).filter(MessageTable.Senderid == user_id).delete()
+    db.query(SubmissionCommentTable).filter(SubmissionCommentTable.Authorid == user_id).delete()
+    db.query(DiscussionReplyTable).filter(DiscussionReplyTable.Authorid == user_id).delete()
+    db.query(DiscussionTable).filter(DiscussionTable.Authorid == user_id).delete()
+
+    # 2. Delete Role-Specific Data
+    if user.Userrole == "Student":
+        student = db.query(StudentTable).filter(StudentTable.Studentid == user_id).first()
+        if student:
+            # Delete dependent student records
+            db.query(StudentEnrollmentTable).filter(StudentEnrollmentTable.Studentid == user_id).delete()
+            db.query(GradeTable).filter(GradeTable.Studentid == user_id).delete()
+            db.query(SubmissionTable).filter(SubmissionTable.Studentid == user_id).delete()
+            db.query(QuizAttemptTable).filter(QuizAttemptTable.Studentid == user_id).delete()
+            db.query(DiscussionGradeTable).filter(DiscussionGradeTable.Studentid == user_id).delete()
+            
+            # Finally delete the student record
+            db.delete(student)
+            
+    elif user.Userrole == "Faculty":
+        faculty = db.query(FacultyTable).filter(FacultyTable.Facultyid == user_id).first()
+        if faculty:
+            # Delete dependent faculty records
+            db.query(CourseFacultyTable).filter(CourseFacultyTable.Coursefacultyid == user_id).delete()
+            
+            # Nullify faculty in enrollments (don't delete student enrollments just because faculty leaves)
+            enrollments = db.query(StudentEnrollmentTable).filter(StudentEnrollmentTable.Facultyid == user_id).all()
+            for enrollment in enrollments:
+                enrollment.Facultyid = None
+            
+            # Finally delete the faculty record
+            db.delete(faculty)
+
+    # 3. Delete User Account
+    db.delete(user)
+    db.commit()
+    return {"message": "User permanently deleted"}
 
 
 def get_students_with_details(db: database_dependency) -> List[StudentCourseDetail]:

@@ -1,4 +1,5 @@
 from typing import Annotated
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
@@ -152,7 +153,9 @@ async def google_auth(auth_data: GoogleAuthRequest, db: database_dependency):
             Userid=assigned_id,
             Useremail=email,
             Userpassword=random_password,
-            Userrole="Student"
+            Userrole="Student",
+            Createdat=datetime.utcnow().isoformat(),
+            Isactive=True
         )
         db.add(new_user)
         

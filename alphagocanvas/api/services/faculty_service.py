@@ -39,7 +39,7 @@ def get_courses_by_faculty(db: database_dependency, facultyid: int) -> List[Cour
     courses = db.execute(raw_query, {"facultyid": facultyid}).fetchall()
     courses_list = []
     if len(courses) == 0:
-        raise HTTPException(status_code=404, detail="Data not found")
+        return []
     for course in courses:
         if course.Coursepublished is None:
             course.Coursepublished = False
@@ -103,7 +103,7 @@ def view_students_for_each_course(db: database_dependency, courseid: int, facult
     students = db.execute(raw_query, params).fetchall()
 
     if not students:
-        raise HTTPException(status_code=404, detail="No students are enrolled in that course")
+        return []
 
     students_list = []
     for student in students:
@@ -141,7 +141,7 @@ def view_students_for_each_course_service(db: database_dependency, courseid: int
     students = db.execute(raw_query, {"courseid": courseid}).fetchall()
 
     if not students:
-        raise HTTPException(status_code=404, detail="No grades found for that courses")
+        return []
 
     students_grade_list = []
     for student in students:
@@ -380,7 +380,7 @@ def get_course_faculty_details(db: database_dependency, courseid: int) -> List[F
     published_courses = db.execute(raw_query, {"courseid": courseid}).fetchall()
 
     if len(published_courses) == 0:
-        raise HTTPException(status_code=404, detail="Data not found")
+        return []
 
     published_courses_list = []
 

@@ -9,10 +9,12 @@ class UserTable(Base):
     Table for users which is actually represents the database user table in actual database.
     """
     __tablename__ = 'usertable'
-    Userid = Column(Integer, primary_key=True)
-    Useremail = Column(String)
-    Userpassword = Column(String)
-    Userrole = Column(String)
+    Userid = Column("Userid", Integer, primary_key=True)
+    Useremail = Column("Useremail", String)
+    Userpassword = Column("Userpassword", String)
+    Userrole = Column("Userrole", String)
+    Createdat = Column("Createdat", String(50))  # ISO timestamp
+    Isactive = Column("Isactive", Boolean, default=True)
 
 
 class StudentTable(Base):
@@ -20,11 +22,11 @@ class StudentTable(Base):
     Table for students which is actually
     """
     __tablename__ = 'student'
-    Studentid = Column(Integer, primary_key=True)
-    Studentfirstname = Column(String)
-    Studentlastname = Column(String)
-    Studentcontactnumber = Column(String)
-    Studentnotification = Column(Boolean)
+    Studentid = Column("Studentid", Integer, primary_key=True)
+    Studentfirstname = Column("Studentfirstname", String)
+    Studentlastname = Column("Studentlastname", String)
+    Studentcontactnumber = Column("Studentcontactnumber", String)
+    Studentnotification = Column("Studentnotification", Boolean)
 
 
 class StudentEnrollmentTable(Base):
@@ -42,8 +44,8 @@ class StudentEnrollmentTable(Base):
 
 class CourseTable(Base):
     __tablename__ = 'courses'
-    Courseid = Column(Integer, primary_key=True, index=True)
-    Coursename = Column(String)
+    Courseid = Column("Courseid", Integer, primary_key=True, index=True)
+    Coursename = Column("Coursename", String)
 
 
 class GradeTable(Base):
@@ -59,9 +61,9 @@ class GradeTable(Base):
 class FacultyTable(Base):
     __tablename__ = 'faculty'
 
-    Facultyid = Column(Integer, primary_key=True, index=True, onupdate="CASCADE")
-    Facultyfirstname = Column(String)
-    Facultylastname = Column(String)
+    Facultyid = Column("Facultyid", Integer, primary_key=True, index=True, onupdate="CASCADE")
+    Facultyfirstname = Column("Facultyfirstname", String)
+    Facultylastname = Column("Facultylastname", String)
 
 
 class AssignmentTable(Base):

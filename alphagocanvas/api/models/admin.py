@@ -63,6 +63,8 @@ class UserResponse(BaseModel):
     Userrole: str
     Userfirstname: str
     Userlastname: str
+    Createdat: str | None = None
+    Isactive: bool = True
 
 
 class UpdateRoleRequest(BaseModel):

@@ -18,7 +18,12 @@ from alphagocanvas.api.services.admin_service import (
     get_students_with_details,
     assign_course_to_student,
     get_admin_analytics,
+    assign_course_to_student,
+    get_admin_analytics,
     copy_course_structure,
+    delete_user,
+    activate_user,
+    hard_delete_user,
 )
 from alphagocanvas.api.utils.auth import is_current_user_admin, decode_token
 from alphagocanvas.database import database_dependency
@@ -139,6 +144,41 @@ async def update_role(user_id: int,
 
     result = update_user_role(db, user_id, request.role)
     return result
+
+
+@router.put("/users/{user_id}/activate",
+            dependencies=[Depends(is_current_user_admin)])
+async def activate_user_endpoint(user_id: int, 
+                                 db: database_dependency, 
+                                 token: Annotated[str, Depends(oauth2_scheme)]):
+    decoded_token = decode_token(token=token)
+    if decoded_token["userrole"] != "Admin":
+        raise HTTPException(status_code=403, detail="Unauthorised method for user")
+    return activate_user(db, user_id)
+
+
+@router.put("/users/{user_id}/deactivate",
+            dependencies=[Depends(is_current_user_admin)])
+async def deactivate_user_endpoint(user_id: int, 
+                                   db: database_dependency, 
+                                   token: Annotated[str, Depends(oauth2_scheme)]):
+    decoded_token = decode_token(token=token)
+    if decoded_token["userrole"] != "Admin":
+        raise HTTPException(status_code=403, detail="Unauthorised method for user")
+    return delete_user(db, user_id)
+
+
+@router.delete("/users/{user_id}",
+               dependencies=[Depends(is_current_user_admin)])
+async def delete_user_forever(user_id: int, 
+                              db: database_dependency, 
+                              token: Annotated[str, Depends(oauth2_scheme)]):
+    decoded_token = decode_token(token=token)
+
+    if decoded_token["userrole"] != "Admin":
+        raise HTTPException(status_code=403, detail="Unauthorised method for user")
+
+    return hard_delete_user(db, user_id)
 
 
 @router.get("/students_details",

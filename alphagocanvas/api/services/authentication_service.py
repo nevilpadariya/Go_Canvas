@@ -82,7 +82,9 @@ def create_user(signup_data: SignupRequest, db: database_dependency):
             Userid=assigned_id,
             Useremail=signup_data.Useremail,
             Userpassword=signup_data.Userpassword,  # TODO: Hash password with bcrypt
-            Userrole=signup_data.Userrole
+            Userrole=signup_data.Userrole,
+            Createdat=datetime.utcnow().isoformat(),
+            Isactive=True
         )
         db.add(new_user)
         

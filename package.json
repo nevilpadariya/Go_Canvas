@@ -1,0 +1,8 @@
+{
+  "name": "gocanvas-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}

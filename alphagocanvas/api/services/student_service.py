@@ -83,7 +83,7 @@ def get_grades(studentid: int, db: database_dependency, current_semester: str) -
     graded_list = []
 
     if len(grades) == 0:
-        raise HTTPException(status_code=404, detail="Data not found")
+        return []
 
     if len(grades) != 0:
         for grade in grades:
@@ -227,14 +227,14 @@ def get_published_assignments(db: database_dependency, studentid: int, current_s
     assignments_list = []
     # Process the results as needed
     if len(assignments) == 0:
-        raise HTTPException(status_code=404, detail="Data not found")
+        return []
 
     for assignment in assignments:
         assignments_list.append(StudentAssignments(Courseid=assignment.Courseid,
                                                    Coursename=assignment.Coursename,
                                                    Assignmentid=assignment.Assignmentid,
                                                    Assignmentname=assignment.Assignmentname,
-                                                   Assignmentdescription=assignment.Assignmentdescription,
+                                                   Assignmentdescription=assignment.Assignmentdescription or "",
                                                    ))
 
     return assignments_list
@@ -280,14 +280,15 @@ def get_published_quizzes(db: database_dependency, studentid: int, current_semes
     quizzes_list = []
 
     if len(quizzes) == 0:
-        raise HTTPException(status_code=404, detail="Data not found")
+        return []
 
     for quiz in quizzes:
         quizzes_list.append(StudentQuizzes(Courseid=quiz.Courseid,
                                            Coursename=quiz.Coursename,
                                            Quizid=quiz.Quizid,
                                            Quizname=quiz.Quizname,
-                                           Quizdescription=quiz.Quizdescription))
+                                           Quizdescription=quiz.Quizdescription or "")
+                                           )
 
     return quizzes_list
 
@@ -333,13 +334,14 @@ def get_published_announcement(db: database_dependency, studentid: int, current_
     announcements_list = []
 
     if len(announcements) == 0:
-        raise HTTPException(status_code=404, detail="Data not found")
+        return []
 
     for announcement in announcements:
         announcements_list.append(StudentAnnouncements(Courseid=announcement.Courseid,
                                                        Coursename=announcement.Coursename,
                                                        Announcementid=announcement.Announcementid,
                                                        Announcementname=announcement.Announcementname,
-                                                       Announcementdescription=announcement.Announcementdescription))
+                                                       Announcementdescription=announcement.Announcementdescription or "")
+                                                       )
 
     return announcements_list
