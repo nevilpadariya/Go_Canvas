@@ -1,6 +1,6 @@
 {
   "framework": "vite",
-  "installCommand": "cd ../.. && rm -rf node_modules && npm ci && npm install @rollup/rollup-linux-x64-gnu@4.56.0 lightningcss-linux-x64-gnu@1.30.2 --no-save",
+  "installCommand": "cd ../.. && rm -rf node_modules && npm ci && npm install @rollup/rollup-linux-x64-gnu@4.56.0 lightningcss-linux-x64-gnu@1.30.2 @tailwindcss/oxide-linux-x64-gnu@4.1.18 --no-save",
   "buildCommand": "npm run build",
   "outputDirectory": "build",
   "rewrites": [
