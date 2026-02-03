@@ -376,7 +376,7 @@ class PasswordResetTable(Base):
     """Table for password reset tokens"""
     __tablename__ = 'password_resets'
     Resetid = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    Userid = Column(Integer, ForeignKey('usertable.Userid'), nullable=False)
+    Userid = Column(Integer, nullable=False)  # References usertable.Userid (no FK constraint for flexibility)
     Resettoken = Column(String(255), nullable=False, unique=True)
     Expiresat = Column(String(50), nullable=False)  # ISO timestamp
     Used = Column(Boolean, default=False)
@@ -389,12 +389,12 @@ class NotificationTable(Base):
     """Table for user notifications"""
     __tablename__ = 'notifications'
     Notificationid = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    Userid = Column(Integer, nullable=False)
+    Userid = Column(Integer, nullable=False)  # References user ID (no FK constraint for flexibility)
     Userrole = Column(String(50), nullable=False)
     Title = Column(String(255), nullable=False)
     Message = Column(Text, nullable=False)
     Notificationtype = Column(String(50), nullable=False)  # 'assignment', 'grade', 'announcement', 'message', 'system'
     Isread = Column(Boolean, default=False)
     Linkurl = Column(String(500))  # Optional link to related item
-    Courseid = Column(Integer, ForeignKey('courses.Courseid'))
+    Courseid = Column(Integer)  # References courses.Courseid (no FK constraint for flexibility)
     Createdat = Column(String(50))  # ISO timestamp
