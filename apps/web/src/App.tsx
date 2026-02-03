@@ -4,6 +4,8 @@ import { SidebarProvider } from "@/context/SidebarContext";
 import LandingPage from "./pages/landing";
 import LoginPage from "./pages/login";
 import SignupPage from "./pages/signup";
+import ForgotPasswordPage from "./pages/forgot-password";
+import ResetPasswordPage from "./pages/reset-password";
 import DashboardPage from "./pages/student/dashboard";
 import AccountPage from "./pages/student/account";
 import StudentAssignments from "./pages/student/assignments";
@@ -187,6 +189,8 @@ function App() {
         <Route path="/" element={<LandingPage />}></Route>
         <Route path="/login" element={<LoginPage />}></Route>
         <Route path="/signup" element={<SignupPage />}></Route>
+        <Route path="/forgot-password" element={<ForgotPasswordPage />}></Route>
+        <Route path="/reset-password" element={<ResetPasswordPage />}></Route>
         <Route path="student_list" element={<ProtectedRoute role="admin"><StudentList /></ProtectedRoute>}></Route>
         <Route path="users_list" element={<ProtectedRoute role="admin"><AdminUsersPage /></ProtectedRoute>}></Route>
         <Route path="error" element={<UnauthorizedAccess />}></Route>

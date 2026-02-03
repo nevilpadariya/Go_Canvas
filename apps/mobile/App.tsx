@@ -6,6 +6,10 @@ import LoginScreen from './src/screens/LoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import CourseDetailScreen from './src/screens/CourseDetailScreen';
 import AssignmentDetailScreen from './src/screens/AssignmentDetailScreen';
+import TakeQuizScreen from './src/screens/TakeQuizScreen';
+import DiscussionsScreen from './src/screens/DiscussionsScreen';
+import CalendarScreen from './src/screens/CalendarScreen';
+import MessagesScreen from './src/screens/MessagesScreen';
 import AdminDashboardScreen from './src/screens/admin/AdminDashboardScreen';
 import AdminUserListScreen from './src/screens/admin/AdminUserListScreen';
 import AdminCourseAssignScreen from './src/screens/admin/AdminCourseAssignScreen';
@@ -73,6 +77,10 @@ function AppNavigator() {
                 <Stack.Screen name="Dashboard" component={DashboardScreen} />
                 <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
                 <Stack.Screen name="AssignmentDetail" component={AssignmentDetailScreen} />
+                <Stack.Screen name="TakeQuiz" component={TakeQuizScreen} />
+                <Stack.Screen name="Discussions" component={DiscussionsScreen} />
+                <Stack.Screen name="Calendar" component={CalendarScreen} />
+                <Stack.Screen name="Messages" component={MessagesScreen} />
             </>
         )
       ) : (

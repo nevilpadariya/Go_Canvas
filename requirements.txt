@@ -49,3 +49,8 @@ wcwidth==0.1.9
 a2wsgi
 python-dotenv==1.0.0
 google-auth==2.28.1
+
+# Testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+httpx>=0.24.0

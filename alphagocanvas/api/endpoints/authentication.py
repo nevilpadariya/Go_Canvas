@@ -10,7 +10,15 @@ from google.oauth2 import id_token
 from alphagocanvas.api.models.token import TokenData, Token
 from alphagocanvas.api.models.signup import SignupRequest, SignupResponse
 from alphagocanvas.api.models.google_auth import GoogleAuthRequest
+from alphagocanvas.api.models.password_reset import (
+    ForgotPasswordRequest, ForgotPasswordResponse,
+    ResetPasswordRequest, ResetPasswordResponse,
+    VerifyResetTokenRequest, VerifyResetTokenResponse
+)
 from alphagocanvas.api.services.authentication_service import get_user, create_user, generate_id
+from alphagocanvas.api.services.password_reset_service import (
+    create_password_reset_token, verify_reset_token, reset_password
+)
 from alphagocanvas.api.utils import create_token
 from alphagocanvas.database import database_dependency
 from alphagocanvas.database.models import UserTable, StudentTable, FacultyTable
@@ -191,3 +199,62 @@ async def google_auth(auth_data: GoogleAuthRequest, db: database_dependency):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Google authentication failed: {str(e)}")
+
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+async def forgot_password(request: ForgotPasswordRequest, db: database_dependency):
+    """
+    Request a password reset link
+
+    :param request: ForgotPasswordRequest with user's email
+    :param db: database_dependency object
+    :return: Success message (always returns success to prevent email enumeration)
+    """
+    try:
+        success, message = create_password_reset_token(db, request.email)
+        return ForgotPasswordResponse(success=success, message=message)
+    except Exception as e:
+        # Don't reveal errors to prevent information leakage
+        return ForgotPasswordResponse(
+            success=True,
+            message="If an account exists with this email, you will receive a password reset link."
+        )
+
+
+@router.post("/verify-reset-token", response_model=VerifyResetTokenResponse)
+async def verify_token(request: VerifyResetTokenRequest, db: database_dependency):
+    """
+    Verify if a password reset token is valid
+
+    :param request: VerifyResetTokenRequest with the reset token
+    :param db: database_dependency object
+    :return: Token validity status and masked email
+    """
+    try:
+        valid, message, email = verify_reset_token(db, request.token)
+        return VerifyResetTokenResponse(valid=valid, message=message, email=email)
+    except Exception as e:
+        return VerifyResetTokenResponse(
+            valid=False,
+            message="Invalid or expired reset link."
+        )
+
+
+@router.post("/reset-password", response_model=ResetPasswordResponse)
+async def reset_user_password(request: ResetPasswordRequest, db: database_dependency):
+    """
+    Reset user's password using the reset token
+
+    :param request: ResetPasswordRequest with token and new password
+    :param db: database_dependency object
+    :return: Success/failure message
+    """
+    try:
+        success, message = reset_password(db, request.token, request.new_password)
+        if not success:
+            raise HTTPException(status_code=400, detail=message)
+        return ResetPasswordResponse(success=success, message=message)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Password reset failed: {str(e)}")
