@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from main import app
 from alphagocanvas.database.models import Base
-from alphagocanvas.database import get_db
+from alphagocanvas.database import database_dependency as get_db
 
 # Create an in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
