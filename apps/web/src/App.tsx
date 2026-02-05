@@ -187,7 +187,7 @@ function App() {
           }
         ></Route>
         <Route path="/" element={<LandingPage />}></Route>
-        <Route path="/login" element={<LoginPage />}></Route>
+        <Route path="/login" element={<LandingPage />}></Route> {/* Redirect to landing page */}
         <Route path="/signup" element={<SignupPage />}></Route>
         <Route path="/forgot-password" element={<ForgotPasswordPage />}></Route>
         <Route path="/reset-password" element={<ResetPasswordPage />}></Route>
