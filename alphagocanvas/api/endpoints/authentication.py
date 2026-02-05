@@ -9,7 +9,7 @@ from google.oauth2 import id_token
 
 from alphagocanvas.api.models.token import TokenData, Token
 from alphagocanvas.api.models.signup import SignupRequest, SignupResponse
-from alphagocanvas.api.models.google_auth import GoogleAuthRequest
+from alphagocanvas.api.models.google_auth import GoogleAuthRequest, GoogleAuthResponse, SetPasswordRequest
 from alphagocanvas.api.models.password_reset import (
     ForgotPasswordRequest, ForgotPasswordResponse,
     ResetPasswordRequest, ResetPasswordResponse,
@@ -109,7 +109,7 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: 
         return token_encoded
 
 
-@router.post("/auth/google", response_model=Token)
+@router.post("/auth/google", response_model=GoogleAuthResponse)
 async def google_auth(auth_data: GoogleAuthRequest, db: database_dependency):
     """
     Authenticate user with Google OAuth token
@@ -134,8 +134,9 @@ async def google_auth(auth_data: GoogleAuthRequest, db: database_dependency):
         if not email:
             raise HTTPException(status_code=400, detail="Email not provided by Google")
         
-        # Check if user already exists
-        user = db.query(UserTable).filter(UserTable.Useremail == email).first()
+        # Check if user already exists (case-insensitive email comparison)
+        from sqlalchemy import func
+        user = db.query(UserTable).filter(func.lower(UserTable.Useremail) == email.lower()).first()
         
         if user:
             # User exists, create token
@@ -146,21 +147,24 @@ async def google_auth(auth_data: GoogleAuthRequest, db: database_dependency):
                 userid=user.Userid
             )
             encoded_token = create_token(token)
-            return Token(access_token=encoded_token, token_type="Bearer")
+            return GoogleAuthResponse(
+                access_token=encoded_token,
+                token_type="Bearer",
+                is_new_user=False
+            )
         
         # User doesn't exist - create new user (default to Student role)
-        # This is a simplified approach - you might want to ask user to choose their role
         assigned_id = generate_id(db, "Student")
         
-        # Generate a random password for Google users (they'll use Google to login)
+        # Generate a temporary placeholder password for Google users
         import secrets
-        random_password = secrets.token_urlsafe(32)
+        temp_password = secrets.token_urlsafe(32)
         
-        # Create user in UserTable
+        # Create user in UserTable with temporary password
         new_user = UserTable(
             Userid=assigned_id,
             Useremail=email,
-            Userpassword=random_password,
+            Userpassword=temp_password,
             Userrole="Student",
             Createdat=datetime.utcnow().isoformat(),
             Isactive=True
@@ -177,19 +181,40 @@ async def google_auth(auth_data: GoogleAuthRequest, db: database_dependency):
         )
         db.add(new_student)
         
-        # Commit the transaction
-        db.commit()
-        db.refresh(new_user)
+        try:
+            # Commit the transaction
+            db.commit()
+            db.refresh(new_user)
+        except Exception as commit_error:
+            db.rollback()
+            # If duplicate, user was created by another process - fetch and return
+            if "unique" in str(commit_error).lower() or "duplicate" in str(commit_error).lower():
+                user = db.query(UserTable).filter(func.lower(UserTable.Useremail) == email.lower()).first()
+                if user:
+                    token = TokenData(
+                        useremail=user.Useremail,
+                        userpassword=user.Userpassword,
+                        userrole=user.Userrole,
+                        userid=user.Userid
+                    )
+                    encoded_token = create_token(token)
+                    return GoogleAuthResponse(
+                        access_token=encoded_token,
+                        token_type="Bearer",
+                        is_new_user=False
+                    )
+            raise commit_error
         
-        # Create token for new user
-        token = TokenData(
-            useremail=new_user.Useremail,
-            userpassword=new_user.Userpassword,
-            userrole=new_user.Userrole,
-            userid=new_user.Userid
+        # Return user details for password setup (no token yet)
+        return GoogleAuthResponse(
+            access_token="",  # Empty token - user needs to set password first
+            token_type="Bearer",
+            is_new_user=True,
+            user_id=new_user.Userid,
+            assigned_id=str(assigned_id),
+            user_email=new_user.Useremail,
+            needs_password=True
         )
-        encoded_token = create_token(token)
-        return Token(access_token=encoded_token, token_type="Bearer")
         
     except ValueError as e:
         # Invalid token
@@ -199,6 +224,49 @@ async def google_auth(auth_data: GoogleAuthRequest, db: database_dependency):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Google authentication failed: {str(e)}")
+
+
+@router.post("/auth/google/set-password", response_model=Token)
+async def set_google_user_password(request: SetPasswordRequest, db: database_dependency):
+    """
+    Set password for a Google user who just signed up
+    
+    :param request: SetPasswordRequest with email and new password
+    :param db: database_dependency object
+    :return: JWT token after password is set
+    """
+    try:
+        # Find user by email
+        user = db.query(UserTable).filter(UserTable.Useremail == request.email).first()
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Validate password
+        if len(request.password) < 8:
+            raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+        
+        # Update password
+        user.Userpassword = request.password
+        db.commit()
+        db.refresh(user)
+        
+        # Create token
+        token = TokenData(
+            useremail=user.Useremail,
+            userpassword=user.Userpassword,
+            userrole=user.Userrole,
+            userid=user.Userid
+        )
+        encoded_token = create_token(token)
+        
+        return Token(access_token=encoded_token, token_type="Bearer")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to set password: {str(e)}")
 
 
 @router.post("/forgot-password", response_model=ForgotPasswordResponse)

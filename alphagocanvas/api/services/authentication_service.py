@@ -30,14 +30,26 @@ def generate_id(db: database_dependency, role: str) -> int:
     min_id = year_month_prefix * 1000  # e.g., 2601000
     max_id = min_id + 999  # e.g., 2601999
     
-    # Get the highest ID in the current month range
-    highest_id = db.query(func.max(id_column)).filter(
+    # Get the highest ID from BOTH the role-specific table AND UserTable
+    # to ensure true uniqueness
+    highest_id_role_table = db.query(func.max(id_column)).filter(
         id_column >= min_id,
         id_column <= max_id
     ).scalar()
     
+    highest_id_user_table = db.query(func.max(UserTable.Userid)).filter(
+        UserTable.Userid >= min_id,
+        UserTable.Userid <= max_id
+    ).scalar()
+    
+    # Use the maximum of both
+    highest_id = max(
+        highest_id_role_table or 0,
+        highest_id_user_table or 0
+    )
+    
     # Generate new ID
-    if highest_id is None:
+    if highest_id == 0 or highest_id < min_id:
         # First ID of this month
         new_id = min_id + 1  # e.g., 2601001
     else:

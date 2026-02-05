@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { loginlogo } from "../assets/images";
+import { GooglePasswordSetup } from "@/components/GooglePasswordSetup";
 
 // ============= INTERFACES =============
 
@@ -71,6 +72,14 @@ const LandingPage: React.FC = () => {
   const [signupError, setSignupError] = useState("");
   const [signupSuccess, setSignupSuccess] = useState<SignupResponse | null>(null);
   const [signupLoading, setSignupLoading] = useState(false);
+
+  // Google password setup state
+  const [showPasswordSetup, setShowPasswordSetup] = useState(false);
+  const [newUserData, setNewUserData] = useState<{
+    email: string;
+    userId: number;
+    assignedId: string;
+  } | null>(null);
 
   const features = [
     {
@@ -133,6 +142,19 @@ const LandingPage: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Check if this is a new user who needs to set password
+        if (data.is_new_user && data.needs_password) {
+          setNewUserData({
+            email: data.user_email,
+            userId: data.user_id,
+            assignedId: data.assigned_id,
+          });
+          setShowPasswordSetup(true);
+          return;
+        }
+        
+        // Existing user - proceed with normal login
         const newToken = data.access_token;
         const payload: DecodedToken = jwtDecode(newToken);
         localStorage.setItem("token", newToken);
@@ -638,6 +660,20 @@ const LandingPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Google Password Setup Modal */}
+      {showPasswordSetup && newUserData && (
+        <GooglePasswordSetup
+          isOpen={showPasswordSetup}
+          onClose={() => {
+            setShowPasswordSetup(false);
+            setNewUserData(null);
+          }}
+          userEmail={newUserData.email}
+          userId={newUserData.userId}
+          assignedId={newUserData.assignedId}
+        />
+      )}
     </>
   );
 };
