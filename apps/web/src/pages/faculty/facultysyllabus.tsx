@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet";
 import { useParams } from "react-router-dom";
 import { FacultyPageLayout } from "@/components/FacultyPageLayout";
 import { getApi, putApi } from "@/lib/api";
+import { getCurrentSemesterCode } from "@/lib/semester";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +26,7 @@ function AddSyllabus() {
   const [syllabusDescription, setSyllabusDescription] = useState("");
   const [savedSyllabus, setSavedSyllabus] = useState<{ Courseid: number, Coursesemester: string, Coursedescription: string }[]>([]);
   const [error, setError] = useState("");
+  const currentSemester = getCurrentSemesterCode();
 
   useEffect(() => {
     if (!courseId || courseId === "undefined") {
@@ -49,7 +51,7 @@ function AddSyllabus() {
     try {
       const newSyllabus = await putApi<{ Courseid: number; Coursesemester: string; Coursedescription: string }>(
         "/faculty/update-syllabus/",
-        { Courseid: courseId, Coursesemester: "SPRING24", Coursedescription: syllabusDescription }
+        { Courseid: courseId, Coursesemester: currentSemester, Coursedescription: syllabusDescription }
       );
       setSavedSyllabus((prev) => [...prev, newSyllabus]);
       setSyllabusName("");

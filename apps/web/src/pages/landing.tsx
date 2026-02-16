@@ -79,6 +79,7 @@ const LandingPage: React.FC = () => {
     email: string;
     userId: number;
     assignedId: string;
+    credential: string;
   } | null>(null);
 
   const features = [
@@ -128,7 +129,7 @@ const LandingPage: React.FC = () => {
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const API_URL = import.meta.env.VITE_API_URL;
       
       const response = await fetch(`${API_URL}/auth/google`, {
         method: "POST",
@@ -145,10 +146,15 @@ const LandingPage: React.FC = () => {
         
         // Check if this is a new user who needs to set password
         if (data.is_new_user && data.needs_password) {
+          if (!credentialResponse.credential) {
+            setLoginError("Google credential missing. Please try again.");
+            return;
+          }
           setNewUserData({
             email: data.user_email,
             userId: data.user_id,
             assignedId: data.assigned_id,
+            credential: credentialResponse.credential,
           });
           setShowPasswordSetup(true);
           return;
@@ -196,7 +202,7 @@ const LandingPage: React.FC = () => {
       requestBody.append("client_id", "string");
       requestBody.append("client_secret", "string");
 
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const API_URL = import.meta.env.VITE_API_URL;
 
       const response = await fetch(`${API_URL}/token`, {
         method: "POST",
@@ -279,7 +285,7 @@ const LandingPage: React.FC = () => {
     setSignupError("");
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const API_URL = import.meta.env.VITE_API_URL;
 
       const response = await fetch(`${API_URL}/signup`, {
         method: "POST",
@@ -672,6 +678,7 @@ const LandingPage: React.FC = () => {
           userEmail={newUserData.email}
           userId={newUserData.userId}
           assignedId={newUserData.assignedId}
+          googleCredential={newUserData.credential}
         />
       )}
     </>

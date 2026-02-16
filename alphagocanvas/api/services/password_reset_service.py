@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from alphagocanvas.database.models import UserTable, PasswordResetTable, StudentTable, FacultyTable
 from alphagocanvas.config import PASSWORD_RESET_EXPIRE_MINUTES
 from alphagocanvas.api.services.email_service import email_service
+from alphagocanvas.api.utils.passwords import hash_password
 
 
 def generate_reset_token() -> str:
@@ -124,8 +125,12 @@ def verify_reset_token(db: Session, token: str) -> Tuple[bool, str, Optional[str
 
     # Mask email for privacy
     email = user.Useremail
-    at_index = email.index('@')
-    masked_email = email[0] + '*' * (at_index - 2) + email[at_index - 1:]
+    local_part, domain = email.split("@", 1)
+    if len(local_part) <= 2:
+        masked_local = f"{local_part[0]}*"
+    else:
+        masked_local = f"{local_part[0]}{'*' * (len(local_part) - 2)}{local_part[-1]}"
+    masked_email = f"{masked_local}@{domain}"
 
     return True, "Token is valid.", masked_email
 
@@ -167,9 +172,8 @@ def reset_password(db: Session, token: str, new_password: str) -> Tuple[bool, st
         return False, "This account has been deactivated."
 
     try:
-        # Update password (Note: In production, you should hash this password)
-        # TODO: Hash password with bcrypt
-        user.Userpassword = new_password
+        # Store reset password as a secure hash.
+        user.Userpassword = hash_password(new_password)
 
         # Mark token as used
         reset_record.Used = True

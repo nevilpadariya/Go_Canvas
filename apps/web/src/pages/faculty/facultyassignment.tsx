@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FacultyPageLayout } from "@/components/FacultyPageLayout";
 import { getApi, postApi } from "@/lib/api";
+import { getCurrentSemesterCode } from "@/lib/semester";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +29,7 @@ interface AssignmentData {
 
 function AddAssignment() {
   const { courseid: courseidParam } = useParams();
+  const navigate = useNavigate();
   const courseId = courseidParam || localStorage.getItem("courseid") || "";
 
   const [showForm, setShowForm] = useState(false);
@@ -40,6 +42,7 @@ function AddAssignment() {
   const [lateGraceMinutes, setLateGraceMinutes] = useState<string>("");
   const [savedAssignments, setSavedAssignments] = useState<AssignmentData[]>([]);
   const [error, setError] = useState("");
+  const currentSemester = getCurrentSemesterCode();
 
   const fetchAssignments = async () => {
     if (!courseId || courseId === "undefined") {
@@ -58,6 +61,7 @@ function AddAssignment() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAssignments();
   }, [courseId]);
 
@@ -67,7 +71,7 @@ function AddAssignment() {
         Courseid: Number(courseId),
         Assignmentname: assignmentName,
         Assignmentdescription: assignmentDescription,
-        Semester: "SPRING24",
+        Semester: currentSemester,
         Duedate: duedate || null,
         Points: points,
         Submissiontype: submissiontype,
@@ -241,6 +245,16 @@ function AddAssignment() {
                         {assignment.Submissiontype && (
                           <p className="text-sm text-muted-foreground">Submission: {assignment.Submissiontype}</p>
                         )}
+                        <div className="pt-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/faculty_speedgrader/${courseId}?assignment=${assignment.Assignmentid}`)}
+                          >
+                            Open in SpeedGrader
+                          </Button>
+                        </div>
                       </div>
                     </AccordionContent>
                   </AccordionItem>

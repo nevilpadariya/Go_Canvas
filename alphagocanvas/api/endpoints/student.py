@@ -6,6 +6,7 @@ from alphagocanvas.api.models.student import StudentInformation, StudentGrades, 
 from alphagocanvas.api.services.student_service import get_student, update_student, get_grades, get_enrollments, \
     get_course_details, get_published_assignments, get_published_quizzes, get_published_announcement
 from alphagocanvas.api.utils.auth import is_current_user_student, decode_token
+from alphagocanvas.api.utils.semester import get_current_semester_code
 from fastapi import APIRouter, Depends, HTTPException
 from alphagocanvas.database import database_dependency
 from fastapi.security import OAuth2PasswordBearer
@@ -48,7 +49,7 @@ async def update_profile(studentdata: StudentInformation,
             response_model=List[StudentGrades])
 async def view_grades(db: database_dependency,
                       token: Annotated[str, Depends(oauth2_scheme)],
-                      current_semester: str = "SPRING24"):
+                      current_semester: str | None = None):
     # Decode token and retrieve the data
     decoded_token = decode_token(token=token)
 
@@ -58,7 +59,7 @@ async def view_grades(db: database_dependency,
     studentid = decoded_token.get("userid")
 
     # Get data from the database
-    data = get_grades(studentid, db, current_semester)
+    data = get_grades(studentid, db, current_semester or get_current_semester_code())
 
     return data
 
@@ -99,14 +100,18 @@ async def view_contents(db: database_dependency, token: Annotated[str, Depends(o
 @router.get("/view_assignment_published", dependencies=[Depends(is_current_user_student)],
             response_model=List[StudentAssignments])
 async def view_assignment_published(db: database_dependency, token: Annotated[str, Depends(oauth2_scheme)],
-                                    current_semester="SPRING24"):
+                                    current_semester: str | None = None):
     decoded_token = decode_token(token=token)
     if decoded_token["userrole"] != "Student":
         raise HTTPException(status_code=401, detail="Unauthorised method")
 
     studentid = decoded_token.get("userid")
 
-    data = get_published_assignments(db, studentid=studentid, current_semester=current_semester)
+    data = get_published_assignments(
+        db,
+        studentid=studentid,
+        current_semester=current_semester or get_current_semester_code(),
+    )
 
     return data
 
@@ -114,14 +119,18 @@ async def view_assignment_published(db: database_dependency, token: Annotated[st
 @router.get("/view_quizzes_published", dependencies=[Depends(is_current_user_student)],
             response_model=List[StudentQuizzes])
 async def view_quizzes_published(db: database_dependency, token: Annotated[str, Depends(oauth2_scheme)],
-                                 current_semester="SPRING24"):
+                                 current_semester: str | None = None):
     decoded_token = decode_token(token=token)
     if decoded_token["userrole"] != "Student":
         raise HTTPException(status_code=401, detail="Unauthorised method")
 
     studentid = decoded_token.get("userid")
 
-    data = get_published_quizzes(db, studentid=studentid, current_semester=current_semester)
+    data = get_published_quizzes(
+        db,
+        studentid=studentid,
+        current_semester=current_semester or get_current_semester_code(),
+    )
 
     return data
 
@@ -129,13 +138,17 @@ async def view_quizzes_published(db: database_dependency, token: Annotated[str, 
 @router.get("/view_announcements_published", dependencies=[Depends(is_current_user_student)],
             response_model=List[StudentAnnouncements])
 async def view_announcements_published(db: database_dependency, token: Annotated[str, Depends(oauth2_scheme)],
-                                       current_semester="SPRING24"):
+                                       current_semester: str | None = None):
     decoded_token = decode_token(token=token)
     if decoded_token["userrole"] != "Student":
         raise HTTPException(status_code=401, detail="Unauthorised method")
 
     studentid = decoded_token.get("userid")
 
-    data = get_published_announcement(db, studentid=studentid, current_semester=current_semester)
+    data = get_published_announcement(
+        db,
+        studentid=studentid,
+        current_semester=current_semester or get_current_semester_code(),
+    )
 
     return data

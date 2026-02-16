@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getApi, putApi } from '@gocanvas/shared';
+import { getApi, getCurrentSemesterCode, putApi } from '@gocanvas/shared';
 import { Colors } from '../../constants/Colors';
 import { ArrowLeft, Save } from 'lucide-react-native';
 
@@ -54,7 +54,7 @@ export default function FacultySyllabusScreen() {
     try {
         const newSyllabus = await putApi<Syllabus>("/faculty/update-syllabus/", {
             Courseid: courseId,
-            Coursesemester: "SPRING24", // Hardcoded per web app logic
+            Coursesemester: getCurrentSemesterCode(),
             Coursedescription: description
         });
         setSyllabusList([...syllabusList, newSyllabus]);

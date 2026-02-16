@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import { Badge } from "../../components/ui/badge";
+import { getCurrentSemesterCode } from "@/lib/semester";
 
 interface StudentCourseDetail {
   Studentid: number;
@@ -52,16 +53,6 @@ interface Course {
   Coursesemester: string;
 }
 
-const getCurrentSemester = () => {
-  const date = new Date();
-  const month = date.getMonth();
-  const year = date.getFullYear().toString().slice(-2);
-  
-  if (month <= 4) return `Spring${year}`;
-  if (month <= 6) return `Summer${year}`;
-  return `Fall${year}`;
-};
-
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 
 function StudentList() {
@@ -73,7 +64,7 @@ function StudentList() {
 
   const [assignStudentId, setAssignStudentId] = useState<string>("");
   const [assignCourseId, setAssignCourseId] = useState<string>("");
-  const [assignSemester, setAssignSemester] = useState<string>(getCurrentSemester());
+  const [assignSemester, setAssignSemester] = useState<string>(getCurrentSemesterCode());
   
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -83,7 +74,7 @@ function StudentList() {
     const fetchStudentDetails = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/students_details`,
+          `${import.meta.env.VITE_API_URL}/admin/students_details`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -99,7 +90,7 @@ function StudentList() {
     const fetchUsers = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/users`,
+          `${import.meta.env.VITE_API_URL}/admin/users`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -115,7 +106,7 @@ function StudentList() {
     const fetchCourses = async () => {
         try {
           const response = await axios.get(
-            `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/view_courses`,
+            `${import.meta.env.VITE_API_URL}/admin/view_courses`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -164,7 +155,7 @@ function StudentList() {
     
     try {
         const response = await axios.post(
-            `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/assign_course_student`,
+            `${import.meta.env.VITE_API_URL}/admin/assign_course_student`,
             {
                 student_id: parseInt(assignStudentId),
                 course_id: parseInt(assignCourseId),
@@ -185,13 +176,13 @@ function StudentList() {
 
         setAssignStudentId("");
         setAssignCourseId("");
-        setAssignSemester(getCurrentSemester());
+        setAssignSemester(getCurrentSemesterCode());
         
 
         setTimeout(async () => {
             try {
                 const response = await axios.get(
-                    `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/students_details`,
+                    `${import.meta.env.VITE_API_URL}/admin/students_details`,
                     {
                         headers: { Authorization: `Bearer ${token}` },
                     }
@@ -370,4 +361,3 @@ function StudentList() {
 }
 
 export default StudentList;
-

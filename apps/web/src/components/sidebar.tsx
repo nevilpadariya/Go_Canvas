@@ -1,12 +1,22 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, User, FileText, Trophy } from "lucide-react";
+import {
+  Calendar,
+  Inbox,
+  LayoutDashboard,
+  MessageSquare,
+  NotebookTabs,
+  Trophy,
+  User,
+  FileText,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/context/SidebarContext";
 
 function Sidebar() {
 
   const { isExpanded } = useSidebar();
+  const selectedCourseId = localStorage.getItem("courseid") || "";
 
   const navItems = [
     {
@@ -15,14 +25,34 @@ function Sidebar() {
       label: "Dashboard",
     },
     {
+      path: selectedCourseId ? `/student/modules/${selectedCourseId}` : "/student/modules",
+      icon: NotebookTabs,
+      label: "Modules",
+    },
+    {
       path: "/student/assignments",
       icon: FileText,
       label: "Assignments",
     },
     {
+      path: selectedCourseId ? `/student/discussions/${selectedCourseId}` : "/student/discussions",
+      icon: MessageSquare,
+      label: "Discussions",
+    },
+    {
       path: "/student/grades",
       icon: Trophy,
       label: "Grades",
+    },
+    {
+      path: "/student/calendar",
+      icon: Calendar,
+      label: "Calendar",
+    },
+    {
+      path: "/student/inbox",
+      icon: Inbox,
+      label: "Inbox",
     },
     {
       path: "/account",

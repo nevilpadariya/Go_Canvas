@@ -84,7 +84,7 @@ const SubmissionForm: React.FC<SubmissionFormProps> = ({
       }
 
       const response = await axios.post<SubmissionData>(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/submissions/`,
+        `${import.meta.env.VITE_API_URL}/submissions/`,
         formData,
         {
           headers: {

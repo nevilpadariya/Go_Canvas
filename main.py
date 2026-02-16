@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 import logging
 from dotenv import load_dotenv
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from alphagocanvas.api.endpoints.admin import router as admin_router
 from alphagocanvas.api.endpoints.authentication import router as auth_router
@@ -18,6 +20,14 @@ from alphagocanvas.api.endpoints.speedgrader import router as speedgrader_router
 from alphagocanvas.api.endpoints.quiz import router as quiz_router
 from alphagocanvas.api.endpoints.gradebook import router as gradebook_router
 from alphagocanvas.api.endpoints.pages import router as pages_router
+from alphagocanvas.config import (
+    ALLOWED_HOSTS,
+    ENABLE_HTTPS_REDIRECT,
+    FRONTEND_URL,
+    IS_PRODUCTION,
+    IS_TESTING,
+    SECURE_HEADERS,
+)
 from alphagocanvas.database.connection import ENGINE
 from alphagocanvas.database.models import Base
 
@@ -58,13 +68,9 @@ if not os.path.exists(UPLOAD_DIR):
 # Mount static files for serving uploads
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
-# Get allowed origins from environment variable or use defaults
-cors_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000,https://gocanvas.vercel.app")
-origins = cors_origins_str.split(",")
-
-# For development, you might want to add localhost
-if "http://localhost:3000" not in origins:
-    origins.append("http://localhost:3000")
+# Get allowed origins from environment variable or fallback to configured frontend URL
+cors_origins_str = os.getenv("CORS_ORIGINS", FRONTEND_URL)
+origins = [origin.strip() for origin in cors_origins_str.split(",") if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,
@@ -73,6 +79,26 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+if ENABLE_HTTPS_REDIRECT and not IS_TESTING:
+    app.add_middleware(HTTPSRedirectMiddleware)
+
+if ALLOWED_HOSTS and "*" not in ALLOWED_HOSTS and not IS_TESTING:
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
+
+
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    if SECURE_HEADERS:
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+        response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+        if IS_PRODUCTION:
+            response.headers.setdefault("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+    return response
 
 AUTO_INIT_DB = os.getenv("AUTO_INIT_DB", "false").lower() in {"1", "true", "yes", "y"}
 

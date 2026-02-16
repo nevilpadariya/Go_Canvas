@@ -76,7 +76,7 @@ function TakeQuiz() {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/quiz/${quizId}`,
+        `${import.meta.env.VITE_API_URL}/quiz/${quizId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -126,7 +126,7 @@ function TakeQuiz() {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/quiz/submit`,
+        `${import.meta.env.VITE_API_URL}/quiz/submit`,
         {
           Quizid: parseInt(quizId!),
           answers: Array.from(answers.values())

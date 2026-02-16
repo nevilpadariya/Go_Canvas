@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Calendar, Clock, CheckCircle, AlertCircle, BookOpen } from 'lucide-react';
+import { FileText, Clock, CheckCircle, AlertCircle, BookOpen } from 'lucide-react';
 
 import Header from '../../components/header';
 import Sidebar from '../../components/sidebar';
@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { getCurrentSemesterCode } from '@/lib/semester';
 
 interface Assignment {
   Assignmentid: number;
@@ -33,14 +34,10 @@ interface Submission {
   Submissionscore: string | null;
 }
 
-const getCurrentSemester = () => {
-  const date = new Date();
-  const month = date.getMonth();
-  const year = date.getFullYear().toString().slice(-2);
-  
-  if (month <= 4) return `Spring${year}`;
-  return `Fall${year}`;
-};
+interface UniqueCourse {
+  id: number;
+  name: string;
+}
 
 function StudentAssignments() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -58,10 +55,10 @@ function StudentAssignments() {
   const fetchAssignments = async () => {
     try {
       const token = localStorage.getItem('token');
-      const currentSemester = getCurrentSemester();
+      const currentSemester = getCurrentSemesterCode();
       
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/student/view_assignment_published`,
+        `${import.meta.env.VITE_API_URL}/student/view_assignment_published`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { current_semester: currentSemester }
@@ -85,7 +82,7 @@ function StudentAssignments() {
       const studentId = payload.userid;
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/submissions/student/${studentId}`,
+        `${import.meta.env.VITE_API_URL}/submissions/student/${studentId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -114,9 +111,9 @@ function StudentAssignments() {
     }
   };
 
-  const uniqueCourses = Array.from(
+  const uniqueCourses: UniqueCourse[] = Array.from(
     new Set(assignments.map(a => JSON.stringify({ id: a.Courseid, name: a.Coursename })))
-  ).map(str => JSON.parse(str));
+  ).map((str) => JSON.parse(str) as UniqueCourse);
 
   const filteredAssignments = assignments.filter(assignment => {
     const courseMatch = filterCourse === 'all' || assignment.Courseid.toString() === filterCourse;
@@ -159,7 +156,7 @@ function StudentAssignments() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Courses</SelectItem>
-                    {uniqueCourses.map((course: any) => (
+                    {uniqueCourses.map((course) => (
                       <SelectItem key={course.id} value={course.id.toString()}>
                         {course.name}
                       </SelectItem>

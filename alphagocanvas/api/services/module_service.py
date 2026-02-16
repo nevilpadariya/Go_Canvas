@@ -1,6 +1,7 @@
 import json
+from collections import defaultdict
 from datetime import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from fastapi import HTTPException
 from sqlalchemy import text
@@ -11,7 +12,13 @@ from alphagocanvas.api.models.module import (
     ModuleItemCreateRequest, ModuleItemUpdateRequest, ModuleItemResponse,
     ModuleListResponse, ModuleDeleteResponse, ModuleItemDeleteResponse
 )
-from alphagocanvas.database.models import ModuleTable, ModuleItemTable
+from alphagocanvas.database.models import (
+    AssignmentTable,
+    FileTable,
+    ModuleTable,
+    ModuleItemTable,
+    QuizTable,
+)
 
 
 # ============== MODULE OPERATIONS ==============
@@ -92,9 +99,12 @@ def get_modules_by_course(db: Session, course_id: int, include_unpublished: bool
             ModuleTable.Modulepublished == True
         ).order_by(ModuleTable.Moduleposition).all()
     
+    module_ids = [mod.Moduleid for mod in modules]
+    items_by_module = get_module_items_by_module_ids(db, module_ids)
+
     module_responses = []
     for mod in modules:
-        items = get_module_items(db, mod.Moduleid)
+        items = items_by_module.get(mod.Moduleid, [])
         module_responses.append(ModuleResponse(
             Moduleid=mod.Moduleid,
             Modulename=mod.Modulename,
@@ -191,11 +201,38 @@ def get_module_items(db: Session, module_id: int) -> List[ModuleItemResponse]:
     items = db.query(ModuleItemTable).filter(
         ModuleItemTable.Moduleid == module_id
     ).order_by(ModuleItemTable.Itemposition).all()
-    
+
+    return build_module_item_responses(db, items)
+
+
+def get_module_items_by_module_ids(
+    db: Session, module_ids: List[int]
+) -> Dict[int, List[ModuleItemResponse]]:
+    """Fetch module items for multiple modules in one query."""
+    if not module_ids:
+        return {}
+
+    items = db.query(ModuleItemTable).filter(
+        ModuleItemTable.Moduleid.in_(module_ids)
+    ).order_by(ModuleItemTable.Moduleid, ModuleItemTable.Itemposition).all()
+
+    responses = build_module_item_responses(db, items)
+    grouped: Dict[int, List[ModuleItemResponse]] = defaultdict(list)
+    for response in responses:
+        grouped[response.Moduleid].append(response)
+
+    return dict(grouped)
+
+
+def build_module_item_responses(
+    db: Session, items: List[ModuleItemTable]
+) -> List[ModuleItemResponse]:
+    reference_map = get_item_reference_info_map(db, items)
+
     item_responses = []
     now_iso = datetime.now().isoformat()
     for item in items:
-        reference_info = get_item_reference_info(db, item.Itemtype, item.Referenceid)
+        reference_info = reference_map.get((item.Itemtype, item.Referenceid))
         unlockat = getattr(item, "Unlockat", None)
         prereq_raw = getattr(item, "Prerequisiteitemids", None)
         locked = bool(unlockat and now_iso < unlockat)
@@ -218,34 +255,99 @@ def get_module_items(db: Session, module_id: int) -> List[ModuleItemResponse]:
     return item_responses
 
 
+def get_item_reference_info_map(
+    db: Session, items: List[ModuleItemTable]
+) -> Dict[Tuple[str, Optional[int]], dict]:
+    """
+    Build reference info in bulk to avoid per-item database queries.
+    Key format: (item_type, reference_id)
+    """
+    reference_map: Dict[Tuple[str, Optional[int]], dict] = {}
+    if not items:
+        return reference_map
+
+    assignment_ids = sorted(
+        {
+            int(item.Referenceid)
+            for item in items
+            if item.Itemtype == "assignment" and item.Referenceid is not None
+        }
+    )
+    quiz_ids = sorted(
+        {
+            int(item.Referenceid)
+            for item in items
+            if item.Itemtype == "quiz" and item.Referenceid is not None
+        }
+    )
+    file_ids = sorted(
+        {
+            int(item.Referenceid)
+            for item in items
+            if item.Itemtype == "file" and item.Referenceid is not None
+        }
+    )
+
+    if assignment_ids:
+        assignments = db.query(AssignmentTable).filter(
+            AssignmentTable.Assignmentid.in_(assignment_ids)
+        ).all()
+        for assignment in assignments:
+            reference_map[("assignment", assignment.Assignmentid)] = {
+                "id": assignment.Assignmentid,
+                "name": assignment.Assignmentname,
+                "description": assignment.Assignmentdescription,
+            }
+
+    if quiz_ids:
+        quizzes = db.query(QuizTable).filter(QuizTable.quizid.in_(quiz_ids)).all()
+        for quiz in quizzes:
+            reference_map[("quiz", quiz.quizid)] = {
+                "id": quiz.quizid,
+                "name": quiz.quizname,
+                "description": quiz.quizdescription,
+            }
+
+    if file_ids:
+        files = db.query(FileTable).filter(FileTable.Fileid.in_(file_ids)).all()
+        for file in files:
+            reference_map[("file", file.Fileid)] = {
+                "id": file.Fileid,
+                "name": file.Fileoriginalname,
+                "url": file.Fileurl,
+                "mimetype": file.Filemimetype,
+            }
+
+    return reference_map
+
+
 def get_item_reference_info(db: Session, item_type: str, reference_id: Optional[int]) -> Optional[dict]:
     """Get additional info for referenced items (assignments, quizzes, files)"""
     if not reference_id:
         return None
     
     if item_type == 'assignment':
-        query = text('SELECT "Assignmentid", "Assignmentname", "Assignmentdescription" FROM assignments WHERE "Assignmentid" = :id')
-        result = db.execute(query, {"id": reference_id}).fetchone()
+        result = db.query(AssignmentTable).filter(
+            AssignmentTable.Assignmentid == reference_id
+        ).first()
         if result:
             return {
                 "id": result.Assignmentid,
                 "name": result.Assignmentname,
                 "description": result.Assignmentdescription
             }
-    
+
     elif item_type == 'quiz':
-        query = text('SELECT "Quizid", "Quizname", "Quizdescription" FROM quizzes WHERE "Quizid" = :id')
-        result = db.execute(query, {"id": reference_id}).fetchone()
+        result = db.query(QuizTable).filter(QuizTable.quizid == reference_id).first()
         if result:
             return {
                 "id": result.quizid,
                 "name": result.quizname,
                 "description": result.quizdescription
             }
-    
+
     elif item_type == 'file':
-        query = text('SELECT "Fileid", "Fileoriginalname", "Fileurl", "Filemimetype" FROM files WHERE "Fileid" = :id')
-        result = db.execute(query, {"id": reference_id}).fetchone()
+        result = db.query(FileTable).filter(FileTable.Fileid == reference_id).first()
         if result:
             return {
                 "id": result.Fileid,

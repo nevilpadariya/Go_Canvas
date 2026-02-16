@@ -3,8 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, 
 import { useAuth } from '../context/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
-import { getApi } from '@gocanvas/shared';
+import { getApi, getCurrentSemesterCode } from '@gocanvas/shared';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BookOpen, LogOut } from 'lucide-react-native';
 
 interface Course {
@@ -15,24 +16,24 @@ interface Course {
   EnrollmentSemester?: string;
 }
 
-const getCurrentSemester = () => {
-  const date = new Date();
-  const month = date.getMonth();
-  const year = date.getFullYear().toString().slice(-2);
-  
-  if (month <= 4) return `Spring${year}`;
-  if (month <= 6) return `Summer${year}`;
-  return `Fall${year}`;
+type RootStackParamList = {
+  Dashboard: undefined;
+  CourseDetail: {
+    courseId: number;
+    courseName: string;
+    courseDescription: string;
+    courseSemester?: string;
+  };
 };
 
 export default function DashboardScreen() {
-  const { signOut, token } = useAuth(); // Assuming useAuth provides token if needed, or getApi handles it via headers helper
+  const { signOut } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const currentSemester = getCurrentSemester().toUpperCase();
+  const currentSemester = getCurrentSemesterCode();
 
   const fetchCourses = async () => {
     try {
@@ -64,12 +65,12 @@ export default function DashboardScreen() {
   const renderCourseItem = ({ item }: { item: Course }) => (
     <TouchableOpacity 
         style={styles.card} 
-        onPress={() => navigation.navigate('CourseDetail' as never, {
+        onPress={() => navigation.navigate('CourseDetail', {
             courseId: item.Courseid,
             courseName: item.Coursename,
             courseDescription: item.Coursedescription,
             courseSemester: item.Coursesemester || item.EnrollmentSemester
-        } as never)} 
+        })} 
     >
       <View style={styles.cardIcon}>
          <BookOpen size={24} color={Colors.primary} />

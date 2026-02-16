@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, ArrowLeft, Calendar, BookOpen, Trophy, MessageSquare } from 'lucide-react';
+import { FileText, ArrowLeft, BookOpen, Trophy, MessageSquare } from 'lucide-react';
 
 import Header from '../../components/header';
 import Sidebar from '../../components/sidebar';
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { MainContentWrapper } from '@/components/MainContentWrapper';
+import { getCurrentSemesterCode } from '@/lib/semester';
 
 interface AssignmentDetail {
   Assignmentid: number;
@@ -30,23 +31,17 @@ function AssignmentDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (assignmentId) {
-      fetchAssignmentDetails();
-      fetchSubmission();
-    }
-  }, [assignmentId]);
-
-  const fetchAssignmentDetails = async () => {
+  const fetchAssignmentDetails = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
+      const currentSemester = getCurrentSemesterCode();
       
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/student/view_assignment_published`,
+        `${import.meta.env.VITE_API_URL}/student/view_assignment_published`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { current_semester: 'SPRING24' }
+          params: { current_semester: currentSemester }
         }
       );
 
@@ -65,9 +60,9 @@ function AssignmentDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [assignmentId]);
 
-  const fetchSubmission = async () => {
+  const fetchSubmission = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -77,7 +72,7 @@ function AssignmentDetail() {
       const studentId = payload.userid;
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/submissions/student/${studentId}`,
+        `${import.meta.env.VITE_API_URL}/submissions/student/${studentId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -94,7 +89,14 @@ function AssignmentDetail() {
     } catch (err) {
       console.error('Error fetching submission:', err);
     }
-  };
+  }, [assignmentId]);
+
+  useEffect(() => {
+    if (assignmentId) {
+      fetchAssignmentDetails();
+      fetchSubmission();
+    }
+  }, [assignmentId, fetchAssignmentDetails, fetchSubmission]);
 
   const handleSubmissionComplete = (newSubmission: SubmissionData) => {
     setSubmission(newSubmission);

@@ -11,6 +11,7 @@ from sqlalchemy.pool import StaticPool
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+os.environ["TESTING"] = "true"
 
 from main import app
 from alphagocanvas.database.models import Base

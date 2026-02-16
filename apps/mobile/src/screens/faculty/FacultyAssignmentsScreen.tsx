@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Modal, TextInput, ScrollView, Switch } from 'react-native';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getApi, postApi } from '@gocanvas/shared';
+import { getApi, getCurrentSemesterCode, postApi } from '@gocanvas/shared';
 import { Colors } from '../../constants/Colors';
 import { ArrowLeft, Check, Plus, X } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -66,7 +66,7 @@ export default function FacultyAssignmentsScreen() {
             Courseid: courseId,
             Assignmentname: name,
             Assignmentdescription: description,
-            Semester: "SPRING24",
+            Semester: getCurrentSemesterCode(),
             Duedate: dueDate.toISOString(),
             Points: parseInt(points) || 100,
             Submissiontype: "text_and_file"

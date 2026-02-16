@@ -39,7 +39,7 @@ function AccountPage() {
       const token = localStorage.getItem("token");
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/student/profile`,
+        `${import.meta.env.VITE_API_URL}/student/profile`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -69,7 +69,7 @@ function AccountPage() {
       const token = localStorage.getItem("token");
 
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/student/update_profile`,
+        `${import.meta.env.VITE_API_URL}/student/update_profile`,
         {
           Studentfirstname: firstname,
           Studentlastname: lastname,

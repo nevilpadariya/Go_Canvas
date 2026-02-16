@@ -8,7 +8,8 @@ import {
   HelpCircle, 
   GraduationCap, 
   Table2,
-  Users 
+  Users,
+  Gauge
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/context/SidebarContext";
@@ -25,6 +26,7 @@ function FacultySidebar() {
     { path: courseid ? `/faculty_assignment/${courseid}` : null, icon: ClipboardList, label: "Assignments" },
     { path: courseid ? `/faculty_quiz/${courseid}` : null, icon: HelpCircle, label: "Quizzes" },
     { path: courseid ? `/faculty_gradebook/${courseid}` : null, icon: Table2, label: "Gradebook" },
+    { path: courseid ? `/faculty_speedgrader/${courseid}` : null, icon: Gauge, label: "SpeedGrader" },
     { path: courseid ? `/faculty_grades/${courseid}` : null, icon: GraduationCap, label: "Grades" },
     { path: courseid ? `/students/${courseid}` : null, icon: Users, label: "Students" },
   ];

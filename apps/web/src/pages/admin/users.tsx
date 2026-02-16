@@ -72,7 +72,7 @@ function AdminUsersPage() {
     const fetchUsers = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/users`,
+          `${import.meta.env.VITE_API_URL}/admin/users`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -106,7 +106,7 @@ function AdminUsersPage() {
       onConfirm: async () => {
         try {
           await axios.put(
-            `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/users/${user.Userid}/deactivate`,
+            `${import.meta.env.VITE_API_URL}/admin/users/${user.Userid}/deactivate`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           );
@@ -131,7 +131,7 @@ function AdminUsersPage() {
       onConfirm: async () => {
         try {
           await axios.put(
-            `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/users/${user.Userid}/activate`,
+            `${import.meta.env.VITE_API_URL}/admin/users/${user.Userid}/activate`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
           );
@@ -166,7 +166,7 @@ function AdminUsersPage() {
       onConfirm: async () => {
         try {
             await axios.delete(
-                `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/users/${user.Userid}`,
+                `${import.meta.env.VITE_API_URL}/admin/users/${user.Userid}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             setUsers(users.filter(u => u.Userid !== user.Userid));
@@ -182,7 +182,7 @@ function AdminUsersPage() {
   const handleRoleChange = async (userId: number, newRole: string) => {
     try {
       await axios.put(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/users/${userId}/role`,
+        `${import.meta.env.VITE_API_URL}/admin/users/${userId}/role`,
         { role: newRole },
         { headers: { Authorization: `Bearer ${token}` } }
       );

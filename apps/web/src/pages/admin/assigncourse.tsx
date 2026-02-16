@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { getSemesterOptions } from "@/lib/semester";
 
 interface Faculty {
   Facultyid: number;
@@ -31,14 +32,7 @@ interface Course {
 function AssignCourse() {
   const [facultyList, setFacultyList] = useState<Faculty[]>([]);
   const [courseList, setCourseList] = useState<Course[]>([]);
-  const [semesterList] = useState<string[]>([
-    "SPRING24",
-    "FALL24",
-    "SPRING25",
-    "FALL25",
-    "SPRING26",
-    "FALL26"
-  ]);
+  const [semesterList] = useState<string[]>(() => getSemesterOptions(new Date(), { includeSummer: false }));
   const [selectedFaculty, setSelectedFaculty] = useState<string>("");
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [selectedSemester, setSelectedSemester] = useState<string>("");
@@ -51,7 +45,7 @@ function AssignCourse() {
   const fetchFaculties = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/view_faculties`,
+        `${import.meta.env.VITE_API_URL}/admin/view_faculties`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -71,7 +65,7 @@ function AssignCourse() {
   const fetchCourses = async () => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/view_courses`,
+        `${import.meta.env.VITE_API_URL}/admin/view_courses`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -104,7 +98,7 @@ function AssignCourse() {
       }
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/assign_course`,
+        `${import.meta.env.VITE_API_URL}/admin/assign_course`,
         {
           Courseid: parseInt(selectedCourse),
           Facultyid: parseInt(selectedFaculty),
@@ -137,7 +131,7 @@ function AssignCourse() {
   const checkIfCourseAlreadyAssigned = async (courseId: number, facultyId: number, semester: string): Promise<boolean> => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/check_course_assignment?Courseid=${courseId}&Facultyid=${facultyId}&Coursesemester=${semester}`,
+        `${import.meta.env.VITE_API_URL}/admin/check_course_assignment?Courseid=${courseId}&Facultyid=${facultyId}&Coursesemester=${semester}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

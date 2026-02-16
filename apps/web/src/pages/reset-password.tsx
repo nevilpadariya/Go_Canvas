@@ -36,7 +36,7 @@ const ResetPassword: React.FC = () => {
       }
 
       try {
-        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+        const API_URL = import.meta.env.VITE_API_URL;
 
         const response = await fetch(`${API_URL}/verify-reset-token`, {
           method: "POST",
@@ -90,7 +90,7 @@ const ResetPassword: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const API_URL = import.meta.env.VITE_API_URL;
 
       const response = await fetch(`${API_URL}/reset-password`, {
         method: "POST",

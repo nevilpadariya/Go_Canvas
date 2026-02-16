@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet";
 import { useParams, useNavigate } from "react-router-dom";
 import { FacultyPageLayout } from "@/components/FacultyPageLayout";
 import { getApi, postApi } from "@/lib/api";
+import { getCurrentSemesterCode } from "@/lib/semester";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -59,7 +60,7 @@ function AssignGrades() {
       return;
     }
     const student = studentList.find((s) => s.Studentid.toString() === selectedStudent);
-    const semester = student?.Coursesemester || "SPRING24";
+    const semester = student?.Coursesemester || getCurrentSemesterCode();
     const courseIdNum = courseid ? parseInt(String(courseid), 10) : 0;
     if (!courseIdNum) {
       setError("Invalid course. Select a course from the dashboard first.");

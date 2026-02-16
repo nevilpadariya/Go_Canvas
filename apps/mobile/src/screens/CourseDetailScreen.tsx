@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, FlatList } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { getApi } from '@gocanvas/shared';
+import { getApi, getCurrentSemesterCode } from '@gocanvas/shared';
 import { Colors } from '../constants/Colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Megaphone, FileText, Brain, ChevronRight, ArrowLeft } from 'lucide-react-native';
@@ -61,19 +61,9 @@ export default function CourseDetailScreen() {
     fetchAllData();
   }, [courseId]);
 
-  const getCurrentSemester = () => {
-    const date = new Date();
-    const month = date.getMonth();
-    const year = date.getFullYear().toString().slice(-2);
-    
-    if (month <= 4) return `Spring${year}`;
-    if (month <= 6) return `Summer${year}`;
-    return `Fall${year}`;
-  };
-
   const fetchAllData = async () => {
     try {
-      const semester = getCurrentSemester().toUpperCase();
+      const semester = getCurrentSemesterCode();
       
       // Parallel fetching for speed
       const [annData, assignData, quizData] = await Promise.all([

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class GoogleAuthRequest(BaseModel):
@@ -16,5 +16,6 @@ class GoogleAuthResponse(BaseModel):
 
 
 class SetPasswordRequest(BaseModel):
-    email: str
+    email: EmailStr
+    credential: str
     password: str

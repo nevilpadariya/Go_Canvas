@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, Modal, FlatList } from 'react-native';
 import { getApi, postApi } from '@gocanvas/shared';
+import { getCurrentSemesterCode, getSemesterOptions } from '@gocanvas/shared';
 import { Colors } from '../../constants/Colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronDown, Check } from 'lucide-react-native';
@@ -16,17 +17,16 @@ interface Course {
   Coursename: string;
 }
 
-const SEMESTERS = ["SPRING24", "FALL24", "SPRING25", "FALL25"];
-
 export default function AdminCourseAssignScreen() {
   const navigation = useNavigation();
+  const semesterOptions = getSemesterOptions(new Date(), { includeSummer: false });
   
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   
   const [selectedFaculty, setSelectedFaculty] = useState<Faculty | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [selectedSemester, setSelectedSemester] = useState<string>("");
+  const [selectedSemester, setSelectedSemester] = useState<string>(getCurrentSemesterCode());
 
   const [loading, setLoading] = useState(false);
 
@@ -120,7 +120,7 @@ export default function AdminCourseAssignScreen() {
             </TouchableOpacity>
         );
     } else if (modalType === 'semester') {
-        data = SEMESTERS;
+        data = semesterOptions;
         title = "Select Semester";
         onSelect = (item) => { setSelectedSemester(item); setModalType(null); };
         renderItem = ({item}) => (

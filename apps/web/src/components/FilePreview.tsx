@@ -54,7 +54,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   };
 
   const isImage = mimeType?.includes('image');
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const baseUrl = import.meta.env.VITE_API_URL;
   const fullUrl = fileUrl.startsWith('http') ? fileUrl : `${baseUrl}${fileUrl}`;
 
   return (

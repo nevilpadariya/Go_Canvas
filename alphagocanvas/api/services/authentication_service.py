@@ -2,6 +2,7 @@ from datetime import datetime
 from alphagocanvas.database import database_dependency
 from alphagocanvas.database.models import UserTable, StudentTable, FacultyTable
 from alphagocanvas.api.models.signup import SignupRequest
+from alphagocanvas.api.utils.passwords import hash_password
 from fastapi import HTTPException
 from sqlalchemy import func
 
@@ -75,8 +76,9 @@ def create_user(signup_data: SignupRequest, db: database_dependency):
     :return: Created user information including assigned ID
     """
     # Check if email already exists
+    normalized_email = signup_data.Useremail.lower().strip()
     existing_user = db.query(UserTable).filter(
-        UserTable.Useremail == signup_data.Useremail
+        func.lower(UserTable.Useremail) == normalized_email
     ).first()
     
     if existing_user:
@@ -92,8 +94,8 @@ def create_user(signup_data: SignupRequest, db: database_dependency):
         # Create entry in UserTable
         new_user = UserTable(
             Userid=assigned_id,
-            Useremail=signup_data.Useremail,
-            Userpassword=signup_data.Userpassword,  # TODO: Hash password with bcrypt
+            Useremail=normalized_email,
+            Userpassword=hash_password(signup_data.Userpassword),
             Userrole=signup_data.Userrole,
             Createdat=datetime.utcnow().isoformat(),
             Isactive=True
@@ -146,7 +148,8 @@ def get_user(username: str, db: database_dependency):
     :return: retrieved user from the database
     """
     if '@' in username:
-        user = db.query(UserTable).filter(UserTable.Useremail == username).first()
+        normalized_email = username.lower().strip()
+        user = db.query(UserTable).filter(func.lower(UserTable.Useremail) == normalized_email).first()
     else:
         # Try to convert to integer ID
         try:

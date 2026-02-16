@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, Modal, FlatList } from 'react-native';
-import { getApi, postApi } from '@gocanvas/shared';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, Modal, FlatList } from 'react-native';
+import { getApi, getCurrentSemesterCode, postApi } from '@gocanvas/shared';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
@@ -57,7 +57,7 @@ export default function FacultyGradesScreen() {
         await postApi("/faculty/assign_grades", {
             Studentid: selectedStudent.Studentid,
             Courseid: courseId,
-            Semester: "SPRING24", // Hardcoded per current logic
+            Semester: getCurrentSemesterCode(),
             Grade: selectedGrade
         });
         Alert.alert("Success", `Assigned ${selectedGrade} to ${selectedStudent.Studentname}`);
@@ -72,7 +72,6 @@ export default function FacultyGradesScreen() {
 
   const renderModalContent = () => {
     const isStudent = modalType === 'student';
-    const data = isStudent ? students : GRADES;
     
     return (
         <View style={styles.modalContent}>
@@ -82,29 +81,43 @@ export default function FacultyGradesScreen() {
                     <Text style={styles.closeText}>Close</Text>
                 </TouchableOpacity>
             </View>
-            <FlatList
-                data={data}
-                keyExtractor={(item) => isStudent ? (item as Student).Studentid.toString() : (item as string)}
-                renderItem={({ item }) => {
-                   if (isStudent) {
-                        const s = item as Student;
-                        return (
-                            <TouchableOpacity style={styles.modalItem} onPress={() => { setSelectedStudent(s); setModalType(null); }}>
-                                <Text style={styles.modalItemText}>{s.Studentname}</Text>
-                                {selectedStudent?.Studentid === s.Studentid && <Check size={20} color={Colors.primary} />}
-                            </TouchableOpacity>
-                        )
-                   } else {
-                        const g = item as string;
-                        return (
-                            <TouchableOpacity style={styles.modalItem} onPress={() => { setSelectedGrade(g); setModalType(null); }}>
-                                <Text style={styles.modalItemText}>{g}</Text>
-                                {selectedGrade === g && <Check size={20} color={Colors.primary} />}
-                            </TouchableOpacity>
-                        )
-                   }
-                }}
-            />
+            {isStudent ? (
+              <FlatList
+                data={students}
+                keyExtractor={(item) => item.Studentid.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.modalItem}
+                    onPress={() => {
+                      setSelectedStudent(item);
+                      setModalType(null);
+                    }}
+                  >
+                    <Text style={styles.modalItemText}>{item.Studentname}</Text>
+                    {selectedStudent?.Studentid === item.Studentid && (
+                      <Check size={20} color={Colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                )}
+              />
+            ) : (
+              <FlatList
+                data={GRADES}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.modalItem}
+                    onPress={() => {
+                      setSelectedGrade(item);
+                      setModalType(null);
+                    }}
+                  >
+                    <Text style={styles.modalItemText}>{item}</Text>
+                    {selectedGrade === item && <Check size={20} color={Colors.primary} />}
+                  </TouchableOpacity>
+                )}
+              />
+            )}
         </View>
     );
   };

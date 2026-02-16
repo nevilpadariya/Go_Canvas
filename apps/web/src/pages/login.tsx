@@ -44,7 +44,7 @@ const Login: React.FC = () => {
       requestBody.append("client_id", "string");
       requestBody.append("client_secret", "string");
 
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const API_URL = import.meta.env.VITE_API_URL;
       
       const response = await fetch(
         `${API_URL}/token`,
@@ -59,6 +59,11 @@ const Login: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
+        if (data.is_new_user && data.needs_password) {
+          setError("Complete account setup from the landing page to set your password.");
+          navigate("/");
+          return;
+        }
         const newToken = data.access_token;
         const payload: DecodedToken = jwtDecode(newToken);
         localStorage.setItem("token", newToken);
@@ -89,7 +94,7 @@ const Login: React.FC = () => {
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const API_URL = import.meta.env.VITE_API_URL;
       
       const response = await fetch(
         `${API_URL}/auth/google`,
@@ -106,6 +111,11 @@ const Login: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
+        if (data.is_new_user && data.needs_password) {
+          setError("Complete account setup from the landing page to set your password.");
+          navigate("/");
+          return;
+        }
         const newToken = data.access_token;
         const payload: DecodedToken = jwtDecode(newToken);
         localStorage.setItem("token", newToken);

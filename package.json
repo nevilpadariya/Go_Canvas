@@ -5,6 +5,18 @@
     "apps/*",
     "packages/*"
   ],
+  "scripts": {
+    "build:web": "npm run build --workspace @gocanvas/web",
+    "lint:web": "npm run lint --workspace @gocanvas/web",
+    "test:web": "npm run test --workspace @gocanvas/web -- --run src/pages/__tests__/student/grades.test.tsx src/utils/__tests__/auth.test.ts",
+    "typecheck:mobile": "npx tsc -p apps/mobile/tsconfig.json --noEmit",
+    "test:mobile": "npm run test --workspace @gocanvas/mobile -- --watch=false --runInBand",
+    "check:backend": "python -m compileall -q alphagocanvas main.py",
+    "test:backend": "pytest -q alphagocanvas/tests/test_student.py",
+    "security:migrate-passwords": "python scripts/migrate_password_hashes.py",
+    "predeploy:check": "python scripts/predeploy_check.py --production",
+    "check": "npm run check:backend && npm run test:web && npm run build:web && npm run typecheck:mobile && npm run test:backend"
+  },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.56.0",
     "lightningcss-linux-x64-gnu": "^1.30.2",

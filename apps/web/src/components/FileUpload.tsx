@@ -66,7 +66,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
     try {
       const response = await axios.post<UploadedFile>(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/files/upload`,
+        `${import.meta.env.VITE_API_URL}/files/upload`,
         formData,
         {
           headers: {
@@ -151,7 +151,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       try {
         const token = localStorage.getItem('token');
         await axios.delete(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/files/${fileToRemove.uploadedFile.Fileid}`,
+          `${import.meta.env.VITE_API_URL}/files/${fileToRemove.uploadedFile.Fileid}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

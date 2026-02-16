@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet";
 import { useParams } from "react-router-dom";
 import { FacultyPageLayout } from "@/components/FacultyPageLayout";
 import { getApi } from "@/lib/api";
+import { getCurrentSemesterCode } from "@/lib/semester";
 import DashboardCardFaculty from "../../components/facultydashboardcard";
 
 interface Course {
@@ -22,7 +23,10 @@ function CourseFaculty() {
   const fetchCourses = async () => {
     try {
       const data = await getApi<Course[]>("/faculty/courses_taught");
-      const currentSemesterCourses = data.filter((course) => course.Coursesemester === "SPRING24");
+      const currentSemester = getCurrentSemesterCode();
+      const currentSemesterCourses = data.filter(
+        (course) => course.Coursesemester.toUpperCase() === currentSemester
+      );
       setCurrentSemesterData(currentSemesterCourses);
     } catch {
       // leave state as-is on error

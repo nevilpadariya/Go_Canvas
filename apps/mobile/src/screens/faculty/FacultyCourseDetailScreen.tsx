@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { ArrowLeft, Users, FileText, CheckSquare, BarChart2 } from 'lucide-react-native';
@@ -14,14 +15,22 @@ type FacultyCourseDetailRouteProp = RouteProp<{
   };
 }, 'FacultyCourseDetail'>;
 
+type FacultyStackParamList = {
+  FacultySyllabus: { courseId: number; courseName: string };
+  FacultyStudentList: { courseId: number; courseName: string };
+  FacultyAssignments: { courseId: number; courseName: string };
+  FacultyGrades: { courseId: number; courseName: string };
+};
+
+type FacultyScreenName = keyof FacultyStackParamList;
+
 export default function FacultyCourseDetailScreen() {
   const route = useRoute<FacultyCourseDetailRouteProp>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<FacultyStackParamList>>();
   const { courseId, courseName, courseSemester } = route.params;
 
-  const navigateTo = (screen: string) => {
-    // We will implement these screens next
-    navigation.navigate(screen as never, { courseId, courseName } as never);
+  const navigateTo = (screen: FacultyScreenName) => {
+    navigation.navigate(screen, { courseId, courseName });
   };
 
   return (

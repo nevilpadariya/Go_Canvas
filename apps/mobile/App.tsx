@@ -28,8 +28,8 @@ import { ActivityIndicator, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Configure Shared API
-// Replace with your local IP if testing on real device
-const API_URL = "https://squid-app-bgn4p.ondigitalocean.app"; 
+const API_URL = (globalThis as { process?: { env?: Record<string, string | undefined> } })
+  .process?.env?.EXPO_PUBLIC_API_URL;
 configureApi({
   baseUrl: API_URL,
   getToken: () => AsyncStorage.getItem('token')

@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet";
 import { useParams } from "react-router-dom";
 import { FacultyPageLayout } from "@/components/FacultyPageLayout";
 import { getApi, postApi } from "@/lib/api";
+import { getCurrentSemesterCode } from "@/lib/semester";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +31,7 @@ function AddQuiz() {
   const [quizDescription, setQuizDescription] = useState("");
   const [savedQuizzes, setSavedQuizzes] = useState<QuizData[]>([]);
   const [error, setError] = useState("");
+  const currentSemester = getCurrentSemesterCode();
 
   useEffect(() => {
     if (!courseId || courseId === "undefined") {
@@ -55,7 +57,7 @@ function AddQuiz() {
         Courseid: courseId,
         Quizname: quizName,
         Quizdescription: quizDescription,
-        Semester: "SPRING24",
+        Semester: currentSemester,
       });
       setSavedQuizzes((prev) => [...prev, newQuiz]);
       setQuizName("");

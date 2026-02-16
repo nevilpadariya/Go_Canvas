@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import axios from 'axios';
-import { Trophy, TrendingUp, BookOpen, FileText, Brain, Award } from 'lucide-react';
+import { Trophy, TrendingUp, BookOpen, FileText, Award } from 'lucide-react';
 
 import Header from '../../components/header';
 import Sidebar from '../../components/sidebar';
@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { getCurrentSemesterCode } from '@/lib/semester';
 
 interface CourseGrade {
   Studentid: string;
@@ -47,27 +48,10 @@ interface Submission {
   Submissiongraded: boolean;
 }
 
-interface QuizAttempt {
-  Attemptid: number;
-  Quizid: number;
-  Attemptscore: number | null;
-  Attemptmaxscore: number | null;
-  Attemptgraded: boolean;
-}
-
-interface Quiz {
-  Quizid: number;
-  Quizname: string;
-  Courseid: number;
-  Coursename: string;
-}
-
 function StudentGrades() {
   const [courseGrades, setCourseGrades] = useState<CourseGrade[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-  const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
   const [selectedSemester, setSelectedSemester] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
@@ -78,19 +62,20 @@ function StudentGrades() {
   const fetchAllGradeData = async () => {
     try {
       const token = localStorage.getItem('token');
+      const currentSemester = getCurrentSemesterCode();
       const headers = { Authorization: `Bearer ${token}` };
 
 
       const gradesResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/student/view_grades`,
+        `${import.meta.env.VITE_API_URL}/student/view_grades`,
         { headers }
       );
       setCourseGrades(gradesResponse.data);
 
 
       const assignmentsResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/student/view_assignment_published`,
-        { headers, params: { current_semester: 'SPRING24' } }
+        `${import.meta.env.VITE_API_URL}/student/view_assignment_published`,
+        { headers, params: { current_semester: currentSemester } }
       );
       setAssignments(assignmentsResponse.data);
 
@@ -99,17 +84,10 @@ function StudentGrades() {
       const studentId = payload.userid;
 
       const submissionsResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/submissions/student/${studentId}`,
+        `${import.meta.env.VITE_API_URL}/submissions/student/${studentId}`,
         { headers }
       );
       setSubmissions(submissionsResponse.data);
-
-
-      const quizzesResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/student/view_quizzes_published`,
-        { headers, params: { current_semester: 'SPRING24' } }
-      );
-      setQuizzes(quizzesResponse.data);
 
     } catch (error) {
       console.error('Error fetching grade data:', error);

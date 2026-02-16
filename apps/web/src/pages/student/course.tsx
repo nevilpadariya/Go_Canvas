@@ -20,9 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MainContentWrapper } from "@/components/MainContentWrapper";
-import { Card } from "@/components/ui/card";
+import { getCurrentSemesterCode } from "@/lib/semester";
 
 interface Assignment {
   Courseid: string;
@@ -70,6 +69,7 @@ function Course() {
 
   const { courseid } = useParams();
   const navigate = useNavigate();
+  const currentSemester = getCurrentSemesterCode();
 
   const [assignments, setAssignments] = React.useState<Assignment[]>([]);
   const [quizzes, setQuizzes] = React.useState<Quiz[]>([]);
@@ -77,21 +77,16 @@ function Course() {
   const [grades, setGrades] = React.useState<Grade[]>([]);
 
   useEffect(() => {
-    fetchContents();
-  }, []);
-
-  useEffect(() => {
-    fetchAssignments();
-    fetchQuizzes();
-    fetchAnnouncements();
-    fetchGrades();
+    if (courseid) {
+      localStorage.setItem("courseid", courseid);
+    }
   }, [courseid]);
 
-  const fetchContents = async () => {
+  async function fetchContents() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/student/view_contents`,
+        `${import.meta.env.VITE_API_URL}/student/view_contents`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -112,14 +107,13 @@ function Course() {
     } catch (error) {
       console.error("Error fetching contents:", error);
     }
-  };
+  }
 
-  const fetchAssignments = async () => {
+  async function fetchAssignments() {
     try {
       const token = localStorage.getItem("token");
-      const currentSemester = "SPRING24";
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/student/view_assignment_published`,
+        `${import.meta.env.VITE_API_URL}/student/view_assignment_published`,
         {
           params: {
             current_semester: currentSemester,
@@ -138,14 +132,13 @@ function Course() {
     } catch (error) {
       console.error("Error fetching assignments:", error);
     }
-  };
+  }
 
-  const fetchQuizzes = async () => {
+  async function fetchQuizzes() {
     try {
       const token = localStorage.getItem("token");
-      const currentSemester = "SPRING24";
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/student/view_quizzes_published`,
+        `${import.meta.env.VITE_API_URL}/student/view_quizzes_published`,
         {
           params: {
             current_semester: currentSemester,
@@ -164,14 +157,13 @@ function Course() {
     } catch (error) {
       console.error("Error fetching quizzes:", error);
     }
-  };
+  }
 
-  const fetchAnnouncements = async () => {
+  async function fetchAnnouncements() {
     try {
       const token = localStorage.getItem("token");
-      const currentSemester = "SPRING24";
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/student/view_announcements_published`,
+        `${import.meta.env.VITE_API_URL}/student/view_announcements_published`,
         {
           params: {
             current_semester: currentSemester,
@@ -190,13 +182,13 @@ function Course() {
     } catch (error) {
       console.error("Error fetching Announcements:", error);
     }
-  };
+  }
 
-  const fetchGrades = async () => {
+  async function fetchGrades() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/student/view_grades`,
+        `${import.meta.env.VITE_API_URL}/student/view_grades`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -212,7 +204,20 @@ function Course() {
     } catch (error) {
       console.error("Error fetching grades:", error);
     }
-  };
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchContents();
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchAssignments();
+    fetchQuizzes();
+    fetchAnnouncements();
+    fetchGrades();
+  }, [courseid]);
 
   return (
     <>
@@ -242,7 +247,7 @@ function Course() {
                   courseid={courseid1}
                   coursename={coursename}
                   coursedescription={coursedescription}
-                  coursesemester={"SPRING24"}
+                  coursesemester={currentSemester}
                   buttondisabled={true}
                 />
               </div>

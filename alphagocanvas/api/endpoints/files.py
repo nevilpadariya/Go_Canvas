@@ -23,7 +23,7 @@ from alphagocanvas.api.models.submission import (
 )
 from alphagocanvas.api.services.submission_service import (
     upload_file, get_file_info, get_file_path, delete_file, get_files_by_course,
-    create_submission, get_submission, get_submissions_by_assignment, grade_submission,
+    create_submission, get_submission, get_submissions_by_assignment, get_submissions_by_student, grade_submission,
     add_submission_comment, get_submission_comments, get_grading_stats
 )
 from alphagocanvas.api.utils.auth import decode_token, is_current_user_faculty, is_current_user_student
@@ -198,6 +198,23 @@ async def get_assignment_submissions_endpoint(
         raise HTTPException(status_code=403, detail="Only faculty can view all submissions")
     
     return get_submissions_by_assignment(db, assignmentid)
+
+
+@submission_router.get("/student/{studentid}", response_model=List[SubmissionResponse])
+async def get_student_submissions_endpoint(
+    studentid: int,
+    db: database_dependency,
+    token: str = Depends(oauth2_scheme)
+):
+    """Get all submissions for a student."""
+    decoded_token = decode_token(token=token)
+    requester_id = decoded_token.get("userid")
+    requester_role = decoded_token.get("userrole")
+
+    if requester_role == "Student" and requester_id != studentid:
+        raise HTTPException(status_code=403, detail="Not authorized to view these submissions")
+
+    return get_submissions_by_student(db, studentid)
 
 
 # ============== GRADING ROUTER ==============

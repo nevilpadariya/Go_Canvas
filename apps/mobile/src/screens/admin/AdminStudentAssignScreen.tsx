@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, Modal, FlatList, TextInput } from 'react-native';
-import { getApi, postApi } from '@gocanvas/shared';
+import { getApi, getCurrentSemesterCode, postApi } from '@gocanvas/shared';
 import { Colors } from '../../constants/Colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronDown, Check, UserPlus } from 'lucide-react-native';
@@ -18,11 +18,6 @@ interface Course {
   Coursename: string;
 }
 
-const getCurrentSemester = () => {
-    // Basic helper to default semester, in real app consider logic or API
-    return "SPRING24"; 
-};
-
 export default function AdminStudentAssignScreen() {
   const navigation = useNavigation();
   
@@ -31,7 +26,7 @@ export default function AdminStudentAssignScreen() {
   
   const [selectedStudent, setSelectedStudent] = useState<User | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [semester, setSemester] = useState(getCurrentSemester());
+  const [semester, setSemester] = useState(getCurrentSemesterCode());
 
   const [loading, setLoading] = useState(false);
   const [modalType, setModalType] = useState<'student' | 'course' | null>(null);

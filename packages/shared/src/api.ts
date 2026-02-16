@@ -1,4 +1,13 @@
-let API_BASE = "http://localhost:8000";
+function getRuntimeApiBase(): string {
+    const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
+    return (env.EXPO_PUBLIC_API_URL || env.REACT_APP_API_URL || "").trim();
+}
+
+function normalizeBaseUrl(baseUrl: string): string {
+    return baseUrl.trim().replace(/\/+$/, "");
+}
+
+let API_BASE = getRuntimeApiBase();
 let getToken: () => string | null | Promise<string | null> = () => null;
 
 export interface ApiConfig {
@@ -7,11 +16,16 @@ export interface ApiConfig {
 }
 
 export function configureApi(config: ApiConfig) {
-    if (config.baseUrl) API_BASE = config.baseUrl;
+    if (config.baseUrl) API_BASE = normalizeBaseUrl(config.baseUrl);
     if (config.getToken) getToken = config.getToken;
 }
 
 export function getApiUrl(path: string): string {
+    if (!API_BASE) {
+        throw new Error(
+            "API base URL is not configured. Set VITE_API_URL (web) or EXPO_PUBLIC_API_URL (mobile)."
+        );
+    }
     const p = path.startsWith("/") ? path : `/${path}`;
     return `${API_BASE}${p}`;
 }

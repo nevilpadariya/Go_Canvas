@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import Dict, List
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -121,20 +121,49 @@ def get_inbox(db: Session, user_id: int) -> InboxResponse:
     conversation_ids = [p.Conversationid for p in participant_convos]
     unread_map = {p.Conversationid: p.Isunread for p in participant_convos}
     
+    if not conversation_ids:
+        return InboxResponse(
+            Totalconversations=0,
+            Unreadconversations=0,
+            Conversations=[]
+        )
+
     conversations = db.query(ConversationTable).filter(
         ConversationTable.Conversationid.in_(conversation_ids)
     ).order_by(ConversationTable.Lastmessagedate.desc()).all()
+
+    participants = db.query(ConversationParticipantTable).filter(
+        ConversationParticipantTable.Conversationid.in_(conversation_ids)
+    ).all()
+    participants_map: Dict[int, List[ParticipantInfo]] = {}
+    for participant in participants:
+        conversation_participants = participants_map.setdefault(participant.Conversationid, [])
+        conversation_participants.append(
+            ParticipantInfo(
+                Userid=participant.Userid,
+                Userrole=participant.Userrole,
+                Username=participant.Username,
+                Isunread=participant.Isunread or False
+            )
+        )
+
+    messages = db.query(MessageTable).filter(
+        MessageTable.Conversationid.in_(conversation_ids)
+    ).order_by(
+        MessageTable.Conversationid,
+        MessageTable.Createdat.desc()
+    ).all()
+    last_message_map: Dict[int, MessageTable] = {}
+    for message in messages:
+        if message.Conversationid not in last_message_map:
+            last_message_map[message.Conversationid] = message
     
     convo_responses = []
     unread_count = 0
     
     for convo in conversations:
-        participants = get_participants(db, convo.Conversationid)
-        
-        # Get last message
-        last_message = db.query(MessageTable).filter(
-            MessageTable.Conversationid == convo.Conversationid
-        ).order_by(MessageTable.Createdat.desc()).first()
+        convo_participants = participants_map.get(convo.Conversationid, [])
+        last_message = last_message_map.get(convo.Conversationid)
         
         is_unread = unread_map.get(convo.Conversationid, False)
         if is_unread:
@@ -144,7 +173,7 @@ def get_inbox(db: Session, user_id: int) -> InboxResponse:
             Conversationid=convo.Conversationid,
             Conversationsubject=convo.Conversationsubject,
             Lastmessagedate=convo.Lastmessagedate,
-            Participants=participants,
+            Participants=convo_participants,
             Unreadcount=1 if is_unread else 0,
             Lastmessage=last_message.Messagecontent if last_message else None,
             Createdat=convo.Createdat

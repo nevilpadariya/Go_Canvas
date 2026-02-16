@@ -7,7 +7,7 @@ from typing import Optional
 
 class ForgotPasswordRequest(BaseModel):
     """Request model for forgot password"""
-    email: str
+    email: EmailStr
 
     @field_validator('email')
     @classmethod

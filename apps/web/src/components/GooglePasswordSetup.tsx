@@ -20,6 +20,7 @@ interface GooglePasswordSetupProps {
   userEmail: string;
   userId: number;
   assignedId: string;
+  googleCredential: string;
 }
 
 interface DecodedToken {
@@ -34,6 +35,7 @@ export function GooglePasswordSetup({
   userEmail,
   userId,
   assignedId,
+  googleCredential,
 }: GooglePasswordSetupProps) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -63,7 +65,7 @@ export function GooglePasswordSetup({
     setLoading(true);
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const API_URL = import.meta.env.VITE_API_URL;
 
       const response = await fetch(`${API_URL}/auth/google/set-password`, {
         method: "POST",
@@ -72,6 +74,7 @@ export function GooglePasswordSetup({
         },
         body: JSON.stringify({
           email: userEmail,
+          credential: googleCredential,
           password: password,
         }),
       });
@@ -124,6 +127,8 @@ export function GooglePasswordSetup({
             <AlertTitle>Your Student ID</AlertTitle>
             <AlertDescription>
               Your unique ID is: <strong className="text-lg">{assignedId}</strong>
+              <br />
+              Internal User ID: <strong>{userId}</strong>
               <br />
               <span className="text-xs text-muted-foreground mt-1 block">
                 Save this ID - you can use it to login with your password in the future

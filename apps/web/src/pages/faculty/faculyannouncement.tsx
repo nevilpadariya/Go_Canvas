@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet";
 import { useParams } from "react-router-dom";
 import { FacultyPageLayout } from "@/components/FacultyPageLayout";
 import { getApi, postApi } from "@/lib/api";
+import { getCurrentSemesterCode } from "@/lib/semester";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +38,7 @@ function AddAnnouncement() {
   const [announcementDescription, setAnnouncementDescription] = useState("");
   const [savedAnnouncements, setSavedAnnouncements] = useState<AnnouncementData[]>([]);
   const [error, setError] = useState("");
+  const currentSemester = getCurrentSemesterCode();
 
   useEffect(() => {
     if (!courseId || courseId === "undefined") {
@@ -50,7 +52,7 @@ function AddAnnouncement() {
           id: item.Announcementid,
           announcementName: item.Announcementname,
           announcementDescription: item.Announcementdescription,
-          Semester: "SPRING24",
+          Semester: currentSemester,
         }));
         setSavedAnnouncements(mappedData);
         setError("");
@@ -67,11 +69,11 @@ function AddAnnouncement() {
         Courseid: courseId,
         Announcementname: announcementName,
         Announcementdescription: announcementDescription,
-        Semester: "SPRING24",
+        Semester: currentSemester,
       });
       setSavedAnnouncements((prev) => [
         ...prev,
-        { id: newAnnouncement.Announcementid, announcementName, announcementDescription, Semester: "SPRING24" },
+        { id: newAnnouncement.Announcementid, announcementName, announcementDescription, Semester: currentSemester },
       ]);
       setAnnouncementName("");
       setAnnouncementDescription("");

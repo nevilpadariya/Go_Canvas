@@ -66,7 +66,7 @@ function AdminDashboardPage() {
     const fetchCourses = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/view_courses_by_faculty`,
+          `${import.meta.env.VITE_API_URL}/admin/view_courses_by_faculty`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -101,7 +101,7 @@ function AdminDashboardPage() {
     const fetchUsers = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/users`,
+          `${import.meta.env.VITE_API_URL}/admin/users`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -117,7 +117,7 @@ function AdminDashboardPage() {
     const fetchAnalytics = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/analytics`,
+          `${import.meta.env.VITE_API_URL}/admin/analytics`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (response.status === 200) {
@@ -139,7 +139,7 @@ function AdminDashboardPage() {
     if (!newCourseName.trim()) return;
     try {
       await axios.post(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/courses`,
+        `${import.meta.env.VITE_API_URL}/admin/courses`,
         { Coursename: newCourseName },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -157,7 +157,7 @@ function AdminDashboardPage() {
     if (!confirm(`Are you sure you want to deactivate ${user.Userfirstname}?`)) return;
     try {
       await axios.delete(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/users/${user.Userid}`,
+        `${import.meta.env.VITE_API_URL}/admin/users/${user.Userid}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setUsers(users.map(u => u.Userid === user.Userid ? { ...u, Isactive: false } : u));
@@ -170,7 +170,7 @@ function AdminDashboardPage() {
   const handleRoleChange = async (userId: number, newRole: string) => {
     try {
       await axios.put(
-        `${import.meta.env.VITE_API_URL || "http://localhost:8000"}/admin/users/${userId}/role`,
+        `${import.meta.env.VITE_API_URL}/admin/users/${userId}/role`,
         { role: newRole },
         { headers: { Authorization: `Bearer ${token}` } }
       );

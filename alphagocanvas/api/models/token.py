@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from pydantic import BaseModel
+from typing import Optional
 
 
 class Token(BaseModel):
@@ -10,6 +11,6 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     useremail: str
-    userpassword: str
+    userpassword: Optional[str] = None
     userrole: str
     userid : int

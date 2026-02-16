@@ -14,16 +14,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
-
-const getCurrentSemester = () => {
-  const date = new Date();
-  const month = date.getMonth();
-  const year = date.getFullYear().toString().slice(-2);
-  
-  if (month <= 4) return `Spring${year}`;
-  if (month <= 6) return `Summer${year}`;
-  return `Fall${year}`;
-};
+import { getCurrentSemesterCode } from "@/lib/semester";
 
 import { MainContentWrapper } from "@/components/MainContentWrapper";
 
@@ -32,7 +23,7 @@ function DashboardPage() {
   const [currentSemesterData, setCurrentSemesterData] = useState([]);
   let { courseid } = useParams();
 
-  const currentSemester = getCurrentSemester();
+  const currentSemester = getCurrentSemesterCode();
 
   const fetchSemesterData = async () => {
     try {
@@ -53,7 +44,7 @@ function DashboardPage() {
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/student/view_contents`,
+        `${import.meta.env.VITE_API_URL}/student/view_contents`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

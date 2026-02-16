@@ -317,6 +317,48 @@ def get_submission(db: Session, submission_id: int) -> SubmissionResponse:
     )
 
 
+def get_submissions_by_student(db: Session, student_id: int) -> List[SubmissionResponse]:
+    """Get all submissions for a specific student."""
+    submissions = db.query(SubmissionTable).filter(
+        SubmissionTable.Studentid == student_id
+    ).order_by(SubmissionTable.Submitteddate.desc()).all()
+
+    student_query = text("""
+        SELECT CONCAT(Studentfirstname, ' ', Studentlastname) as Studentname
+        FROM student WHERE Studentid = :studentid
+    """)
+    student = db.execute(student_query, {"studentid": student_id}).fetchone()
+    student_name = student.Studentname if student else None
+
+    response: List[SubmissionResponse] = []
+    for submission in submissions:
+        file_info = None
+        if submission.Submissionfileid:
+            try:
+                file_info = get_file_info(db, submission.Submissionfileid)
+            except Exception:
+                file_info = None
+
+        response.append(
+            SubmissionResponse(
+                Submissionid=submission.Submissionid,
+                Assignmentid=submission.Assignmentid,
+                Studentid=submission.Studentid,
+                Studentname=student_name,
+                Submissioncontent=submission.Submissioncontent,
+                Submissionfileid=submission.Submissionfileid,
+                Fileinfo=file_info,
+                Submissionscore=submission.Submissionscore,
+                Submissiongraded=submission.Submissiongraded or False,
+                Submissionfeedback=submission.Submissionfeedback,
+                Submitteddate=submission.Submitteddate,
+                Gradeddate=submission.Gradeddate,
+            )
+        )
+
+    return response
+
+
 def get_submissions_by_assignment(db: Session, assignment_id: int) -> SubmissionListResponse:
     """Get all submissions for an assignment"""
     # Get assignment info

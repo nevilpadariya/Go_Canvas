@@ -1,38 +1,50 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { SidebarProvider } from "@/context/SidebarContext";
-import LandingPage from "./pages/landing";
-import LoginPage from "./pages/login";
-import SignupPage from "./pages/signup";
-import ForgotPasswordPage from "./pages/forgot-password";
-import ResetPasswordPage from "./pages/reset-password";
-import DashboardPage from "./pages/student/dashboard";
-import AccountPage from "./pages/student/account";
-import StudentAssignments from "./pages/student/assignments";
-import AssignmentDetail from "./pages/student/assignment-detail";
-import TakeQuiz from "./pages/student/take-quiz";
-import StudentGrades from "./pages/student/grades";
-import AdminDashboardPage from "./pages/admin/admindashboard";
-import FacultyDashnboard from "./pages/faculty/facultydashboard";
-import AddAssignment from "./pages/faculty/facultyassignment";
-import AddGrades from "./pages/faculty/facultygrades";
-import FacultyGradebook from "./pages/faculty/facultygradebook";
-import AddQuiz from "./pages/faculty/facultyquiz";
-import AddAnnouncement from "./pages/faculty/faculyannouncement";
-import AssignCourse from "./pages/admin/assigncourse";
-import AddSyllabus from "./pages/faculty/facultysyllabus";
-import StudentList from "./pages/admin/students";
-import AdminUsersPage from "./pages/admin/users";
-import Course from "./pages/student/course";
-import CourseFaculty from "./pages/faculty/facultycourse";
-import CourseStudentList from "./pages/faculty/facultystudentlist";
 import ProtectedRoute from "./ProtectedRoutes";
-import UnauthorizedAccess from "./pages/access";
+
+const LandingPage = lazy(() => import("./pages/landing"));
+const SignupPage = lazy(() => import("./pages/signup"));
+const ForgotPasswordPage = lazy(() => import("./pages/forgot-password"));
+const ResetPasswordPage = lazy(() => import("./pages/reset-password"));
+const DashboardPage = lazy(() => import("./pages/student/dashboard"));
+const AccountPage = lazy(() => import("./pages/student/account"));
+const StudentAssignments = lazy(() => import("./pages/student/assignments"));
+const AssignmentDetail = lazy(() => import("./pages/student/assignment-detail"));
+const TakeQuiz = lazy(() => import("./pages/student/take-quiz"));
+const StudentGrades = lazy(() => import("./pages/student/grades"));
+const StudentModules = lazy(() => import("./pages/student/modules"));
+const StudentDiscussions = lazy(() => import("./pages/student/discussions"));
+const StudentCalendar = lazy(() => import("./pages/student/calendar"));
+const StudentInbox = lazy(() => import("./pages/student/inbox"));
+const AdminDashboardPage = lazy(() => import("./pages/admin/admindashboard"));
+const FacultyDashnboard = lazy(() => import("./pages/faculty/facultydashboard"));
+const AddAssignment = lazy(() => import("./pages/faculty/facultyassignment"));
+const AddGrades = lazy(() => import("./pages/faculty/facultygrades"));
+const FacultyGradebook = lazy(() => import("./pages/faculty/facultygradebook"));
+const FacultySpeedGrader = lazy(() => import("./pages/faculty/facultyspeedgrader"));
+const AddQuiz = lazy(() => import("./pages/faculty/facultyquiz"));
+const AddAnnouncement = lazy(() => import("./pages/faculty/faculyannouncement"));
+const AssignCourse = lazy(() => import("./pages/admin/assigncourse"));
+const AddSyllabus = lazy(() => import("./pages/faculty/facultysyllabus"));
+const StudentList = lazy(() => import("./pages/admin/students"));
+const AdminUsersPage = lazy(() => import("./pages/admin/users"));
+const Course = lazy(() => import("./pages/student/course"));
+const CourseFaculty = lazy(() => import("./pages/faculty/facultycourse"));
+const CourseStudentList = lazy(() => import("./pages/faculty/facultystudentlist"));
+const UnauthorizedAccess = lazy(() => import("./pages/access"));
 
 function App() {
   return (
     <BrowserRouter>
       <SidebarProvider>
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center text-muted-foreground">
+              Loading...
+            </div>
+          }
+        >
         <Routes>
         <Route
           path="dashboard"
@@ -95,6 +107,54 @@ function App() {
           element={
             <ProtectedRoute role="student">
               <StudentGrades />
+            </ProtectedRoute>
+          }
+        ></Route>
+        <Route
+          path="/student/modules"
+          element={
+            <ProtectedRoute role="student">
+              <StudentModules />
+            </ProtectedRoute>
+          }
+        ></Route>
+        <Route
+          path="/student/modules/:courseid"
+          element={
+            <ProtectedRoute role="student">
+              <StudentModules />
+            </ProtectedRoute>
+          }
+        ></Route>
+        <Route
+          path="/student/discussions"
+          element={
+            <ProtectedRoute role="student">
+              <StudentDiscussions />
+            </ProtectedRoute>
+          }
+        ></Route>
+        <Route
+          path="/student/discussions/:courseid"
+          element={
+            <ProtectedRoute role="student">
+              <StudentDiscussions />
+            </ProtectedRoute>
+          }
+        ></Route>
+        <Route
+          path="/student/calendar"
+          element={
+            <ProtectedRoute role="student">
+              <StudentCalendar />
+            </ProtectedRoute>
+          }
+        ></Route>
+        <Route
+          path="/student/inbox"
+          element={
+            <ProtectedRoute role="student">
+              <StudentInbox />
             </ProtectedRoute>
           }
         ></Route>
@@ -171,6 +231,14 @@ function App() {
           }
         ></Route>
         <Route
+          path="faculty_speedgrader/:courseid"
+          element={
+            <ProtectedRoute role="faculty">
+              <FacultySpeedGrader />
+            </ProtectedRoute>
+          }
+        ></Route>
+        <Route
           path="faculty_grades/:courseid"
           element={
             <ProtectedRoute role="faculty">
@@ -195,6 +263,7 @@ function App() {
         <Route path="users_list" element={<ProtectedRoute role="admin"><AdminUsersPage /></ProtectedRoute>}></Route>
         <Route path="error" element={<UnauthorizedAccess />}></Route>
       </Routes>
+      </Suspense>
       </SidebarProvider>
     </BrowserRouter>
   );

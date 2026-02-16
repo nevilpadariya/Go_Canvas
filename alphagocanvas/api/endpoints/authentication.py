@@ -6,6 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
+from sqlalchemy import func
 
 from alphagocanvas.api.models.token import TokenData, Token
 from alphagocanvas.api.models.signup import SignupRequest, SignupResponse
@@ -19,6 +20,7 @@ from alphagocanvas.api.services.authentication_service import get_user, create_u
 from alphagocanvas.api.services.password_reset_service import (
     create_password_reset_token, verify_reset_token, reset_password
 )
+from alphagocanvas.api.utils.passwords import hash_password, is_hashed_password, verify_password
 from alphagocanvas.api.utils import create_token
 from alphagocanvas.database import database_dependency
 from alphagocanvas.database.models import UserTable, StudentTable, FacultyTable
@@ -71,42 +73,21 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: 
     username = form_data.username  # Can be email or Student_id/Faculty_id
     password = form_data.password
 
-    role = None
-    authenticated = False
-
     user = get_user(username, db)
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found, or Invalid Credentials")
-    if password == user.Userpassword:
-        authenticated = True
-    if not authenticated:
-        raise HTTPException(status_code=401, detail="Incorrect useremail or password")
-    # check user role if it is admin:
-    # fetch the information from the admin table and also attach the role in the token
-    if authenticated:
-        if user.Userrole == "Student":
-            role = "Student"
+    if not user or not verify_password(password, user.Userpassword):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not user.Isactive:
+        raise HTTPException(status_code=403, detail="Account is deactivated")
 
-        # check user role if it is student:
-        # fetch the information from the student table and also attach the role in the token
-        if user.Userrole == "Admin":
-            role = "Admin"
+    # Seamless migration for legacy plain-text rows.
+    if not is_hashed_password(user.Userpassword):
+        user.Userpassword = hash_password(password)
+        db.commit()
+        db.refresh(user)
 
-        # check user role if it is faculty:
-        # fetch the information from the faculty table and also attach the role in the token
-        if user.Userrole == "Faculty":
-            role = "Faculty"
-
-        # Create token data
-        # call create function from utils
-        token = TokenData(useremail=user.Useremail, userpassword=password, userrole=role, userid=user.Userid)
-
-        encoded_token = create_token(token)
-
-        # Encoded token
-        token_encoded = Token(access_token=encoded_token, token_type="Bearer")
-
-        return token_encoded
+    token = TokenData(useremail=user.Useremail, userrole=user.Userrole, userid=user.Userid)
+    encoded_token = create_token(token)
+    return Token(access_token=encoded_token, token_type="Bearer")
 
 
 @router.post("/auth/google", response_model=GoogleAuthResponse)
@@ -119,6 +100,8 @@ async def google_auth(auth_data: GoogleAuthRequest, db: database_dependency):
     :return: encoded JWT token for the user
     """
     try:
+        if not GOOGLE_CLIENT_ID:
+            raise HTTPException(status_code=503, detail="Google authentication is not configured")
         # Verify the Google ID token
         idinfo = id_token.verify_oauth2_token(
             auth_data.credential,
@@ -134,15 +117,18 @@ async def google_auth(auth_data: GoogleAuthRequest, db: database_dependency):
         if not email:
             raise HTTPException(status_code=400, detail="Email not provided by Google")
         
+        if not idinfo.get("email_verified", False):
+            raise HTTPException(status_code=400, detail="Google account email is not verified")
+
         # Check if user already exists (case-insensitive email comparison)
-        from sqlalchemy import func
         user = db.query(UserTable).filter(func.lower(UserTable.Useremail) == email.lower()).first()
         
         if user:
+            if not user.Isactive:
+                raise HTTPException(status_code=403, detail="Account is deactivated")
             # User exists, create token
             token = TokenData(
                 useremail=user.Useremail,
-                userpassword=user.Userpassword,
                 userrole=user.Userrole,
                 userid=user.Userid
             )
@@ -163,8 +149,8 @@ async def google_auth(auth_data: GoogleAuthRequest, db: database_dependency):
         # Create user in UserTable with temporary password
         new_user = UserTable(
             Userid=assigned_id,
-            Useremail=email,
-            Userpassword=temp_password,
+            Useremail=email.lower(),
+            Userpassword=hash_password(temp_password),
             Userrole="Student",
             Createdat=datetime.utcnow().isoformat(),
             Isactive=True
@@ -193,7 +179,6 @@ async def google_auth(auth_data: GoogleAuthRequest, db: database_dependency):
                 if user:
                     token = TokenData(
                         useremail=user.Useremail,
-                        userpassword=user.Userpassword,
                         userrole=user.Userrole,
                         userid=user.Userid
                     )
@@ -236,8 +221,21 @@ async def set_google_user_password(request: SetPasswordRequest, db: database_dep
     :return: JWT token after password is set
     """
     try:
+        if not GOOGLE_CLIENT_ID:
+            raise HTTPException(status_code=503, detail="Google authentication is not configured")
+        idinfo = id_token.verify_oauth2_token(
+            request.credential,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID
+        )
+        email = (idinfo.get("email") or "").lower().strip()
+        if not idinfo.get("email_verified", False):
+            raise HTTPException(status_code=400, detail="Google account email is not verified")
+        if email != request.email.lower().strip():
+            raise HTTPException(status_code=403, detail="Google identity does not match requested email")
+
         # Find user by email
-        user = db.query(UserTable).filter(UserTable.Useremail == request.email).first()
+        user = db.query(UserTable).filter(func.lower(UserTable.Useremail) == email).first()
         
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
@@ -247,14 +245,13 @@ async def set_google_user_password(request: SetPasswordRequest, db: database_dep
             raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
         
         # Update password
-        user.Userpassword = request.password
+        user.Userpassword = hash_password(request.password)
         db.commit()
         db.refresh(user)
         
         # Create token
         token = TokenData(
             useremail=user.Useremail,
-            userpassword=user.Userpassword,
             userrole=user.Userrole,
             userid=user.Userid
         )
