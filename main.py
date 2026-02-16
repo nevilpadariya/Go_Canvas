@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 import logging
 from dotenv import load_dotenv
 from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.responses import RedirectResponse
 
 from alphagocanvas.api.endpoints.admin import router as admin_router
 from alphagocanvas.api.endpoints.authentication import router as auth_router
@@ -70,9 +70,13 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # Get allowed origins from environment variable or fallback to configured frontend URL
 cors_origins_str = os.getenv("CORS_ORIGINS", FRONTEND_URL)
-origins = [origin.strip() for origin in cors_origins_str.split(",") if origin.strip()]
+origins = [origin.strip().rstrip("/") for origin in cors_origins_str.split(",") if origin.strip()]
 cors_origin_regex = os.getenv("CORS_ORIGIN_REGEX", "").strip() or None
 
+if ALLOWED_HOSTS and "*" not in ALLOWED_HOSTS and not IS_TESTING:
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
+
+# Keep CORS outermost so error/redirect responses still include CORS headers.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -82,15 +86,17 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-if ENABLE_HTTPS_REDIRECT and not IS_TESTING:
-    app.add_middleware(HTTPSRedirectMiddleware)
-
-if ALLOWED_HOSTS and "*" not in ALLOWED_HOSTS and not IS_TESTING:
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
-
 
 @app.middleware("http")
 async def add_security_headers(request, call_next):
+    if ENABLE_HTTPS_REDIRECT and not IS_TESTING:
+        # Respect reverse-proxy forwarded protocol to avoid HTTPS redirect loops in deployment.
+        forwarded_proto = request.headers.get("x-forwarded-proto", "")
+        request_proto = forwarded_proto.split(",")[0].strip().lower() or request.url.scheme.lower()
+        if request_proto != "https":
+            https_url = request.url.replace(scheme="https")
+            return RedirectResponse(url=str(https_url), status_code=307)
+
     response = await call_next(request)
     if SECURE_HEADERS:
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
