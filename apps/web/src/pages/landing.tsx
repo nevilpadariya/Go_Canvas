@@ -22,6 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { loginlogo } from "../assets/images";
 import { GooglePasswordSetup } from "@/components/GooglePasswordSetup";
+import { getApiBaseUrl, parseApiError } from "@/lib/apiClient";
 
 // ============= INTERFACES =============
 
@@ -129,7 +130,7 @@ const LandingPage: React.FC = () => {
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL;
+      const API_URL = getApiBaseUrl();
       
       const response = await fetch(`${API_URL}/auth/google`, {
         method: "POST",
@@ -177,14 +178,11 @@ const LandingPage: React.FC = () => {
           setLoginError("Unknown user role");
         }
       } else {
-        const errorData = await response.json();
-        const errorMessage =
-          errorData.detail || "An error occurred during Google login.";
-        setLoginError(errorMessage);
+        setLoginError(await parseApiError(response, "An error occurred during Google login."));
       }
     } catch (error) {
       console.error("Error during Google login:", error);
-      setLoginError("An error occurred during Google login. Please try again later.");
+      setLoginError(error instanceof Error ? error.message : "An error occurred during Google login. Please try again later.");
     }
   };
 
@@ -202,7 +200,7 @@ const LandingPage: React.FC = () => {
       requestBody.append("client_id", "string");
       requestBody.append("client_secret", "string");
 
-      const API_URL = import.meta.env.VITE_API_URL;
+      const API_URL = getApiBaseUrl();
 
       const response = await fetch(`${API_URL}/token`, {
         method: "POST",
@@ -230,12 +228,11 @@ const LandingPage: React.FC = () => {
           setLoginError("Unknown user role");
         }
       } else {
-        const errorData = await response.json();
-        setLoginError(errorData.detail || "An error occurred during login.");
+        setLoginError(await parseApiError(response, "An error occurred during login."));
       }
     } catch (error) {
       console.error("Error during login:", error);
-      setLoginError("An error occurred during login. Please try again later.");
+      setLoginError(error instanceof Error ? error.message : "An error occurred during login. Please try again later.");
     }
   };
 
@@ -285,7 +282,7 @@ const LandingPage: React.FC = () => {
     setSignupError("");
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL;
+      const API_URL = getApiBaseUrl();
 
       const response = await fetch(`${API_URL}/signup`, {
         method: "POST",
@@ -301,16 +298,15 @@ const LandingPage: React.FC = () => {
         }),
       });
 
-      const data = await response.json();
-
       if (response.ok) {
+        const data = await response.json();
         setSignupSuccess(data);
       } else {
-        setSignupError(data.detail || "Signup failed. Please try again.");
+        setSignupError(await parseApiError(response, "Signup failed. Please try again."));
       }
     } catch (error) {
       console.error("Error during signup:", error);
-      setSignupError("An error occurred during signup. Please try again later.");
+      setSignupError(error instanceof Error ? error.message : "An error occurred during signup. Please try again later.");
     } finally {
       setSignupLoading(false);
     }

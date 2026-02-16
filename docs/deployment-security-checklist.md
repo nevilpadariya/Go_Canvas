@@ -15,6 +15,7 @@
   - no `*`, no localhost values in production.
 - Set strict CORS:
   - `CORS_ORIGINS=https://app.example.com,https://admin.example.com`
+  - optional preview support: `CORS_ORIGIN_REGEX=^https://.*\\.vercel\\.app$`
   - no `*`, no localhost values in production.
 - Enable transport and headers:
   - `ENABLE_HTTPS_REDIRECT=true`
@@ -40,6 +41,7 @@
 
 - Ensure CI workflow passes.
 - Ensure `npm run check` passes.
+- In Vercel Project Settings -> Environment Variables, confirm `VITE_API_URL` is set for Production (and Preview if used), then redeploy.
 - Verify login, signup, password reset, and Google onboarding in staging.
 
 ## 5. Post-Deploy

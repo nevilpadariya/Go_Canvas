@@ -73,6 +73,7 @@ def main() -> int:
     web_api_url = env.get("VITE_API_URL", "").strip()
     mobile_api_url = env.get("EXPO_PUBLIC_API_URL", "").strip()
     cors_origins = parse_csv(env.get("CORS_ORIGINS"))
+    cors_origin_regex = env.get("CORS_ORIGIN_REGEX", "").strip()
     allowed_hosts = parse_csv(env.get("ALLOWED_HOSTS"))
     enable_https_redirect = parse_bool(env.get("ENABLE_HTTPS_REDIRECT"), default=False)
     secure_headers = parse_bool(env.get("SECURE_HEADERS"), default=True)
@@ -128,8 +129,8 @@ def main() -> int:
             if has_any_token(value, LOCALHOST_TOKENS):
                 errors.append(f"{label} must not point to localhost in production.")
 
-        if not cors_origins:
-            errors.append("CORS_ORIGINS is empty.")
+        if not cors_origins and not cors_origin_regex:
+            errors.append("CORS_ORIGINS is empty and CORS_ORIGIN_REGEX is not set.")
         for origin in cors_origins:
             if origin == "*":
                 errors.append("CORS_ORIGINS must not contain wildcard '*'.")
@@ -137,6 +138,8 @@ def main() -> int:
                 errors.append(f"CORS origin must use https:// in production: {origin}")
             if has_any_token(origin, LOCALHOST_TOKENS):
                 errors.append(f"CORS origin must not include localhost in production: {origin}")
+        if cors_origin_regex and "localhost" in cors_origin_regex.lower():
+            errors.append("CORS_ORIGIN_REGEX must not allow localhost in production.")
 
         if not allowed_hosts:
             errors.append("ALLOWED_HOSTS is empty.")

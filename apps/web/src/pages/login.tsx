@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { loginlogo } from "../assets/images";
+import { getApiBaseUrl, parseApiError } from "@/lib/apiClient";
 
 interface User {
   username: string;
@@ -44,7 +45,7 @@ const Login: React.FC = () => {
       requestBody.append("client_id", "string");
       requestBody.append("client_secret", "string");
 
-      const API_URL = import.meta.env.VITE_API_URL;
+      const API_URL = getApiBaseUrl();
       
       const response = await fetch(
         `${API_URL}/token`,
@@ -81,20 +82,17 @@ const Login: React.FC = () => {
           setError("Unknown user role");
         }
       } else {
-        const errorData = await response.json();
-        const errorMessage =
-          errorData.detail || "An error occurred during login.";
-        setError(errorMessage);
+        setError(await parseApiError(response, "An error occurred during login."));
       }
     } catch (error) {
       console.error("Error during login:", error);
-      setError("An error occurred during login. Please try again later.");
+      setError(error instanceof Error ? error.message : "An error occurred during login. Please try again later.");
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL;
+      const API_URL = getApiBaseUrl();
       
       const response = await fetch(
         `${API_URL}/auth/google`,
@@ -133,14 +131,11 @@ const Login: React.FC = () => {
           setError("Unknown user role");
         }
       } else {
-        const errorData = await response.json();
-        const errorMessage =
-          errorData.detail || "An error occurred during Google login.";
-        setError(errorMessage);
+        setError(await parseApiError(response, "An error occurred during Google login."));
       }
     } catch (error) {
       console.error("Error during Google login:", error);
-      setError("An error occurred during Google login. Please try again later.");
+      setError(error instanceof Error ? error.message : "An error occurred during Google login. Please try again later.");
     }
   };
 

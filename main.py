@@ -71,10 +71,12 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 # Get allowed origins from environment variable or fallback to configured frontend URL
 cors_origins_str = os.getenv("CORS_ORIGINS", FRONTEND_URL)
 origins = [origin.strip() for origin in cors_origins_str.split(",") if origin.strip()]
+cors_origin_regex = os.getenv("CORS_ORIGIN_REGEX", "").strip() or None
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=cors_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
