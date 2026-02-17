@@ -19,5 +19,6 @@
     "@rollup/rollup-linux-x64-gnu": "^4.56.0",
     "lightningcss-linux-x64-gnu": "^1.30.2",
     "@tailwindcss/oxide-linux-x64-gnu": "^4.1.18"
-  }
+  },
+  "packageManager": "pnpm@10.2.1"
 }
