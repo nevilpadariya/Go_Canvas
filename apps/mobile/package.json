@@ -9,10 +9,11 @@
     "web": "expo start --web",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@gocanvas/shared": "*",
+    "@gocanvas/shared": "workspace:*",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/datetimepicker": "^8.6.0",
     "@react-native-picker/picker": "^2.11.4",
@@ -32,6 +33,7 @@
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^30.0.0",
+    "@types/node": "^24.10.13",
     "@types/react": "~19.1.0",
     "jest": "^30.2.0",
     "typescript": "~5.9.2"

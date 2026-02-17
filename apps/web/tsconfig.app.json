@@ -28,6 +28,12 @@
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
+      "react": [
+        "./node_modules/@types/react"
+      ],
+      "react-dom": [
+        "./node_modules/@types/react-dom"
+      ],
       "@/*": [
         "./src/*"
       ]

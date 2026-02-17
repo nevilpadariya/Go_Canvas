@@ -6,14 +6,14 @@
     "packages/*"
   ],
   "scripts": {
-    "build:web": "npm run build --workspace @gocanvas/web",
-    "lint:web": "npm run lint --workspace @gocanvas/web",
-    "test:web": "npm run test --workspace @gocanvas/web -- --run src/pages/__tests__/student/grades.test.tsx src/utils/__tests__/auth.test.ts",
-    "typecheck:mobile": "npx tsc -p apps/mobile/tsconfig.json --noEmit",
-    "test:mobile": "npm run test --workspace @gocanvas/mobile -- --watch=false --runInBand",
+    "build:web": "pnpm --filter @gocanvas/web run build",
+    "lint:web": "pnpm --filter @gocanvas/web run lint",
+    "test:web": "pnpm --filter @gocanvas/web run test --run src/pages/__tests__/student/grades.test.tsx src/utils/__tests__/auth.test.ts",
+    "typecheck:mobile": "pnpm --filter @gocanvas/mobile exec tsc --noEmit",
+    "test:mobile": "pnpm --filter @gocanvas/mobile run test --watch=false --runInBand",
     "check:backend": "python -m compileall -q alphagocanvas main.py",
     "test:backend": "pytest -q alphagocanvas/tests/test_student.py",
-    "check": "npm run check:backend && npm run test:web && npm run build:web && npm run typecheck:mobile && npm run test:backend"
+    "check": "pnpm run check:backend && pnpm run test:web && pnpm run build:web && pnpm run typecheck:mobile && pnpm run test:backend"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.56.0",
