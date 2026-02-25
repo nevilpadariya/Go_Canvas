@@ -3,7 +3,8 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError
 from sqlalchemy import text
 from starlette import status
 
@@ -44,7 +45,7 @@ async def get_current_user(token: Annotated[str, Depends(_oauth2_scheme)], db: d
             )
         return user
 
-    except JWTError:
+    except InvalidTokenError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail="Could not validate credentials")
 
@@ -106,7 +107,7 @@ def create_token(token: TokenData):
         "exp": int(expires_at.timestamp()),
     }
 
-    encoded_token = jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
+    encoded_token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
     return encoded_token
 
@@ -114,7 +115,7 @@ def create_token(token: TokenData):
 def decode_token(token: str):
     try:
         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError:
+    except InvalidTokenError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
 
     return decoded_token

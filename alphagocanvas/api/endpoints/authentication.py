@@ -3,7 +3,6 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from jose import jwt
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from sqlalchemy import func
