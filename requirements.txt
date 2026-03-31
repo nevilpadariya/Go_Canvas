@@ -1,5 +1,5 @@
 annotated-types
-anyio==3.7.1
+anyio==4.13.0
 async-generator==1.10
 attrs==23.2.0
 certifi>=2024.8.0
