@@ -32,7 +32,7 @@ PyYAML==6.0.1
 requests>=2.32.0
 rsa==4.9
 semantic-version==2.10.0
-six==1.16.0
+six==1.17.0
 sniffio
 sortedcontainers==2.4.0
 SQLAlchemy==2.0.28
