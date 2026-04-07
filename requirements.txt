@@ -20,7 +20,7 @@ passlib==1.7.4
 pathspec==1.0.4
 protobuf>=6.33.4
 pyasn1==0.6.3
-pycparser==2.21
+pycparser==3.0
 pydantic
 pydantic_core
 email-validator
