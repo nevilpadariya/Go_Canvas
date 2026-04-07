@@ -35,7 +35,7 @@ semantic-version==2.10.0
 six==1.17.0
 sniffio
 sortedcontainers==2.4.0
-SQLAlchemy==2.0.28
+SQLAlchemy==2.0.49
 starlette
 termcolor==1.1.0
 trio==0.21.0
