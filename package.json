@@ -16,8 +16,8 @@
     "check": "pnpm run check:backend && pnpm run test:web && pnpm run build:web && pnpm run typecheck:mobile && pnpm run test:backend"
   },
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.60.1",
-    "@tailwindcss/oxide-linux-x64-gnu": "^4.2.2",
+    "@rollup/rollup-linux-x64-gnu": "^4.60.2",
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.2.4",
     "lightningcss-linux-x64-gnu": "^1.32.0"
   },
   "pnpm": {
