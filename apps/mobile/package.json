@@ -14,29 +14,29 @@
   },
   "dependencies": {
     "@gocanvas/shared": "workspace:*",
-    "@react-native-async-storage/async-storage": "^2.2.0",
-    "@react-native-community/datetimepicker": "^8.6.0",
+    "@react-native-async-storage/async-storage": "^3.0.2",
+    "@react-native-community/datetimepicker": "^9.1.0",
     "@react-native-picker/picker": "^2.11.4",
     "@react-navigation/native": "^7.2.2",
-    "@react-navigation/native-stack": "^7.14.10",
-    "expo": "~54.0.33",
-    "expo-status-bar": "~3.0.9",
+    "@react-navigation/native-stack": "^7.14.12",
+    "expo": "~54.0.34",
+    "expo-status-bar": "~55.0.5",
     "jwt-decode": "^4.0.0",
-    "lucide-react-native": "^0.563.0",
-    "react": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-safe-area-context": "~5.6.2",
-    "react-native-screens": "~4.16.0",
+    "lucide-react-native": "^1.11.0",
+    "react": "19.2.5",
+    "react-native": "0.85.2",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.24.0",
     "react-native-svg": "^15.15.4"
   },
   "devDependencies": {
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^13.3.3",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.12.0",
-    "@types/react": "~19.1.17",
+    "@types/node": "^25.6.0",
+    "@types/react": "~19.2.14",
     "jest": "^30.3.0",
-    "typescript": "~5.9.3"
+    "typescript": "~6.0.3"
   },
   "private": true
 }
